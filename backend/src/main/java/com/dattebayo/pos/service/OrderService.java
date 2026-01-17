@@ -1,0 +1,121 @@
+package com.dattebayo.pos.service;
+
+import com.dattebayo.pos.dto.CreateOrderDTO;
+import com.dattebayo.pos.dto.OrderDTO;
+import com.dattebayo.pos.dto.OrderItemDTO;
+import com.dattebayo.pos.model.MenuItem;
+import com.dattebayo.pos.model.Order;
+import com.dattebayo.pos.model.OrderItem;
+import com.dattebayo.pos.repository.MenuItemRepository;
+import com.dattebayo.pos.repository.OrderRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@Transactional
+public class OrderService {
+    
+    @Autowired
+    private OrderRepository orderRepository;
+    
+    @Autowired
+    private MenuItemRepository menuItemRepository;
+    
+    public OrderDTO createOrder(CreateOrderDTO createOrderDTO) {
+        Order order = new Order();
+        order.setTableNumber(createOrderDTO.getTableNumber());
+        order.setNotes(createOrderDTO.getNotes());
+        order.setStatus(Order.OrderStatus.PENDING);
+        
+        for (var itemRequest : createOrderDTO.getItems()) {
+            MenuItem menuItem = menuItemRepository.findById(itemRequest.getMenuItemId())
+                    .orElseThrow(() -> new RuntimeException("Menu item not found: " + itemRequest.getMenuItemId()));
+            
+            if (!menuItem.getAvailable()) {
+                throw new RuntimeException("Menu item is not available: " + menuItem.getName());
+            }
+            
+            OrderItem orderItem = new OrderItem();
+            orderItem.setOrder(order);
+            orderItem.setMenuItem(menuItem);
+            orderItem.setQuantity(itemRequest.getQuantity());
+            orderItem.setPrice(menuItem.getPrice());
+            orderItem.setSpecialInstructions(itemRequest.getSpecialInstructions());
+            
+            order.getItems().add(orderItem);
+        }
+        
+        order = orderRepository.save(order);
+        return convertToDTO(order);
+    }
+    
+    public List<OrderDTO> getAllOrders() {
+        return orderRepository.findAllByOrderByCreatedAtDesc().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+    
+    public List<OrderDTO> getOrdersByStatus(Order.OrderStatus status) {
+        return orderRepository.findByStatusOrderByCreatedAtAsc(status).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+    
+    public List<OrderDTO> getKitchenOrders() {
+        List<Order.OrderStatus> kitchenStatuses = List.of(
+                Order.OrderStatus.PENDING,
+                Order.OrderStatus.PREPARING
+        );
+        return orderRepository.findByStatusInOrderByCreatedAtAsc(kitchenStatuses).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+    
+    public OrderDTO updateOrderStatus(Long orderId, Order.OrderStatus newStatus) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found: " + orderId));
+        
+        order.setStatus(newStatus);
+        order.setUpdatedAt(LocalDateTime.now());
+        order = orderRepository.save(order);
+        
+        return convertToDTO(order);
+    }
+    
+    public OrderDTO getOrderById(Long id) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Order not found: " + id));
+        return convertToDTO(order);
+    }
+    
+    private OrderDTO convertToDTO(Order order) {
+        OrderDTO dto = new OrderDTO();
+        dto.setId(order.getId());
+        dto.setTableNumber(order.getTableNumber());
+        dto.setStatus(order.getStatus());
+        dto.setCreatedAt(order.getCreatedAt());
+        dto.setUpdatedAt(order.getUpdatedAt());
+        dto.setNotes(order.getNotes());
+        
+        double total = 0.0;
+        for (OrderItem item : order.getItems()) {
+            OrderItemDTO itemDTO = new OrderItemDTO();
+            itemDTO.setId(item.getId());
+            itemDTO.setMenuItemId(item.getMenuItem().getId());
+            itemDTO.setMenuItemName(item.getMenuItem().getName());
+            itemDTO.setQuantity(item.getQuantity());
+            itemDTO.setPrice(item.getPrice());
+            itemDTO.setSpecialInstructions(item.getSpecialInstructions());
+            itemDTO.setSubtotal(item.getPrice() * item.getQuantity());
+            total += itemDTO.getSubtotal();
+            dto.getItems().add(itemDTO);
+        }
+        
+        dto.setTotal(total);
+        return dto;
+    }
+}

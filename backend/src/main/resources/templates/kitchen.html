@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kitchen Display System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            color: white;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+        }
+        
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+        
+        .orders-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 20px;
+        }
+        
+        .order-card {
+            background: #2d2d2d;
+            border-radius: 15px;
+            padding: 20px;
+            border-left: 5px solid;
+            transition: all 0.3s;
+        }
+        
+        .order-card.pending {
+            border-left-color: #ffc107;
+        }
+        
+        .order-card.preparing {
+            border-left-color: #17a2b8;
+        }
+        
+        .order-card.ready {
+            border-left-color: #28a745;
+        }
+        
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #444;
+        }
+        
+        .order-id {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .order-table {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        
+        .order-status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .order-status.pending {
+            background: #ffc107;
+            color: #000;
+        }
+        
+        .order-status.preparing {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .order-time {
+            color: #999;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        
+        .order-items {
+            margin: 15px 0;
+        }
+        
+        .order-item {
+            background: #1a1a1a;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .order-item-name {
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+        
+        .order-item-quantity {
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .order-item-instructions {
+            color: #ffc107;
+            font-size: 0.9em;
+            margin-top: 5px;
+            font-style: italic;
+        }
+        
+        .order-notes {
+            background: #1a1a1a;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            color: #ffc107;
+            font-style: italic;
+        }
+        
+        .order-actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .action-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1em;
+        }
+        
+        .action-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .btn-preparing {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .btn-ready {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-complete {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .no-orders {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+            font-size: 1.5em;
+        }
+        
+        .auto-refresh {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #999;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>👨‍🍳 Kitchen Display System</h1>
+        <p>Monitor and manage orders</p>
+    </div>
+    
+    <div class="auto-refresh">
+        Auto-refreshing every 5 seconds...
+    </div>
+    
+    <div class="orders-container" th:if="${orders != null and !orders.isEmpty()}">
+        <div class="order-card" th:each="order : ${orders}" 
+             th:classappend="${order.status.name().toLowerCase()}">
+            <div class="order-header">
+                <div>
+                    <div class="order-id">Order #<span th:text="${order.id}"></span></div>
+                    <div class="order-table" th:text="'Table ' + ${order.tableNumber}"></div>
+                    <div class="order-time" th:text="${#temporals.format(order.createdAt, 'HH:mm:ss')}"></div>
+                </div>
+                <div class="order-status" th:classappend="${order.status.name().toLowerCase()}" 
+                     th:text="${order.status}"></div>
+            </div>
+            
+            <div class="order-items">
+                <div class="order-item" th:each="item : ${order.items}">
+                    <div>
+                        <div class="order-item-name" th:text="${item.menuItemName}"></div>
+                        <div class="order-item-instructions" th:if="${item.specialInstructions != null and !item.specialInstructions.isEmpty()}" 
+                             th:text="'Note: ' + ${item.specialInstructions}"></div>
+                    </div>
+                    <div class="order-item-quantity" th:text="'x' + ${item.quantity}"></div>
+                </div>
+            </div>
+            
+            <div class="order-notes" th:if="${order.notes != null and !order.notes.isEmpty()}" 
+                 th:text="'📝 ' + ${order.notes}"></div>
+            
+            <div class="order-actions">
+                <form th:if="${order.status.name() == 'PENDING'}" 
+                      th:action="@{'/orders/' + ${order.id} + '/status'}" method="post" style="flex: 1;">
+                    <input type="hidden" name="status" value="PREPARING">
+                    <button type="submit" class="action-btn btn-preparing">Start Preparing</button>
+                </form>
+                <form th:if="${order.status.name() == 'PREPARING'}" 
+                      th:action="@{'/orders/' + ${order.id} + '/status'}" method="post" style="flex: 1;">
+                    <input type="hidden" name="status" value="READY">
+                    <button type="submit" class="action-btn btn-ready">Mark Ready</button>
+                </form>
+                <form th:if="${order.status.name() == 'READY'}" 
+                      th:action="@{'/orders/' + ${order.id} + '/status'}" method="post" style="flex: 1;">
+                    <input type="hidden" name="status" value="COMPLETED">
+                    <button type="submit" class="action-btn btn-complete">Complete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="no-orders" th:if="${orders == null or orders.isEmpty()}">
+        🎉 No pending orders! Kitchen is clear.
+    </div>
+    
+    <script>
+        // Auto-refresh every 5 seconds
+        setInterval(function() {
+            location.reload();
+        }, 5000);
+    </script>
+</body>
+</html>

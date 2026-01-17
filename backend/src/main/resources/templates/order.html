@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant POS - Take Order</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            padding: 30px;
+        }
+        
+        .active-orders-section {
+            grid-column: 1 / -1;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .active-orders-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .active-orders-header h2 {
+            color: #333;
+            font-size: 1.5em;
+        }
+        
+        .refresh-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        
+        .refresh-btn:hover {
+            background: #5568d3;
+        }
+        
+        .active-orders-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        
+        .active-order-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .active-order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .active-order-table {
+            font-weight: bold;
+            font-size: 1.2em;
+            color: #333;
+        }
+        
+        .active-order-status {
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .active-order-status.pending {
+            background: #ffc107;
+            color: #000;
+        }
+        
+        .active-order-status.preparing {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .active-order-status.ready {
+            background: #28a745;
+            color: white;
+        }
+        
+        .active-order-items {
+            margin: 10px 0;
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        .active-order-item {
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .active-order-item:last-child {
+            border-bottom: none;
+        }
+        
+        .active-order-total {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #667eea;
+            margin: 10px 0;
+        }
+        
+        .active-order-time {
+            font-size: 0.85em;
+            color: #999;
+            margin-bottom: 10px;
+        }
+        
+        .mark-paid-btn {
+            width: 100%;
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        .mark-paid-btn:hover {
+            background: #218838;
+        }
+        
+        .no-active-orders {
+            text-align: center;
+            padding: 30px;
+            color: #999;
+        }
+        
+        .menu-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        
+        .category-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .category-tab {
+            padding: 10px 20px;
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        
+        .category-tab:hover, .category-tab.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .menu-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .menu-item {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .menu-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+        
+        .menu-item h3 {
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 1.1em;
+        }
+        
+        .menu-item .description {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+        
+        .menu-item .price {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        
+        .order-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .order-form {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+        
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .order-items {
+            flex: 1;
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .order-item:last-child {
+            border-bottom: none;
+        }
+        
+        .order-item-info {
+            flex: 1;
+        }
+        
+        .order-item-name {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .order-item-quantity {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .order-item-price {
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .remove-item {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        
+        .order-total {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        .submit-order {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .submit-order:hover {
+            background: #218838;
+            transform: scale(1.02);
+        }
+        
+        .submit-order:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍽️ Restaurant POS System</h1>
+            <p>Take Orders</p>
+        </div>
+        
+        <div class="content">
+            <div class="active-orders-section">
+                <div class="active-orders-header">
+                    <h2>📋 Active Orders</h2>
+                    <button class="refresh-btn" onclick="refreshActiveOrders()">🔄 Refresh</button>
+                </div>
+                <div class="active-orders-grid" id="activeOrdersGrid">
+                    <div th:if="${activeOrders == null or activeOrders.isEmpty()}" class="no-active-orders">
+                        No active orders
+                    </div>
+                    <div class="active-order-card" th:each="order : ${activeOrders}">
+                        <div class="active-order-header">
+                            <div class="active-order-table" th:text="'Table ' + ${order.tableNumber}"></div>
+                            <div class="active-order-status" 
+                                 th:classappend="${order.status.name().toLowerCase()}"
+                                 th:text="${order.status}"></div>
+                        </div>
+                        <div class="active-order-time" th:text="${#temporals.format(order.createdAt, 'HH:mm')}"></div>
+                        <div class="active-order-items">
+                            <div class="active-order-item" th:each="item : ${order.items}">
+                                <span th:text="${item.quantity} + 'x ' + ${item.menuItemName}"></span>
+                            </div>
+                        </div>
+                        <div class="active-order-total" th:text="'Total: $' + ${#numbers.formatDecimal(order.total, 1, 2)}"></div>
+                        <form th:action="@{'/orders/' + ${order.id} + '/mark-paid'}" method="post">
+                            <button type="submit" class="mark-paid-btn">✓ Mark as Paid</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="menu-section">
+                <div class="category-tabs">
+                    <div class="category-tab active" data-category-filter="all" onclick="filterCategory('all')">All</div>
+                    <div class="category-tab" th:each="category : ${categories}" 
+                         th:attr="data-category-filter=${category}"
+                         onclick="filterCategoryFromData(this)"
+                         th:text="${category}"></div>
+                </div>
+                
+                <div class="menu-items" id="menuItems">
+                    <div class="menu-item" th:each="item : ${menuItems}" 
+                         th:attr="data-category=${item.category}, data-menu-item-id=${item.id}"
+                         onclick="addToOrderFromData(this)">
+                        <h3 th:text="${item.name}"></h3>
+                        <div class="description" th:text="${item.description}"></div>
+                        <div class="price" th:text="'$' + ${#numbers.formatDecimal(item.price, 1, 2)}"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="order-section">
+                <div th:if="${param.success}" class="success-message">
+                    Order placed successfully!
+                </div>
+                <div th:if="${param.paid}" class="success-message">
+                    Order marked as paid!
+                </div>
+                
+                <div class="order-form" id="orderForm">
+                    <div class="form-group">
+                        <label for="tableNumber">Table Number:</label>
+                        <input type="text" id="tableNumber" required placeholder="e.g., Table 1">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Order Items:</label>
+                        <div class="order-items" id="orderItems">
+                            <p style="text-align: center; color: #999; padding: 20px;">No items in order</p>
+                        </div>
+                    </div>
+                    
+                    <div class="order-total" id="orderTotal">
+                        Total: $0.00
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="notes">Notes (optional):</label>
+                        <textarea id="notes" rows="3" placeholder="Special instructions..."></textarea>
+                    </div>
+                    
+                    <button type="button" class="submit-order" id="submitBtn" onclick="submitOrder()" disabled>Place Order</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script th:inline="javascript">
+        const menuItems = /*[[${menuItems}]]*/ [];
+        let orderItems = [];
+        
+        function filterCategory(category) {
+            document.querySelectorAll('.category-tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const items = document.querySelectorAll('.menu-item');
+            items.forEach(item => {
+                if (category === 'all' || item.getAttribute('data-category') === category) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+        
+        function filterCategoryFromData(element) {
+            const category = element.getAttribute('data-category-filter');
+            document.querySelectorAll('.category-tab').forEach(tab => tab.classList.remove('active'));
+            element.classList.add('active');
+            
+            const items = document.querySelectorAll('.menu-item');
+            items.forEach(item => {
+                if (category === 'all' || item.getAttribute('data-category') === category) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+        
+        function addToOrder(menuItemId) {
+            const menuItem = menuItems.find(item => item.id === menuItemId);
+            if (!menuItem) return;
+            
+            const existingItem = orderItems.find(item => item.menuItemId === menuItemId);
+            if (existingItem) {
+                existingItem.quantity++;
+            } else {
+                orderItems.push({
+                    menuItemId: menuItemId,
+                    quantity: 1,
+                    name: menuItem.name,
+                    price: menuItem.price
+                });
+            }
+            
+            updateOrderDisplay();
+        }
+        
+        function addToOrderFromData(element) {
+            const menuItemId = parseInt(element.getAttribute('data-menu-item-id'));
+            addToOrder(menuItemId);
+        }
+        
+        function removeFromOrder(index) {
+            orderItems.splice(index, 1);
+            updateOrderDisplay();
+        }
+        
+        function updateOrderDisplay() {
+            const orderItemsDiv = document.getElementById('orderItems');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            if (orderItems.length === 0) {
+                orderItemsDiv.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No items in order</p>';
+                submitBtn.disabled = true;
+            } else {
+                orderItemsDiv.innerHTML = orderItems.map((item, index) => `
+                    <div class="order-item">
+                        <div class="order-item-info">
+                            <div class="order-item-name">${item.name}</div>
+                            <div class="order-item-quantity">Qty: ${item.quantity}</div>
+                        </div>
+                        <div class="order-item-price">$${(item.price * item.quantity).toFixed(2)}</div>
+                        <button type="button" class="remove-item" onclick="removeFromOrder(${index})">Remove</button>
+                    </div>
+                `).join('');
+                submitBtn.disabled = false;
+            }
+            
+            const total = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            document.getElementById('orderTotal').textContent = `Total: $${total.toFixed(2)}`;
+        }
+        
+        function submitOrder() {
+            const tableNumber = document.getElementById('tableNumber').value.trim();
+            const notes = document.getElementById('notes').value.trim();
+            
+            if (!tableNumber) {
+                alert('Please enter a table number');
+                return;
+            }
+            
+            if (orderItems.length === 0) {
+                alert('Please add at least one item to the order');
+                return;
+            }
+            
+            const orderData = {
+                tableNumber: tableNumber,
+                notes: notes,
+                items: orderItems.map(item => ({
+                    menuItemId: item.menuItemId,
+                    quantity: item.quantity,
+                    specialInstructions: item.specialInstructions || ''
+                }))
+            };
+            
+            fetch('/api/orders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(orderData)
+            })
+            .then(async response => {
+                if (response.ok) {
+                    // Reset form
+                    orderItems = [];
+                    document.getElementById('tableNumber').value = '';
+                    document.getElementById('notes').value = '';
+                    updateOrderDisplay();
+                    window.location.href = '/?success=true';
+                } else {
+                    let errorMessage = 'Error placing order. Please try again.';
+                    try {
+                        const errorData = await response.json();
+                        if (errorData.error) {
+                            errorMessage = 'Error: ' + errorData.error;
+                        } else if (errorData.message) {
+                            errorMessage = 'Error: ' + errorData.message;
+                        }
+                    } catch (e) {
+                        // If response is not JSON, use default message
+                    }
+                    alert(errorMessage);
+                    console.error('Order submission failed:', response.status, response.statusText);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Network error: ' + error.message);
+            });
+        }
+        
+        function refreshActiveOrders() {
+            location.reload();
+        }
+        
+        // Auto-refresh active orders every 10 seconds
+        setInterval(function() {
+            refreshActiveOrders();
+        }, 10000);
+    </script>
+</body>
+</html>

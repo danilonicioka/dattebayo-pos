@@ -14,17 +14,26 @@
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #080502;
-            color: white;
+            background: linear-gradient(135deg, #ee8b1b 0%, #ebad1c 100%);
+            min-height: 100vh;
             padding: 20px;
         }
         
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
         .header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 20px;
             background: linear-gradient(135deg, #ee8b1b 0%, #ebad1c 100%);
-            border-radius: 10px;
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
         }
         
         .header img {
@@ -34,12 +43,16 @@
         }
         
         .header h1 {
-            font-size: 3em;
+            font-size: 2.5em;
             margin-bottom: 10px;
         }
         
         .header h1 i {
             margin-right: 10px;
+        }
+        
+        .content {
+            padding: 30px;
         }
         
         .orders-container {
@@ -49,10 +62,11 @@
         }
         
         .order-card {
-            background: #223c0e;
+            background: white;
             border-radius: 15px;
             padding: 20px;
             border-left: 5px solid;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             transition: all 0.3s;
         }
         
@@ -74,7 +88,7 @@
             align-items: center;
             margin-bottom: 15px;
             padding-bottom: 15px;
-            border-bottom: 2px solid #444;
+            border-bottom: 2px solid #eee;
         }
         
         .order-id {
@@ -86,6 +100,7 @@
         .order-table {
             font-size: 1.5em;
             font-weight: bold;
+            color: #333;
         }
         
         .order-status {
@@ -107,7 +122,7 @@
         }
         
         .order-time {
-            color: #999;
+            color: #666;
             font-size: 0.9em;
             margin-top: 5px;
         }
@@ -117,10 +132,11 @@
         }
         
         .order-item {
-            background: #080502;
+            background: #f8f9fa;
             padding: 12px;
             margin-bottom: 10px;
             border-radius: 8px;
+            border-left: 3px solid #ee8b1b;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -129,6 +145,7 @@
         .order-item-name {
             font-weight: 600;
             font-size: 1.1em;
+            color: #333;
         }
         
         .order-item-quantity {
@@ -141,7 +158,7 @@
         }
         
         .order-item-instructions {
-            color: #ebad1c;
+            color: #666;
             font-size: 0.9em;
             margin-top: 5px;
             font-style: italic;
@@ -164,12 +181,13 @@
         }
         
         .order-notes {
-            background: #080502;
+            background: #f8f9fa;
             padding: 10px;
             border-radius: 8px;
             margin-top: 10px;
-            color: #ebad1c;
+            color: #666;
             font-style: italic;
+            border-left: 3px solid #ebad1c;
         }
         
         .order-notes i {
@@ -226,23 +244,25 @@
         .auto-refresh {
             text-align: center;
             margin-bottom: 20px;
-            color: #999;
+            color: #666;
             font-size: 0.9em;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <img th:src="@{/dattebayo-logo.png}" alt="Dattebayo Logo" />
-        <h1><i class="fas fa-utensils"></i> Kitchen Display System</h1>
-        <p>Monitor and manage orders</p>
-    </div>
-    
-    <div class="auto-refresh">
-        Auto-refreshing every 5 seconds...
-    </div>
-    
-    <div class="orders-container" th:if="${orders != null and !orders.isEmpty()}">
+    <div class="container">
+        <div class="header">
+            <img th:src="@{/dattebayo-logo.png}" alt="Dattebayo Logo" />
+            <h1><i class="fas fa-utensils"></i> Kitchen Display System</h1>
+            <p>Monitor and manage orders</p>
+        </div>
+        
+        <div class="content">
+            <div class="auto-refresh">
+                Auto-refreshing every 5 seconds...
+            </div>
+            
+            <div class="orders-container" th:if="${orders != null and !orders.isEmpty()}">
         <div class="order-card" th:each="order : ${orders}" 
              th:classappend="${order.status.name().toLowerCase()}">
             <div class="order-header">
@@ -293,10 +313,12 @@
                 </form>
             </div>
         </div>
-    </div>
-    
-    <div class="no-orders" th:if="${orders == null or orders.isEmpty()}">
-        <i class="fas fa-check-circle"></i> No pending orders! Kitchen is clear.
+            </div>
+            
+            <div class="no-orders" th:if="${orders == null or orders.isEmpty()}">
+                <i class="fas fa-check-circle"></i> No pending orders! Kitchen is clear.
+            </div>
+        </div>
     </div>
     
     <script>

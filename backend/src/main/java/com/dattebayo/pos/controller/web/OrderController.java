@@ -41,6 +41,13 @@ public class OrderController {
         return "new-order";
     }
     
+    @GetMapping("/kitchen")
+    public String kitchenPage(Model model) {
+        List<OrderDTO> kitchenOrders = orderService.getKitchenOrders();
+        model.addAttribute("orders", kitchenOrders);
+        return "kitchen";
+    }
+    
     @GetMapping("/orders/{id}/edit")
     public String editOrderPage(@PathVariable Long id, Model model) {
         OrderDTO order = orderService.getOrderById(id);

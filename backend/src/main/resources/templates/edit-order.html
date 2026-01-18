@@ -643,11 +643,23 @@
                         const inputType = type === 'MULTIPLE' ? 'checkbox' : 'checkbox';
                         const inputId = `variation-${variation.id}`;
 
+                        // Determine display price
+                        let displayPrice = '';
+                        if (selectedMenuItem.category === 'Brazilian' && selectedMenuItem.name === 'Pastel') {
+                            if (variation.name === 'Paraense') {
+                                displayPrice = '+8.00';
+                            } else {
+                                displayPrice = '+2.00';
+                            }
+                        } else if (variation.additionalPrice > 0) {
+                            displayPrice = `+${variation.additionalPrice.toFixed(2)}`;
+                        }
+
                         optionDiv.innerHTML = `
                             <input type="${inputType}" id="${inputId}"
                                    onchange="toggleVariation(${variation.id}, '${type}', this.checked)">
                             <label for="${inputId}">${variation.name}</label>
-                            ${variation.additionalPrice > 0 ? `<span class="variation-price">+$${variation.additionalPrice.toFixed(2)}</span>` : ''}
+                            ${displayPrice ? `<span class="variation-price">$${displayPrice}</span>` : ''}
                         `;
 
                         groupDiv.appendChild(optionDiv);
@@ -671,18 +683,6 @@
         }
 
         function toggleVariation(variationId, type, checked) {
-            if (type === 'SINGLE') {
-                // For single type, uncheck others in the same group
-                const group = document.querySelector(`input[id="variation-${variationId}"]`).closest('.variation-group');
-                group.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-                    if (cb.id !== `variation-${variationId}`) {
-                        cb.checked = false;
-                        const otherId = parseInt(cb.id.replace('variation-', ''));
-                        delete selectedVariations[otherId];
-                    }
-                });
-            }
-
             if (checked) {
                 selectedVariations[variationId] = true;
             } else {
@@ -709,22 +709,18 @@
                     finalPrice += 2.00; // Add $2 for shrimp
                 }
             } else if (selectedMenuItem.category === 'Brazilian' && selectedMenuItem.name === 'Pastel') {
-                // Pastel importance-based pricing
-                const selectedVariationsData = selectedVariationIds.map(id => 
-                    selectedMenuItem.variations.find(v => v.id === id)
-                ).filter(v => v); // Remove nulls
-
-                if (selectedVariationsData.length > 0) {
-                    // Find the variation with highest importance
-                    const maxImportance = Math.max(...selectedVariationsData.map(v => v.importance));
-
-                    // Lower importance variations add $2 each
-                    selectedVariationsData.forEach(variation => {
-                        if (variation.importance < maxImportance) {
+                // Pastel pricing: base $0, variations add their cost
+                // Paraense: +$8, every other variation: +$2
+                selectedVariationIds.forEach(id => {
+                    const variationData = selectedMenuItem.variations.find(v => v.id === id);
+                    if (variationData) {
+                        if (variationData.name === 'Paraense') {
+                            finalPrice += 8.00;
+                        } else {
                             finalPrice += 2.00;
                         }
-                    });
-                }
+                    }
+                });
             } else {
                 // Default logic for other items
                 selectedVariationIds.forEach(id => {

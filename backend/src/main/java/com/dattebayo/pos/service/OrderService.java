@@ -66,37 +66,19 @@ public class OrderService {
                         addVariationToOrderItem(orderItem, variationRequest);
                     }
                 } else if ("Brazilian".equals(menuItem.getCategory()) && "Pastel".equals(menuItem.getName())) {
-                    // Pastel: importance-based pricing
-                    List<MenuItemVariation> selectedVariations = itemRequest.getVariations().stream()
-                            .filter(OrderItemVariationRequestDTO::getSelected)
-                            .map(v -> menuItemVariationRepository.findById(v.getMenuItemVariationId()))
-                            .filter(Optional::isPresent)
-                            .map(Optional::get)
-                            .collect(Collectors.toList());
-
-                    if (!selectedVariations.isEmpty()) {
-                        // Find the variation with highest importance
-                        int maxImportance = selectedVariations.stream()
-                                .mapToInt(MenuItemVariation::getImportance)
-                                .max()
-                                .orElse(0);
-
-                        // Check if Paraense is selected (includes cheese)
-                        boolean hasParaense = selectedVariations.stream()
-                                .anyMatch(v -> "Paraense".equals(v.getName()));
-
-                        // Add $2 for each variation with lower importance than the max
-                        // Except cheese when Paraense is selected
-                        long lowerImportanceCount = selectedVariations.stream()
-                                .filter(v -> v.getImportance() < maxImportance)
-                                .filter(v -> !(hasParaense && "Cheese".equals(v.getName())))
-                                .count();
-
-                        orderItem.setPrice(orderItem.getPrice() + (lowerImportanceCount * 2.00));
-                    }
-
-                    // Add all variations to the order item
+                    // Pastel pricing: base $0, variations add their cost
+                    // Paraense: +$8, every other variation: +$2
                     for (var variationRequest : itemRequest.getVariations()) {
+                        if (variationRequest.getSelected()) {
+                            MenuItemVariation variation = menuItemVariationRepository.findById(variationRequest.getMenuItemVariationId())
+                                    .orElseThrow(() -> new RuntimeException("Menu item variation not found: " + variationRequest.getMenuItemVariationId()));
+                            
+                            if ("Paraense".equals(variation.getName())) {
+                                orderItem.setPrice(orderItem.getPrice() + 8.00);
+                            } else {
+                                orderItem.setPrice(orderItem.getPrice() + 2.00);
+                            }
+                        }
                         addVariationToOrderItem(orderItem, variationRequest);
                     }
                 } else {
@@ -195,7 +177,7 @@ public class OrderService {
             if ("Japanese".equals(item.getMenuItem().getCategory()) && "Tempura".equals(item.getMenuItem().getName())) {
                 // Special naming for Tempura
                 boolean hasShrimp = selectedVariationNames.contains("With Shrimp");
-                displayName = hasShrimp ? "Tempura" : "Tempura without shrimp";
+                displayName = hasShrimp ? "Tempura with Shrimp" : "Tempura with Vegetables";
             } else {
                 displayName = selectedVariationNames.isEmpty()
                         ? item.getMenuItem().getName()
@@ -284,37 +266,19 @@ public class OrderService {
                         addVariationToOrderItem(orderItem, variationRequest);
                     }
                 } else if ("Brazilian".equals(menuItem.getCategory()) && "Pastel".equals(menuItem.getName())) {
-                    // Pastel: importance-based pricing
-                    List<MenuItemVariation> selectedVariations = itemRequest.getVariations().stream()
-                            .filter(OrderItemVariationRequestDTO::getSelected)
-                            .map(v -> menuItemVariationRepository.findById(v.getMenuItemVariationId()))
-                            .filter(Optional::isPresent)
-                            .map(Optional::get)
-                            .collect(Collectors.toList());
-
-                    if (!selectedVariations.isEmpty()) {
-                        // Find the variation with highest importance
-                        // Check if Paraense is selected (includes cheese)
-                        boolean hasParaense = selectedVariations.stream()
-                                .anyMatch(v -> "Paraense".equals(v.getName()));
-
-                        // Add $2 for each variation with lower importance than the max
-                        // Except cheese when Paraense is selected
-                        long lowerImportanceCount = selectedVariations.stream()
-                                .filter(v -> v.getImportance() < maxImportance)
-                                .filter(v -> !(hasParaense && "Cheese".equals(v.getName())))
-                                .count();
-                        // Add $2 for each variation with lower importance than the max
-                        long lowerImportanceCount = selectedVariations.stream()
-                                .mapToInt(MenuItemVariation::getImportance)
-                                .filter(importance -> importance < maxImportance)
-                                .count();
-
-                        orderItem.setPrice(orderItem.getPrice() + (lowerImportanceCount * 2.00));
-                    }
-
-                    // Add all variations to the order item
+                    // Pastel pricing: base $0, variations add their cost
+                    // Paraense: +$8, every other variation: +$2
                     for (var variationRequest : itemRequest.getVariations()) {
+                        if (variationRequest.getSelected()) {
+                            MenuItemVariation variation = menuItemVariationRepository.findById(variationRequest.getMenuItemVariationId())
+                                    .orElseThrow(() -> new RuntimeException("Menu item variation not found: " + variationRequest.getMenuItemVariationId()));
+                            
+                            if ("Paraense".equals(variation.getName())) {
+                                orderItem.setPrice(orderItem.getPrice() + 8.00);
+                            } else {
+                                orderItem.setPrice(orderItem.getPrice() + 2.00);
+                            }
+                        }
                         addVariationToOrderItem(orderItem, variationRequest);
                     }
                 } else {

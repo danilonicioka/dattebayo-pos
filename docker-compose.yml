@@ -1,6 +1,7 @@
 services:
   postgres:
     image: postgres:15-alpine
+    restart: always
     container_name: dattebayo-postgres
     environment:
       POSTGRES_DB: restaurant_pos
@@ -21,6 +22,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: dattebayo-backend
+    restart: always
     ports:
       - "8080:8080"
     environment:

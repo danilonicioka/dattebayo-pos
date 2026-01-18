@@ -2,6 +2,8 @@ package com.dattebayo.pos.dto;
 
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class OrderItemDTO {
     private Long id;
@@ -11,4 +13,5 @@ public class OrderItemDTO {
     private Double price;
     private String specialInstructions;
     private Double subtotal;
+    private List<OrderItemVariationDTO> variations;
 }

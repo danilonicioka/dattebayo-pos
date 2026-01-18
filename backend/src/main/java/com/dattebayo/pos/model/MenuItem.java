@@ -5,6 +5,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "menu_items")
 @Data
@@ -29,4 +32,7 @@ public class MenuItem {
     
     @Column(nullable = false)
     private Boolean available = true;
+
+    @OneToMany(mappedBy = "menuItem", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MenuItemVariation> variations = new ArrayList<>();
 }

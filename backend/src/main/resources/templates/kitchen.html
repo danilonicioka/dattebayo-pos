@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kitchen Display System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -13,7 +14,7 @@
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #1a1a1a;
+            background: #080502;
             color: white;
             padding: 20px;
         }
@@ -22,13 +23,23 @@
             text-align: center;
             margin-bottom: 30px;
             padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #ee8b1b 0%, #ebad1c 100%);
             border-radius: 10px;
+        }
+        
+        .header img {
+            max-width: 150px;
+            height: auto;
+            margin-bottom: 20px;
         }
         
         .header h1 {
             font-size: 3em;
             margin-bottom: 10px;
+        }
+        
+        .header h1 i {
+            margin-right: 10px;
         }
         
         .orders-container {
@@ -38,7 +49,7 @@
         }
         
         .order-card {
-            background: #2d2d2d;
+            background: #223c0e;
             border-radius: 15px;
             padding: 20px;
             border-left: 5px solid;
@@ -46,15 +57,15 @@
         }
         
         .order-card.pending {
-            border-left-color: #ffc107;
+            border-left-color: #ebad1c;
         }
         
         .order-card.preparing {
-            border-left-color: #17a2b8;
+            border-left-color: #ee8b1b;
         }
         
         .order-card.ready {
-            border-left-color: #28a745;
+            border-left-color: #223c0e;
         }
         
         .order-header {
@@ -69,7 +80,7 @@
         .order-id {
             font-size: 1.2em;
             font-weight: bold;
-            color: #667eea;
+            color: #ee8b1b;
         }
         
         .order-table {
@@ -86,12 +97,12 @@
         }
         
         .order-status.pending {
-            background: #ffc107;
+            background: #ebad1c;
             color: #000;
         }
         
         .order-status.preparing {
-            background: #17a2b8;
+            background: #ee8b1b;
             color: white;
         }
         
@@ -106,7 +117,7 @@
         }
         
         .order-item {
-            background: #1a1a1a;
+            background: #080502;
             padding: 12px;
             margin-bottom: 10px;
             border-radius: 8px;
@@ -121,7 +132,7 @@
         }
         
         .order-item-quantity {
-            background: #667eea;
+            background: #ee8b1b;
             color: white;
             padding: 5px 12px;
             border-radius: 20px;
@@ -130,19 +141,39 @@
         }
         
         .order-item-instructions {
-            color: #ffc107;
+            color: #ebad1c;
             font-size: 0.9em;
             margin-top: 5px;
             font-style: italic;
         }
         
+        .order-item-variations {
+            color: #ee8b1b;
+            font-size: 0.9em;
+            margin-top: 3px;
+        }
+        
+        .order-item-variations span {
+            display: inline-block;
+            margin-right: 8px;
+            margin-bottom: 2px;
+        }
+        
+        .order-item-variations i {
+            margin-right: 3px;
+        }
+        
         .order-notes {
-            background: #1a1a1a;
+            background: #080502;
             padding: 10px;
             border-radius: 8px;
             margin-top: 10px;
-            color: #ffc107;
+            color: #ebad1c;
             font-style: italic;
+        }
+        
+        .order-notes i {
+            margin-right: 5px;
         }
         
         .order-actions {
@@ -167,17 +198,17 @@
         }
         
         .btn-preparing {
-            background: #17a2b8;
+            background: #ee8b1b;
             color: white;
         }
         
         .btn-ready {
-            background: #28a745;
+            background: #223c0e;
             color: white;
         }
         
         .btn-complete {
-            background: #6c757d;
+            background: #080502;
             color: white;
         }
         
@@ -186,6 +217,10 @@
             padding: 50px;
             color: #666;
             font-size: 1.5em;
+        }
+        
+        .no-orders i {
+            margin-right: 10px;
         }
         
         .auto-refresh {
@@ -198,7 +233,8 @@
 </head>
 <body>
     <div class="header">
-        <h1>👨‍🍳 Kitchen Display System</h1>
+        <img th:src="@{/dattebayo-logo.png}" alt="Dattebayo Logo" />
+        <h1><i class="fas fa-utensils"></i> Kitchen Display System</h1>
         <p>Monitor and manage orders</p>
     </div>
     
@@ -223,6 +259,11 @@
                 <div class="order-item" th:each="item : ${order.items}">
                     <div>
                         <div class="order-item-name" th:text="${item.menuItemName}"></div>
+                        <div class="order-item-variations" th:if="${item.variations != null and !item.variations.isEmpty()}">
+                            <span th:each="variation : ${item.variations}" th:if="${variation.selected}">
+                                <i class="fas fa-check"></i> <span th:text="${variation.name}"></span>
+                            </span>
+                        </div>
                         <div class="order-item-instructions" th:if="${item.specialInstructions != null and !item.specialInstructions.isEmpty()}" 
                              th:text="'Note: ' + ${item.specialInstructions}"></div>
                     </div>
@@ -230,8 +271,9 @@
                 </div>
             </div>
             
-            <div class="order-notes" th:if="${order.notes != null and !order.notes.isEmpty()}" 
-                 th:text="'📝 ' + ${order.notes}"></div>
+            <div class="order-notes" th:if="${order.notes != null and !order.notes.isEmpty()}">
+                <i class="fas fa-sticky-note"></i> <span th:text="${order.notes}"></span>
+            </div>
             
             <div class="order-actions">
                 <form th:if="${order.status.name() == 'PENDING'}" 
@@ -254,7 +296,7 @@
     </div>
     
     <div class="no-orders" th:if="${orders == null or orders.isEmpty()}">
-        🎉 No pending orders! Kitchen is clear.
+        <i class="fas fa-check-circle"></i> No pending orders! Kitchen is clear.
     </div>
     
     <script>

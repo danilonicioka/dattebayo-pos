@@ -2,7 +2,7 @@ package com.dattebayo.pos.controller.web;
 
 import com.dattebayo.pos.dto.CreateOrderDTO;
 import com.dattebayo.pos.dto.OrderDTO;
-import com.dattebayo.pos.model.MenuItem;
+import com.dattebayo.pos.dto.MenuItemDTO;
 import com.dattebayo.pos.model.Order;
 import com.dattebayo.pos.service.MenuItemService;
 import com.dattebayo.pos.service.OrderService;
@@ -24,29 +24,39 @@ public class OrderController {
     
     @GetMapping
     public String orderPage(Model model) {
-        List<MenuItem> menuItems = menuItemService.getAvailableMenuItems();
-        List<String> categories = menuItemService.getAllCategories();
         // Get active orders (not completed/paid)
         List<OrderDTO> activeOrders = orderService.getAllOrders().stream()
                 .filter(order -> order.getStatus() != Order.OrderStatus.COMPLETED)
                 .toList();
-        model.addAttribute("menuItems", menuItems);
-        model.addAttribute("categories", categories);
         model.addAttribute("activeOrders", activeOrders);
         return "order";
     }
     
-    @GetMapping("/kitchen")
-    public String kitchenDisplay(Model model) {
-        List<OrderDTO> kitchenOrders = orderService.getKitchenOrders();
-        model.addAttribute("orders", kitchenOrders);
-        return "kitchen";
+    @GetMapping("/new-order")
+    public String newOrderPage(Model model) {
+        List<MenuItemDTO> menuItems = menuItemService.getAvailableMenuItems();
+        List<String> categories = menuItemService.getAllCategories();
+        model.addAttribute("menuItems", menuItems);
+        model.addAttribute("categories", categories);
+        return "new-order";
+    }
+    
+    @GetMapping("/orders/{id}/edit")
+    public String editOrderPage(@PathVariable Long id, Model model) {
+        OrderDTO order = orderService.getOrderById(id);
+        List<MenuItemDTO> menuItems = menuItemService.getAvailableMenuItems();
+        List<String> categories = menuItemService.getAllCategories();
+        
+        model.addAttribute("order", order);
+        model.addAttribute("menuItems", menuItems);
+        model.addAttribute("categories", categories);
+        return "edit-order";
     }
     
     @PostMapping("/orders")
     public String createOrder(@ModelAttribute CreateOrderDTO createOrderDTO) {
         orderService.createOrder(createOrderDTO);
-        return "redirect:/?success=true";
+        return "redirect:/new-order?success=true";
     }
     
     @PostMapping("/orders/{id}/status")
@@ -68,5 +78,15 @@ public class OrderController {
             // Handle error
         }
         return "redirect:/?paid=true";
+    }
+    
+    @PostMapping("/orders/{id}/update")
+    public String updateOrder(@PathVariable Long id, @ModelAttribute CreateOrderDTO createOrderDTO) {
+        try {
+            orderService.updateOrder(id, createOrderDTO);
+        } catch (Exception e) {
+            // Handle error
+        }
+        return "redirect:/?updated=true";
     }
 }

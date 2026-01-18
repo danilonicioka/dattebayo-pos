@@ -1,5 +1,6 @@
 package com.dattebayo.pos.controller.api;
 
+import com.dattebayo.pos.dto.MenuItemDTO;
 import com.dattebayo.pos.model.MenuItem;
 import com.dattebayo.pos.service.MenuItemService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,17 +18,17 @@ public class MenuItemApiController {
     private MenuItemService menuItemService;
     
     @GetMapping
-    public ResponseEntity<List<MenuItem>> getAllMenuItems() {
+    public ResponseEntity<List<MenuItemDTO>> getAllMenuItems() {
         return ResponseEntity.ok(menuItemService.getAllMenuItems());
     }
     
     @GetMapping("/available")
-    public ResponseEntity<List<MenuItem>> getAvailableMenuItems() {
+    public ResponseEntity<List<MenuItemDTO>> getAvailableMenuItems() {
         return ResponseEntity.ok(menuItemService.getAvailableMenuItems());
     }
     
     @GetMapping("/category/{category}")
-    public ResponseEntity<List<MenuItem>> getMenuItemsByCategory(@PathVariable String category) {
+    public ResponseEntity<List<MenuItemDTO>> getMenuItemsByCategory(@PathVariable String category) {
         return ResponseEntity.ok(menuItemService.getMenuItemsByCategory(category));
     }
     

@@ -5,6 +5,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "order_items")
 @Data
@@ -31,4 +34,7 @@ public class OrderItem {
     
     @Column(length = 200)
     private String specialInstructions;
+
+    @OneToMany(mappedBy = "orderItem", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderItemVariation> variations = new ArrayList<>();
 }

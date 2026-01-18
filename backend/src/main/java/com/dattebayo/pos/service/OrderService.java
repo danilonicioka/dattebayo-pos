@@ -1,13 +1,8 @@
 package com.dattebayo.pos.service;
 
-import com.dattebayo.pos.dto.CreateOrderDTO;
-import com.dattebayo.pos.dto.OrderDTO;
-import com.dattebayo.pos.dto.OrderItemDTO;
-import com.dattebayo.pos.model.MenuItem;
-import com.dattebayo.pos.model.Order;
-import com.dattebayo.pos.model.OrderItem;
-import com.dattebayo.pos.repository.MenuItemRepository;
-import com.dattebayo.pos.repository.OrderRepository;
+import com.dattebayo.pos.dto.*;
+import com.dattebayo.pos.model.*;
+import com.dattebayo.pos.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +19,12 @@ public class OrderService {
     
     @Autowired
     private MenuItemRepository menuItemRepository;
+    
+    @Autowired
+    private MenuItemVariationRepository menuItemVariationRepository;
+    
+    @Autowired
+    private OrderItemVariationRepository orderItemVariationRepository;
     
     public OrderDTO createOrder(CreateOrderDTO createOrderDTO) {
         Order order = new Order();
@@ -45,6 +46,31 @@ public class OrderService {
             orderItem.setQuantity(itemRequest.getQuantity());
             orderItem.setPrice(menuItem.getPrice());
             orderItem.setSpecialInstructions(itemRequest.getSpecialInstructions());
+            
+            // Handle variations
+            if (itemRequest.getVariations() != null) {
+                for (var variationRequest : itemRequest.getVariations()) {
+                    MenuItemVariation variation = menuItemVariationRepository.findById(variationRequest.getMenuItemVariationId())
+                            .orElseThrow(() -> new RuntimeException("Menu item variation not found: " + variationRequest.getMenuItemVariationId()));
+                    
+                    // Validate that the variation belongs to the menu item
+                    if (!variation.getMenuItem().getId().equals(menuItem.getId())) {
+                        throw new RuntimeException("Variation does not belong to the selected menu item");
+                    }
+                    
+                    OrderItemVariation orderItemVariation = new OrderItemVariation();
+                    orderItemVariation.setOrderItem(orderItem);
+                    orderItemVariation.setMenuItemVariation(variation);
+                    orderItemVariation.setSelected(variationRequest.getSelected());
+                    
+                    orderItem.getVariations().add(orderItemVariation);
+                    
+                    // Add additional price if variation is selected
+                    if (variationRequest.getSelected()) {
+                        orderItem.setPrice(orderItem.getPrice() + variation.getAdditionalPrice());
+                    }
+                }
+            }
             
             order.getItems().add(orderItem);
         }
@@ -111,11 +137,88 @@ public class OrderService {
             itemDTO.setPrice(item.getPrice());
             itemDTO.setSpecialInstructions(item.getSpecialInstructions());
             itemDTO.setSubtotal(item.getPrice() * item.getQuantity());
+            
+            // Convert variations
+            List<OrderItemVariationDTO> variationDTOs = item.getVariations().stream()
+                    .map(variation -> {
+                        OrderItemVariationDTO variationDTO = new OrderItemVariationDTO();
+                        variationDTO.setId(variation.getId());
+                        variationDTO.setName(variation.getMenuItemVariation().getName());
+                        variationDTO.setType(variation.getMenuItemVariation().getType());
+                        variationDTO.setAdditionalPrice(variation.getMenuItemVariation().getAdditionalPrice());
+                        variationDTO.setSelected(variation.getSelected());
+                        return variationDTO;
+                    })
+                    .collect(Collectors.toList());
+            itemDTO.setVariations(variationDTOs);
+            
             total += itemDTO.getSubtotal();
             dto.getItems().add(itemDTO);
         }
         
         dto.setTotal(total);
         return dto;
+    }
+    
+    public OrderDTO updateOrder(Long orderId, CreateOrderDTO createOrderDTO) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found: " + orderId));
+        
+        // Only allow updating orders that are not completed
+        if (order.getStatus() == Order.OrderStatus.COMPLETED) {
+            throw new RuntimeException("Cannot update a completed order");
+        }
+        
+        // Update basic order info
+        order.setTableNumber(createOrderDTO.getTableNumber());
+        order.setNotes(createOrderDTO.getNotes());
+        
+        // Clear existing order items and variations
+        for (OrderItem item : order.getItems()) {
+            orderItemVariationRepository.deleteAll(item.getVariations());
+        }
+        order.getItems().clear();
+        
+        // Add new order items
+        for (var itemRequest : createOrderDTO.getItems()) {
+            MenuItem menuItem = menuItemRepository.findById(itemRequest.getMenuItemId())
+                    .orElseThrow(() -> new RuntimeException("Menu item not found: " + itemRequest.getMenuItemId()));
+            
+            if (!menuItem.getAvailable()) {
+                throw new RuntimeException("Menu item is not available: " + menuItem.getName());
+            }
+            
+            OrderItem orderItem = new OrderItem();
+            orderItem.setOrder(order);
+            orderItem.setMenuItem(menuItem);
+            orderItem.setQuantity(itemRequest.getQuantity());
+            orderItem.setPrice(menuItem.getPrice());
+            orderItem.setSpecialInstructions(itemRequest.getSpecialInstructions());
+            
+            // Handle variations
+            if (itemRequest.getVariations() != null) {
+                for (var variationRequest : itemRequest.getVariations()) {
+                    if (variationRequest.getSelected()) {
+                        MenuItemVariation variation = menuItemVariationRepository.findById(variationRequest.getMenuItemVariationId())
+                                .orElseThrow(() -> new RuntimeException("Variation not found: " + variationRequest.getMenuItemVariationId()));
+                        
+                        OrderItemVariation orderItemVariation = new OrderItemVariation();
+                        orderItemVariation.setOrderItem(orderItem);
+                        orderItemVariation.setMenuItemVariation(variation);
+                        orderItemVariation.setSelected(true);
+                        
+                        orderItem.getVariations().add(orderItemVariation);
+                        orderItem.setPrice(orderItem.getPrice() + variation.getAdditionalPrice());
+                    }
+                }
+            }
+            
+            order.getItems().add(orderItem);
+        }
+        
+        order.setUpdatedAt(LocalDateTime.now());
+        Order savedOrder = orderRepository.save(order);
+        
+        return convertToDTO(savedOrder);
     }
 }

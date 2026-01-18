@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant POS - New Order</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ee8b1b 0%, #ebad1c 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ee8b1b 0%, #ebad1c 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header img {
+            max-width: 150px;
+            height: auto;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header h1 i {
+            margin-right: 10px;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .menu-section {
+            background: #fefdfa;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .category-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .category-tab {
+            padding: 10px 20px;
+            background: white;
+            border: 2px solid #ee8b1b;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .category-tab:hover, .category-tab.active {
+            background: #ee8b1b;
+            color: white;
+        }
+
+        .menu-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .menu-item {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid #e0e0e0;
+        }
+
+        .menu-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-color: #ee8b1b;
+        }
+
+        .menu-item h3 {
+            color: #080502;
+            margin-bottom: 5px;
+            font-size: 1.1em;
+        }
+
+        .menu-item .description {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+
+        .menu-item .price {
+            color: #ee8b1b;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .variations-indicator {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .order-section {
+            background: #fefdfa;
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            border: 2px solid #e0e0e0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .order-form {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #080502;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #ee8b1b;
+        }
+
+        .order-items {
+            flex: 1;
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+        }
+
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 5px;
+            background: #fafafa;
+            border-radius: 5px;
+        }
+
+        .order-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .order-item-info {
+            flex: 1;
+        }
+
+        .order-item-name {
+            font-weight: 600;
+            color: #080502;
+        }
+
+        .order-item-quantity {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .order-item-price {
+            color: #ee8b1b;
+            font-weight: bold;
+        }
+
+        .remove-item {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .order-total {
+            background: #ee8b1b;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .submit-order {
+            background: #223c0e;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .submit-order:hover {
+            background: #1a2f0a;
+            transform: scale(1.02);
+        }
+
+        .submit-order:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 0;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: #080502;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .cancel-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .confirm-btn {
+            background: #ee8b1b;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .confirm-btn:hover {
+            background: #d67a1a;
+        }
+
+        .variation-group {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .variation-group:last-child {
+            border-bottom: none;
+        }
+
+        .variation-group h3 {
+            margin: 0 0 15px 0;
+            color: #080502;
+            font-size: 1.1em;
+        }
+
+        .variation-option {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .variation-option input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+
+        .variation-option label {
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .variation-price {
+            color: #ee8b1b;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Orders</a>
+            <img th:src="@{/dattebayo-logo.png}" alt="Dattebayo Logo" />
+            <h1><i class="fas fa-plus-circle"></i> Create New Order</h1>
+            <p>Select items from the menu to create an order</p>
+        </div>
+
+        <div class="content">
+            <div class="menu-section">
+                <div class="category-tabs">
+                    <div class="category-tab active" data-category-filter="all" onclick="filterCategory('all')">All</div>
+                    <div class="category-tab" th:each="category : ${categories}"
+                         th:attr="data-category-filter=${category}"
+                         onclick="filterCategoryFromData(this)"
+                         th:text="${category}"></div>
+                </div>
+
+                <div class="menu-items" id="menuItems">
+                    <!-- Menu items will be loaded dynamically -->
+                </div>
+            </div>
+
+            <div class="order-section">
+                <div th:if="${param.success}" class="success-message">
+                    Order placed successfully!
+                </div>
+
+                <div class="order-form" id="orderForm">
+                    <div class="form-group">
+                        <label for="tableNumber">Table Number:</label>
+                        <input type="text" id="tableNumber" required placeholder="e.g., Table 1">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Order Items:</label>
+                        <div class="order-items" id="orderItems">
+                            <p style="text-align: center; color: #999; padding: 20px;">No items in order</p>
+                        </div>
+                    </div>
+
+                    <div class="order-total" id="orderTotal">
+                        Total: $0.00
+                    </div>
+
+                    <div class="form-group">
+                        <label for="notes">Notes (optional):</label>
+                        <textarea id="notes" rows="3" placeholder="Special instructions..."></textarea>
+                    </div>
+
+                    <button type="button" class="submit-order" id="submitBtn" onclick="submitOrder()" disabled>Place Order</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Variation Selection Modal -->
+    <div id="variationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalItemName">Select Options</h2>
+                <span class="close" onclick="closeVariationModal()">&times;</span>
+            </div>
+            <div id="variationOptions">
+                <!-- Variations will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeVariationModal()" class="cancel-btn">Cancel</button>
+                <button onclick="confirmAddToOrder()" class="confirm-btn">Add to Order</button>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        let menuItems = [];
+        let orderItems = [];
+        let selectedMenuItem = null;
+        let selectedVariations = {};
+
+        // Load menu items on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadMenuItems();
+            loadCategories();
+        });
+
+        function loadMenuItems() {
+            fetch('/api/menu')
+                .then(response => response.json())
+                .then(data => {
+                    menuItems = data;
+                    renderMenuItems();
+                })
+                .catch(error => console.error('Error loading menu items:', error));
+        }
+
+        function loadCategories() {
+            fetch('/api/menu/categories')
+                .then(response => response.json())
+                .then(categories => {
+                    renderCategories(categories);
+                })
+                .catch(error => console.error('Error loading categories:', error));
+        }
+
+        function renderCategories(categories) {
+            const categoryTabs = document.querySelector('.category-tabs');
+            // Clear existing tabs except "All"
+            const allTab = categoryTabs.querySelector('[data-category-filter="all"]');
+            categoryTabs.innerHTML = '';
+            categoryTabs.appendChild(allTab);
+
+            categories.forEach(category => {
+                const tab = document.createElement('div');
+                tab.className = 'category-tab';
+                tab.setAttribute('data-category-filter', category);
+                tab.onclick = () => filterCategory(category);
+                tab.textContent = category;
+                categoryTabs.appendChild(tab);
+            });
+        }
+
+        function renderMenuItems() {
+            const menuItemsDiv = document.getElementById('menuItems');
+            menuItemsDiv.innerHTML = '';
+
+            menuItems.forEach(item => {
+                const menuItemDiv = document.createElement('div');
+                menuItemDiv.className = 'menu-item';
+                menuItemDiv.setAttribute('data-category', item.category);
+                menuItemDiv.onclick = () => openVariationModal(item);
+
+                menuItemDiv.innerHTML = `
+                    <h3>${item.name}</h3>
+                    <div class="description">${item.description}</div>
+                    <div class="price">$${item.price.toFixed(2)}</div>
+                    ${item.variations && item.variations.length > 0 ? '<div class="variations-indicator">⚙️ Options available</div>' : ''}
+                `;
+
+                menuItemsDiv.appendChild(menuItemDiv);
+            });
+        }
+
+        function filterCategory(category) {
+            document.querySelectorAll('.category-tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const items = document.querySelectorAll('.menu-item');
+            items.forEach(item => {
+                if (category === 'all' || item.getAttribute('data-category') === category) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        function filterCategoryFromData(element) {
+            const category = element.getAttribute('data-category-filter');
+            filterCategory(category);
+        }
+
+        function openVariationModal(menuItem) {
+            selectedMenuItem = menuItem;
+            selectedVariations = {};
+
+            // If item has no variations, add it directly to the order
+            if (!menuItem.variations || menuItem.variations.length === 0) {
+                addToOrder(menuItem.id, []);
+                return;
+            }
+
+            document.getElementById('modalItemName').textContent = menuItem.name;
+            document.getElementById('variationOptions').innerHTML = '';
+
+            if (menuItem.variations && menuItem.variations.length > 0) {
+                // Group variations by type
+                const variationsByType = {};
+                menuItem.variations.forEach(variation => {
+                    if (!variationsByType[variation.type]) {
+                        variationsByType[variation.type] = [];
+                    }
+                    variationsByType[variation.type].push(variation);
+                });
+
+                Object.keys(variationsByType).forEach(type => {
+                    const groupDiv = document.createElement('div');
+                    groupDiv.className = 'variation-group';
+
+                    const typeTitle = type === 'MULTIPLE' ? 'Choose fillings:' : 'Options:';
+                    groupDiv.innerHTML = `<h3>${typeTitle}</h3>`;
+
+                    variationsByType[type].forEach(variation => {
+                        const optionDiv = document.createElement('div');
+                        optionDiv.className = 'variation-option';
+
+                        const inputType = type === 'MULTIPLE' ? 'checkbox' : 'checkbox';
+                        const inputId = `variation-${variation.id}`;
+
+                        optionDiv.innerHTML = `
+                            <input type="${inputType}" id="${inputId}"
+                                   onchange="toggleVariation(${variation.id}, '${type}', this.checked)">
+                            <label for="${inputId}">${variation.name}</label>
+                            ${variation.additionalPrice > 0 ? `<span class="variation-price">+$${variation.additionalPrice.toFixed(2)}</span>` : ''}
+                        `;
+
+                        groupDiv.appendChild(optionDiv);
+                    });
+
+                    document.getElementById('variationOptions').appendChild(groupDiv);
+                });
+            } else {
+                // No variations, just show confirmation
+                document.getElementById('variationOptions').innerHTML = '<p>No options available for this item.</p>';
+            }
+
+            document.getElementById('variationModal').style.display = 'block';
+        }
+
+        function closeVariationModal() {
+            document.getElementById('variationModal').style.display = 'none';
+            selectedMenuItem = null;
+            selectedVariations = {};
+        }
+
+        function toggleVariation(variationId, type, checked) {
+            if (type === 'SINGLE') {
+                // For single type, uncheck others in the same group
+                const group = document.querySelector(`input[id="variation-${variationId}"]`).closest('.variation-group');
+                group.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                    if (cb.id !== `variation-${variationId}`) {
+                        cb.checked = false;
+                        const otherId = parseInt(cb.id.replace('variation-', ''));
+                        delete selectedVariations[otherId];
+                    }
+                });
+            }
+
+            if (checked) {
+                selectedVariations[variationId] = true;
+            } else {
+                delete selectedVariations[variationId];
+            }
+        }
+
+        function confirmAddToOrder() {
+            if (!selectedMenuItem) return;
+
+            const variations = Object.keys(selectedVariations).map(id => ({
+                menuItemVariationId: parseInt(id),
+                selected: true
+            }));
+
+            addToOrder(selectedMenuItem.id, variations);
+            closeVariationModal();
+        }
+
+        function addToOrder(menuItemId, variations = []) {
+            const menuItem = menuItems.find(item => item.id === menuItemId);
+            if (!menuItem) return;
+
+            // Calculate additional price from variations
+            let additionalPrice = 0;
+            const selectedVariationNames = [];
+
+            variations.forEach(variation => {
+                const variationData = menuItem.variations.find(v => v.id === variation.menuItemVariationId);
+                if (variationData && variation.selected) {
+                    additionalPrice += variationData.additionalPrice;
+                    selectedVariationNames.push(variationData.name);
+                }
+            });
+
+            const itemName = selectedVariationNames.length > 0
+                ? `${menuItem.name} (${selectedVariationNames.join(', ')})`
+                : menuItem.name;
+
+            const existingItem = orderItems.find(item =>
+                item.menuItemId === menuItemId &&
+                JSON.stringify(item.variations) === JSON.stringify(variations)
+            );
+
+            if (existingItem) {
+                existingItem.quantity++;
+            } else {
+                orderItems.push({
+                    menuItemId: menuItemId,
+                    quantity: 1,
+                    name: itemName,
+                    price: menuItem.price + additionalPrice,
+                    variations: variations
+                });
+            }
+
+            updateOrderDisplay();
+        }
+
+        function removeFromOrder(index) {
+            orderItems.splice(index, 1);
+            updateOrderDisplay();
+        }
+
+        function updateOrderDisplay() {
+            const orderItemsDiv = document.getElementById('orderItems');
+            const submitBtn = document.getElementById('submitBtn');
+
+            if (orderItems.length === 0) {
+                orderItemsDiv.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No items in order</p>';
+                submitBtn.disabled = true;
+            } else {
+                orderItemsDiv.innerHTML = orderItems.map((item, index) => `
+                    <div class="order-item">
+                        <div class="order-item-info">
+                            <div class="order-item-name">${item.name}</div>
+                            <div class="order-item-quantity">Qty: ${item.quantity}</div>
+                        </div>
+                        <div class="order-item-price">$${(item.price * item.quantity).toFixed(2)}</div>
+                        <button type="button" class="remove-item" onclick="removeFromOrder(${index})">Remove</button>
+                    </div>
+                `).join('');
+                submitBtn.disabled = false;
+            }
+
+            const total = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            document.getElementById('orderTotal').textContent = `Total: $${total.toFixed(2)}`;
+        }
+
+        function submitOrder() {
+            const tableNumber = document.getElementById('tableNumber').value.trim();
+            const notes = document.getElementById('notes').value.trim();
+
+            if (!tableNumber) {
+                alert('Please enter a table number');
+                return;
+            }
+
+            if (orderItems.length === 0) {
+                alert('Please add at least one item to the order');
+                return;
+            }
+
+            const orderData = {
+                tableNumber: tableNumber,
+                notes: notes,
+                items: orderItems.map(item => ({
+                    menuItemId: item.menuItemId,
+                    quantity: item.quantity,
+                    specialInstructions: item.specialInstructions || '',
+                    variations: item.variations || []
+                }))
+            };
+
+            fetch('/api/orders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(orderData)
+            })
+            .then(async response => {
+                if (response.ok) {
+                    // Reset form
+                    orderItems = [];
+                    document.getElementById('tableNumber').value = '';
+                    document.getElementById('notes').value = '';
+                    updateOrderDisplay();
+                    window.location.href = '/?success=true';
+                } else {
+                    let errorMessage = 'Error placing order. Please try again.';
+                    try {
+                        const errorData = await response.json();
+                        if (errorData.error) {
+                            errorMessage = 'Error: ' + errorData.error;
+                        } else if (errorData.message) {
+                            errorMessage = 'Error: ' + errorData.message;
+                        }
+                    } catch (e) {
+                        // If response is not JSON, use default message
+                    }
+                    alert(errorMessage);
+                    console.error('Order submission failed:', response.status, response.statusText);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Network error: ' + error.message);
+            });
+        }
+    </script>
+</body>
+</html>

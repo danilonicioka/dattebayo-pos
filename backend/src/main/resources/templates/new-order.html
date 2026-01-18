@@ -327,6 +327,15 @@
             color: #080502;
         }
 
+        .modal-price-display {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+            font-size: 1.2em;
+            color: #ee8b1b;
+        }
+
         .close {
             color: #aaa;
             font-size: 28px;
@@ -468,6 +477,9 @@
             <div class="modal-header">
                 <h2 id="modalItemName">Select Options</h2>
                 <span class="close" onclick="closeVariationModal()">&times;</span>
+            </div>
+            <div id="modalPriceDisplay" class="modal-price-display">
+                <strong>Total: $<span id="modalItemPrice">0.00</span></strong>
             </div>
             <div id="variationOptions">
                 <!-- Variations will be loaded here -->
@@ -621,6 +633,7 @@
                 document.getElementById('variationOptions').innerHTML = '<p>No options available for this item.</p>';
             }
 
+            updateModalPrice();
             document.getElementById('variationModal').style.display = 'block';
         }
 
@@ -648,6 +661,54 @@
             } else {
                 delete selectedVariations[variationId];
             }
+
+            updateModalPrice();
+        }
+
+        function updateModalPrice() {
+            if (!selectedMenuItem) return;
+
+            let finalPrice = selectedMenuItem.price;
+            const selectedVariationIds = Object.keys(selectedVariations).map(id => parseInt(id));
+
+            if (selectedMenuItem.category === 'Japanese' && selectedMenuItem.name === 'Tempura') {
+                // Tempura special logic
+                const shrimpVariation = selectedVariationIds.find(id => {
+                    const variationData = selectedMenuItem.variations.find(v => v.id === id);
+                    return variationData && variationData.name === 'With Shrimp';
+                });
+
+                if (shrimpVariation) {
+                    finalPrice += 2.00; // Add $2 for shrimp
+                }
+            } else if (selectedMenuItem.category === 'Brazilian' && selectedMenuItem.name === 'Pastel') {
+                // Pastel importance-based pricing
+                const selectedVariationsData = selectedVariationIds.map(id => 
+                    selectedMenuItem.variations.find(v => v.id === id)
+                ).filter(v => v); // Remove nulls
+
+                if (selectedVariationsData.length > 0) {
+                    // Find the variation with highest importance
+                    const maxImportance = Math.max(...selectedVariationsData.map(v => v.importance));
+
+                    // Lower importance variations add $2 each
+                    selectedVariationsData.forEach(variation => {
+                        if (variation.importance < maxImportance) {
+                            finalPrice += 2.00;
+                        }
+                    });
+                }
+            } else {
+                // Default logic for other items
+                selectedVariationIds.forEach(id => {
+                    const variationData = selectedMenuItem.variations.find(v => v.id === id);
+                    if (variationData) {
+                        finalPrice += variationData.additionalPrice;
+                    }
+                });
+            }
+
+            document.getElementById('modalItemPrice').textContent = finalPrice.toFixed(2);
         }
 
         function confirmAddToOrder() {
@@ -666,21 +727,63 @@
             const menuItem = menuItems.find(item => item.id === menuItemId);
             if (!menuItem) return;
 
-            // Calculate additional price from variations
-            let additionalPrice = 0;
+            // Special handling for different menu items
+            let finalPrice = menuItem.price;
+            let itemName = menuItem.name;
             const selectedVariationNames = [];
 
-            variations.forEach(variation => {
-                const variationData = menuItem.variations.find(v => v.id === variation.menuItemVariationId);
-                if (variationData && variation.selected) {
-                    additionalPrice += variationData.additionalPrice;
-                    selectedVariationNames.push(variationData.name);
-                }
-            });
+            if (menuItem.category === 'Japanese' && menuItem.name === 'Tempura') {
+                // Tempura special logic
+                const shrimpVariation = variations.find(v => {
+                    const variationData = menuItem.variations.find(vd => vd.id === v.menuItemVariationId);
+                    return variationData && variationData.name === 'With Shrimp' && v.selected;
+                });
 
-            const itemName = selectedVariationNames.length > 0
-                ? `${menuItem.name} (${selectedVariationNames.join(', ')})`
-                : menuItem.name;
+                if (shrimpVariation) {
+                    finalPrice += 2.00; // Add $2 for shrimp
+                    itemName = 'Tempura';
+                } else {
+                    itemName = 'Tempura without shrimp';
+                }
+            } else if (menuItem.category === 'Brazilian' && menuItem.name === 'Pastel') {
+                // Pastel importance-based pricing
+                const selectedVariations = variations.filter(v => v.selected).map(v => {
+                    const variationData = menuItem.variations.find(vd => vd.id === v.menuItemVariationId);
+                    return variationData;
+                }).filter(v => v); // Remove nulls
+
+                if (selectedVariations.length > 0) {
+                    // Find the variation with highest importance
+                    const maxImportance = Math.max(...selectedVariations.map(v => v.importance));
+                    const highestImportanceVariations = selectedVariations.filter(v => v.importance === maxImportance);
+
+                    // The highest importance variation becomes the base price
+                    // Lower importance variations add $2 each
+                    selectedVariations.forEach(variation => {
+                        if (variation.importance < maxImportance) {
+                            finalPrice += 2.00;
+                        }
+                        selectedVariationNames.push(variation.name);
+                    });
+                }
+
+                itemName = selectedVariationNames.length > 0
+                    ? `Pastel (${selectedVariationNames.join(' + ')})`
+                    : 'Pastel';
+            } else {
+                // Default logic for other items
+                variations.forEach(variation => {
+                    const variationData = menuItem.variations.find(v => v.id === variation.menuItemVariationId);
+                    if (variationData && variation.selected) {
+                        finalPrice += variationData.additionalPrice;
+                        selectedVariationNames.push(variationData.name);
+                    }
+                });
+
+                itemName = selectedVariationNames.length > 0
+                    ? `${menuItem.name} (${selectedVariationNames.join(', ')})`
+                    : menuItem.name;
+            }
 
             const existingItem = orderItems.find(item =>
                 item.menuItemId === menuItemId &&
@@ -694,7 +797,7 @@
                     menuItemId: menuItemId,
                     quantity: 1,
                     name: itemName,
-                    price: menuItem.price + additionalPrice,
+                    price: finalPrice,
                     variations: variations
                 });
             }

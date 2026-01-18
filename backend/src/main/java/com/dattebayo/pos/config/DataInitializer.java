@@ -23,7 +23,7 @@ public class DataInitializer implements CommandLineRunner {
             springRolls.setPrice(8.99);
             springRolls.setCategory("Appetizers");
             springRolls.setAvailable(true);
-            springRolls.getVariations().add(new MenuItemVariation(null, "With Shrimp", "SINGLE", 2.00, springRolls));
+            springRolls.getVariations().add(new MenuItemVariation(null, "With Shrimp", "SINGLE", 2.00, 0, springRolls));
             menuItemRepository.save(springRolls);
             
             MenuItem chickenWings = new MenuItem();
@@ -82,9 +82,10 @@ public class DataInitializer implements CommandLineRunner {
             pastel.setPrice(6.99);
             pastel.setCategory("Brazilian");
             pastel.setAvailable(true);
-            pastel.getVariations().add(new MenuItemVariation(null, "Meat", "MULTIPLE", 0.00, pastel));
-            pastel.getVariations().add(new MenuItemVariation(null, "Cheese", "MULTIPLE", 0.00, pastel));
-            pastel.getVariations().add(new MenuItemVariation(null, "Chicken", "MULTIPLE", 0.00, pastel));
+            // Importance levels: higher = more important (becomes base price)
+            pastel.getVariations().add(new MenuItemVariation(null, "Meat", "MULTIPLE", 0.00, 3, pastel));
+            pastel.getVariations().add(new MenuItemVariation(null, "Chicken", "MULTIPLE", 0.00, 2, pastel));
+            pastel.getVariations().add(new MenuItemVariation(null, "Cheese", "MULTIPLE", 0.00, 1, pastel));
             menuItemRepository.save(pastel);
             
             // Tempura with shrimp option
@@ -94,7 +95,7 @@ public class DataInitializer implements CommandLineRunner {
             tempura.setPrice(12.99);
             tempura.setCategory("Japanese");
             tempura.setAvailable(true);
-            tempura.getVariations().add(new MenuItemVariation(null, "With Shrimp", "SINGLE", 3.00, tempura));
+            tempura.getVariations().add(new MenuItemVariation(null, "With Shrimp", "SINGLE", 2.00, 0, tempura));
             menuItemRepository.save(tempura);
             
             // Beverages

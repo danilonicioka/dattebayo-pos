@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,27 +48,79 @@ public class OrderService {
             orderItem.setPrice(menuItem.getPrice());
             orderItem.setSpecialInstructions(itemRequest.getSpecialInstructions());
             
-            // Handle variations
+            // Handle variations and pricing
             if (itemRequest.getVariations() != null) {
-                for (var variationRequest : itemRequest.getVariations()) {
-                    MenuItemVariation variation = menuItemVariationRepository.findById(variationRequest.getMenuItemVariationId())
-                            .orElseThrow(() -> new RuntimeException("Menu item variation not found: " + variationRequest.getMenuItemVariationId()));
-                    
-                    // Validate that the variation belongs to the menu item
-                    if (!variation.getMenuItem().getId().equals(menuItem.getId())) {
-                        throw new RuntimeException("Variation does not belong to the selected menu item");
+                // Special pricing logic for different menu items
+                if ("Japanese".equals(menuItem.getCategory()) && "Tempura".equals(menuItem.getName())) {
+                    // Tempura: check if shrimp variation is selected
+                    boolean hasShrimp = itemRequest.getVariations().stream()
+                            .anyMatch(v -> v.getSelected() &&
+                                         menuItemVariationRepository.findById(v.getMenuItemVariationId())
+                                             .map(mv -> "With Shrimp".equals(mv.getName()))
+                                             .orElse(false));
+                    if (hasShrimp) {
+                        orderItem.setPrice(orderItem.getPrice() + 2.00);
                     }
-                    
-                    OrderItemVariation orderItemVariation = new OrderItemVariation();
-                    orderItemVariation.setOrderItem(orderItem);
-                    orderItemVariation.setMenuItemVariation(variation);
-                    orderItemVariation.setSelected(variationRequest.getSelected());
-                    
-                    orderItem.getVariations().add(orderItemVariation);
-                    
-                    // Add additional price if variation is selected
-                    if (variationRequest.getSelected()) {
-                        orderItem.setPrice(orderItem.getPrice() + variation.getAdditionalPrice());
+                    // Add all variations to the order item
+                    for (var variationRequest : itemRequest.getVariations()) {
+                        addVariationToOrderItem(orderItem, variationRequest);
+                    }
+                } else if ("Brazilian".equals(menuItem.getCategory()) && "Pastel".equals(menuItem.getName())) {
+                    // Pastel: importance-based pricing
+                    List<MenuItemVariation> selectedVariations = itemRequest.getVariations().stream()
+                            .filter(OrderItemVariationRequestDTO::getSelected)
+                            .map(v -> menuItemVariationRepository.findById(v.getMenuItemVariationId()))
+                            .filter(Optional::isPresent)
+                            .map(Optional::get)
+                            .collect(Collectors.toList());
+
+                    if (!selectedVariations.isEmpty()) {
+                        // Find the variation with highest importance
+                        int maxImportance = selectedVariations.stream()
+                                .mapToInt(MenuItemVariation::getImportance)
+                                .max()
+                                .orElse(0);
+
+                        // Check if Paraense is selected (includes cheese)
+                        boolean hasParaense = selectedVariations.stream()
+                                .anyMatch(v -> "Paraense".equals(v.getName()));
+
+                        // Add $2 for each variation with lower importance than the max
+                        // Except cheese when Paraense is selected
+                        long lowerImportanceCount = selectedVariations.stream()
+                                .filter(v -> v.getImportance() < maxImportance)
+                                .filter(v -> !(hasParaense && "Cheese".equals(v.getName())))
+                                .count();
+
+                        orderItem.setPrice(orderItem.getPrice() + (lowerImportanceCount * 2.00));
+                    }
+
+                    // Add all variations to the order item
+                    for (var variationRequest : itemRequest.getVariations()) {
+                        addVariationToOrderItem(orderItem, variationRequest);
+                    }
+                } else {
+                    // Default logic for other items
+                    for (var variationRequest : itemRequest.getVariations()) {
+                        MenuItemVariation variation = menuItemVariationRepository.findById(variationRequest.getMenuItemVariationId())
+                                .orElseThrow(() -> new RuntimeException("Menu item variation not found: " + variationRequest.getMenuItemVariationId()));
+
+                        // Validate that the variation belongs to the menu item
+                        if (!variation.getMenuItem().getId().equals(menuItem.getId())) {
+                            throw new RuntimeException("Variation does not belong to the selected menu item");
+                        }
+
+                        OrderItemVariation orderItemVariation = new OrderItemVariation();
+                        orderItemVariation.setOrderItem(orderItem);
+                        orderItemVariation.setMenuItemVariation(variation);
+                        orderItemVariation.setSelected(variationRequest.getSelected());
+
+                        orderItem.getVariations().add(orderItemVariation);
+
+                        // Add additional price if variation is selected
+                        if (variationRequest.getSelected()) {
+                            orderItem.setPrice(orderItem.getPrice() + variation.getAdditionalPrice());
+                        }
                     }
                 }
             }
@@ -132,7 +185,24 @@ public class OrderService {
             OrderItemDTO itemDTO = new OrderItemDTO();
             itemDTO.setId(item.getId());
             itemDTO.setMenuItemId(item.getMenuItem().getId());
-            itemDTO.setMenuItemName(item.getMenuItem().getName());
+            // Build display name including selected variations
+            List<String> selectedVariationNames = item.getVariations().stream()
+                    .filter(OrderItemVariation::getSelected)
+                    .map(variation -> variation.getMenuItemVariation().getName())
+                    .collect(Collectors.toList());
+
+            String displayName;
+            if ("Japanese".equals(item.getMenuItem().getCategory()) && "Tempura".equals(item.getMenuItem().getName())) {
+                // Special naming for Tempura
+                boolean hasShrimp = selectedVariationNames.contains("With Shrimp");
+                displayName = hasShrimp ? "Tempura" : "Tempura without shrimp";
+            } else {
+                displayName = selectedVariationNames.isEmpty()
+                        ? item.getMenuItem().getName()
+                        : item.getMenuItem().getName() + " (" + String.join(", ", selectedVariationNames) + ")";
+            }
+
+            itemDTO.setMenuItemName(displayName);
             itemDTO.setQuantity(item.getQuantity());
             itemDTO.setPrice(item.getPrice());
             itemDTO.setSpecialInstructions(item.getSpecialInstructions());
@@ -147,6 +217,7 @@ public class OrderService {
                         variationDTO.setType(variation.getMenuItemVariation().getType());
                         variationDTO.setAdditionalPrice(variation.getMenuItemVariation().getAdditionalPrice());
                         variationDTO.setSelected(variation.getSelected());
+                        variationDTO.setImportance(variation.getMenuItemVariation().getImportance());
                         return variationDTO;
                     })
                     .collect(Collectors.toList());
@@ -195,20 +266,79 @@ public class OrderService {
             orderItem.setPrice(menuItem.getPrice());
             orderItem.setSpecialInstructions(itemRequest.getSpecialInstructions());
             
-            // Handle variations
+            // Handle variations and pricing
             if (itemRequest.getVariations() != null) {
-                for (var variationRequest : itemRequest.getVariations()) {
-                    if (variationRequest.getSelected()) {
+                // Special pricing logic for different menu items
+                if ("Japanese".equals(menuItem.getCategory()) && "Tempura".equals(menuItem.getName())) {
+                    // Tempura: check if shrimp variation is selected
+                    boolean hasShrimp = itemRequest.getVariations().stream()
+                            .anyMatch(v -> v.getSelected() &&
+                                         menuItemVariationRepository.findById(v.getMenuItemVariationId())
+                                             .map(mv -> "With Shrimp".equals(mv.getName()))
+                                             .orElse(false));
+                    if (hasShrimp) {
+                        orderItem.setPrice(orderItem.getPrice() + 2.00);
+                    }
+                    // Add all variations to the order item
+                    for (var variationRequest : itemRequest.getVariations()) {
+                        addVariationToOrderItem(orderItem, variationRequest);
+                    }
+                } else if ("Brazilian".equals(menuItem.getCategory()) && "Pastel".equals(menuItem.getName())) {
+                    // Pastel: importance-based pricing
+                    List<MenuItemVariation> selectedVariations = itemRequest.getVariations().stream()
+                            .filter(OrderItemVariationRequestDTO::getSelected)
+                            .map(v -> menuItemVariationRepository.findById(v.getMenuItemVariationId()))
+                            .filter(Optional::isPresent)
+                            .map(Optional::get)
+                            .collect(Collectors.toList());
+
+                    if (!selectedVariations.isEmpty()) {
+                        // Find the variation with highest importance
+                        // Check if Paraense is selected (includes cheese)
+                        boolean hasParaense = selectedVariations.stream()
+                                .anyMatch(v -> "Paraense".equals(v.getName()));
+
+                        // Add $2 for each variation with lower importance than the max
+                        // Except cheese when Paraense is selected
+                        long lowerImportanceCount = selectedVariations.stream()
+                                .filter(v -> v.getImportance() < maxImportance)
+                                .filter(v -> !(hasParaense && "Cheese".equals(v.getName())))
+                                .count();
+                        // Add $2 for each variation with lower importance than the max
+                        long lowerImportanceCount = selectedVariations.stream()
+                                .mapToInt(MenuItemVariation::getImportance)
+                                .filter(importance -> importance < maxImportance)
+                                .count();
+
+                        orderItem.setPrice(orderItem.getPrice() + (lowerImportanceCount * 2.00));
+                    }
+
+                    // Add all variations to the order item
+                    for (var variationRequest : itemRequest.getVariations()) {
+                        addVariationToOrderItem(orderItem, variationRequest);
+                    }
+                } else {
+                    // Default logic for other items
+                    for (var variationRequest : itemRequest.getVariations()) {
                         MenuItemVariation variation = menuItemVariationRepository.findById(variationRequest.getMenuItemVariationId())
-                                .orElseThrow(() -> new RuntimeException("Variation not found: " + variationRequest.getMenuItemVariationId()));
-                        
+                                .orElseThrow(() -> new RuntimeException("Menu item variation not found: " + variationRequest.getMenuItemVariationId()));
+
+                        // Validate that the variation belongs to the menu item
+                        if (!variation.getMenuItem().getId().equals(menuItem.getId())) {
+                            throw new RuntimeException("Variation does not belong to the selected menu item");
+                        }
+
                         OrderItemVariation orderItemVariation = new OrderItemVariation();
                         orderItemVariation.setOrderItem(orderItem);
                         orderItemVariation.setMenuItemVariation(variation);
-                        orderItemVariation.setSelected(true);
-                        
+                        orderItemVariation.setSelected(variationRequest.getSelected());
+
                         orderItem.getVariations().add(orderItemVariation);
-                        orderItem.setPrice(orderItem.getPrice() + variation.getAdditionalPrice());
+
+                        // Add additional price if variation is selected
+                        if (variationRequest.getSelected()) {
+                            orderItem.setPrice(orderItem.getPrice() + variation.getAdditionalPrice());
+                        }
                     }
                 }
             }
@@ -220,5 +350,22 @@ public class OrderService {
         Order savedOrder = orderRepository.save(order);
         
         return convertToDTO(savedOrder);
+    }
+
+    private void addVariationToOrderItem(OrderItem orderItem, OrderItemVariationRequestDTO variationRequest) {
+        MenuItemVariation variation = menuItemVariationRepository.findById(variationRequest.getMenuItemVariationId())
+                .orElseThrow(() -> new RuntimeException("Menu item variation not found: " + variationRequest.getMenuItemVariationId()));
+
+        // Validate that the variation belongs to the menu item
+        if (!variation.getMenuItem().getId().equals(orderItem.getMenuItem().getId())) {
+            throw new RuntimeException("Variation does not belong to the selected menu item");
+        }
+
+        OrderItemVariation orderItemVariation = new OrderItemVariation();
+        orderItemVariation.setOrderItem(orderItem);
+        orderItemVariation.setMenuItemVariation(variation);
+        orderItemVariation.setSelected(variationRequest.getSelected());
+
+        orderItem.getVariations().add(orderItemVariation);
     }
 }

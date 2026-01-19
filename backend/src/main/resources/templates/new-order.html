@@ -457,7 +457,7 @@
                     </div>
 
                     <div class="order-total" id="orderTotal">
-                        Total: $0.00
+                        Total: R$0.00
                     </div>
 
                     <div class="form-group">
@@ -479,7 +479,7 @@
                 <span class="close" onclick="closeVariationModal()">&times;</span>
             </div>
             <div id="modalPriceDisplay" class="modal-price-display">
-                <strong>Total: $<span id="modalItemPrice">0.00</span></strong>
+                <strong>Total: R$<span id="modalItemPrice">0.00</span></strong>
             </div>
             <div id="variationOptions">
                 <!-- Variations will be loaded here -->
@@ -552,7 +552,7 @@
                 menuItemDiv.innerHTML = `
                     <h3>${item.name}</h3>
                     <div class="description">${item.description}</div>
-                    <div class="price">$${item.price.toFixed(2)}</div>
+                    <div class="price">R$${item.price.toFixed(2)}</div>
                     ${item.variations && item.variations.length > 0 ? '<div class="variations-indicator">⚙️ Options available</div>' : ''}
                 `;
 
@@ -632,7 +632,7 @@
                             <input type="${inputType}" id="${inputId}"
                                    onchange="toggleVariation(${variation.id}, '${type}', this.checked)">
                             <label for="${inputId}">${variation.name}</label>
-                            ${displayPrice ? `<span class="variation-price">$${displayPrice}</span>` : ''}
+                            ${displayPrice ? `<span class="variation-price">R$${displayPrice}</span>` : ''}
                         `;
 
                         groupDiv.appendChild(optionDiv);
@@ -820,7 +820,7 @@
                             <div class="order-item-name">${item.name}</div>
                             <div class="order-item-quantity">Qty: ${item.quantity}</div>
                         </div>
-                        <div class="order-item-price">$${(item.price * item.quantity).toFixed(2)}</div>
+                        <div class="order-item-price">R$${(item.price * item.quantity).toFixed(2)}</div>
                         <button type="button" class="remove-item" onclick="removeFromOrder(${index})">Remove</button>
                     </div>
                 `).join('');
@@ -828,7 +828,7 @@
             }
 
             const total = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            document.getElementById('orderTotal').textContent = `Total: $${total.toFixed(2)}`;
+            document.getElementById('orderTotal').textContent = `Total: R$${total.toFixed(2)}`;
         }
 
         function submitOrder() {

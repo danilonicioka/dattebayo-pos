@@ -29,8 +29,8 @@ for i in {1..30}; do
         echo "   - Kitchen Display: http://localhost:8080/kitchen"
         echo "   - REST API: http://localhost:8080/api"
         echo ""
-        echo "📊 View logs: docker-compose logs -f"
-        echo "🛑 Stop system: docker-compose down"
+        echo "📊 View logs: docker composelogs -f"
+        echo "🛑 Stop system: docker composedown"
         exit 0
     fi
     echo -n "."
@@ -39,7 +39,7 @@ done
 
 echo ""
 echo "⚠️  Backend is taking longer than expected to start."
-echo "   Check logs with: docker-compose logs backend"
+echo "   Check logs with: docker composelogs backend"
 echo ""
 echo "📍 Once ready, access:"
 echo "   - Order Interface: http://localhost:8080"

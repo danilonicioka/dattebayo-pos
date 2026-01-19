@@ -312,7 +312,7 @@
                                 <span th:text="${item.quantity} + 'x ' + ${item.menuItemName}"></span>
                             </div>
                         </div>
-                        <div class="active-order-total" th:text="'Total: $' + ${#numbers.formatDecimal(order.total, 1, 2)}"></div>
+                        <div class="active-order-total" th:text="'Total: R$' + ${#numbers.formatDecimal(order.total, 1, 2)}"></div>
                         <a th:href="@{'/orders/' + ${order.id} + '/edit'}" class="edit-order-btn"><i class="fas fa-edit"></i> Edit Order</a>
                         <form th:action="@{'/orders/' + ${order.id} + '/mark-paid'}" method="post">
                             <button type="submit" class="mark-paid-btn"><i class="fas fa-check"></i> Mark as Paid</button>

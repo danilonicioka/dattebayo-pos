@@ -66,7 +66,7 @@ public class OrderService {
                         addVariationToOrderItem(orderItem, variationRequest);
                     }
                 } else if ("Brazilian".equals(menuItem.getCategory()) && "Pastel".equals(menuItem.getName())) {
-                    // Pastel pricing: base $0, variations add their cost
+                    // Pastel pricing: base $6, variations add their cost
                     // Paraense: +$8, every other variation: +$2
                     for (var variationRequest : itemRequest.getVariations()) {
                         if (variationRequest.getSelected()) {
@@ -266,7 +266,7 @@ public class OrderService {
                         addVariationToOrderItem(orderItem, variationRequest);
                     }
                 } else if ("Brazilian".equals(menuItem.getCategory()) && "Pastel".equals(menuItem.getName())) {
-                    // Pastel pricing: base $0, variations add their cost
+                    // Pastel pricing: base $6, variations add their cost
                     // Paraense: +$8, every other variation: +$2
                     for (var variationRequest : itemRequest.getVariations()) {
                         if (variationRequest.getSelected()) {

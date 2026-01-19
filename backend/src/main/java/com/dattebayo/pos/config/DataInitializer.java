@@ -16,6 +16,29 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         if (menuItemRepository.count() == 0) {
+            // Comidas
+            MenuItem pastel = new MenuItem();
+            pastel.setName("Pastel");
+            pastel.setDescription("Pastel de vento com diferentes recheios");
+            pastel.setPrice(6.00);
+            pastel.setCategory("Comidas");
+            pastel.setAvailable(true);
+            // Importance levels: higher = more important (becomes base price)
+            pastel.getVariations().add(new MenuItemVariation(null, "Meat", "MULTIPLE", 0.00, 3, pastel));
+            pastel.getVariations().add(new MenuItemVariation(null, "Chicken", "MULTIPLE", 0.00, 2, pastel));
+            pastel.getVariations().add(new MenuItemVariation(null, "Cheese", "MULTIPLE", 0.00, 1, pastel));
+            menuItemRepository.save(pastel);
+            
+            // Tempura with shrimp option
+            MenuItem tempura = new MenuItem();
+            tempura.setName("Tempura");
+            tempura.setDescription("Japanese deep-fried battered vegetables");
+            tempura.setPrice(12.99);
+            tempura.setCategory("Japanese");
+            tempura.setAvailable(true);
+            tempura.getVariations().add(new MenuItemVariation(null, "With Shrimp", "SINGLE", 2.00, 0, tempura));
+            menuItemRepository.save(tempura);
+
             // Appetizers
             MenuItem springRolls = new MenuItem();
             springRolls.setName("Spring Rolls");
@@ -74,29 +97,6 @@ public class DataInitializer implements CommandLineRunner {
             pastaCarbonara.setCategory("Main Courses");
             pastaCarbonara.setAvailable(true);
             menuItemRepository.save(pastaCarbonara);
-            
-            // Brazilian Food - Pastel with multiple fillings
-            MenuItem pastel = new MenuItem();
-            pastel.setName("Pastel");
-            pastel.setDescription("Brazilian fried pastry");
-            pastel.setPrice(6.99);
-            pastel.setCategory("Brazilian");
-            pastel.setAvailable(true);
-            // Importance levels: higher = more important (becomes base price)
-            pastel.getVariations().add(new MenuItemVariation(null, "Meat", "MULTIPLE", 0.00, 3, pastel));
-            pastel.getVariations().add(new MenuItemVariation(null, "Chicken", "MULTIPLE", 0.00, 2, pastel));
-            pastel.getVariations().add(new MenuItemVariation(null, "Cheese", "MULTIPLE", 0.00, 1, pastel));
-            menuItemRepository.save(pastel);
-            
-            // Tempura with shrimp option
-            MenuItem tempura = new MenuItem();
-            tempura.setName("Tempura");
-            tempura.setDescription("Japanese deep-fried battered vegetables");
-            tempura.setPrice(12.99);
-            tempura.setCategory("Japanese");
-            tempura.setAvailable(true);
-            tempura.getVariations().add(new MenuItemVariation(null, "With Shrimp", "SINGLE", 2.00, 0, tempura));
-            menuItemRepository.save(tempura);
             
             // Beverages
             MenuItem cocaCola = new MenuItem();

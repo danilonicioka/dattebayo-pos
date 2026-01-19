@@ -61,7 +61,7 @@ cd /home/danilo.nicioka/uchi/dattebayo-pos
 ### 2. Start the System with Docker Compose
 
 ```bash
-docker-compose up -d
+docker composeup -d
 ```
 
 This will:
@@ -81,13 +81,13 @@ Once the containers are running (wait about 30-60 seconds for the backend to sta
 ### 4. Stop the System
 
 ```bash
-docker-compose down
+docker composedown
 ```
 
 To also remove volumes (database data):
 
 ```bash
-docker-compose down -v
+docker composedown -v
 ```
 
 ## Usage Guide
@@ -194,13 +194,13 @@ To change the application port, modify:
 
 ### Backend won't start
 
-1. Check if PostgreSQL is healthy: `docker-compose ps`
-2. Check backend logs: `docker-compose logs backend`
+1. Check if PostgreSQL is healthy: `docker composeps`
+2. Check backend logs: `docker composelogs backend`
 3. Ensure port 8080 is not in use by another application
 
 ### Database connection issues
 
-1. Verify PostgreSQL is running: `docker-compose ps postgres`
+1. Verify PostgreSQL is running: `docker composeps postgres`
 2. Check database credentials in `application.properties` and `docker-compose.yml`
 3. Ensure backend waits for PostgreSQL: Check `depends_on` in docker-compose.yml
 
@@ -216,7 +216,7 @@ To change the application port, modify:
 
 1. Start PostgreSQL manually or use Docker for database only:
    ```bash
-   docker-compose up -d postgres
+   docker composeup -d postgres
    ```
 
 2. Update `application.properties` to point to local PostgreSQL
@@ -238,11 +238,11 @@ mvn clean package
 
 ```bash
 # All services
-docker-compose logs -f
+docker composelogs -f
 
 # Specific service
-docker-compose logs -f backend
-docker-compose logs -f postgres
+docker composelogs -f backend
+docker composelogs -f postgres
 ```
 
 ## Future Enhancements
@@ -265,7 +265,7 @@ See LICENSE file for details.
 
 For issues or questions, check the logs first:
 ```bash
-docker-compose logs backend
+docker composelogs backend
 ```
 
 ---

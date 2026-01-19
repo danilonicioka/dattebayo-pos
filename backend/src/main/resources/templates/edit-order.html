@@ -452,15 +452,7 @@
                     <div class="form-group">
                         <label>Order Items:</label>
                         <div class="order-items" id="orderItems">
-                            <div th:if="${order.items == null or order.items.isEmpty()}" style="text-align: center; color: #999; padding: 20px;">No items in order</div>
-                            <div class="order-item" th:each="item, iterStat : ${order.items}">
-                                <div class="order-item-info">
-                                    <div class="order-item-name" th:text="${item.menuItemName}"></div>
-                                    <div class="order-item-quantity">Qty: <span th:text="${item.quantity}"></span></div>
-                                </div>
-                                <div class="order-item-price" th:text="'$' + ${#numbers.formatDecimal(item.subtotal, 1, 2)}"></div>
-                                <button type="button" class="remove-item" onclick="removeExistingItem(${iterStat.index})">Remove</button>
-                            </div>
+                            <!-- Items will be rendered by JavaScript -->
                         </div>
                     </div>
 
@@ -525,7 +517,8 @@
                 name: item.menuItemName,
                 price: item.price,
                 variations: item.variations || [],
-                isExisting: true // Mark as existing item
+                isExisting: true, // Mark as existing item
+                removed: false // Initialize as not removed
             }));
             updateOrderDisplay();
         }
@@ -764,9 +757,9 @@
 
                 if (shrimpVariation) {
                     finalPrice += 2.00; // Add $2 for shrimp
-                    itemName = 'Tempura';
+                    itemName = 'Tempura com camarão';
                 } else {
-                    itemName = 'Tempura without shrimp';
+                    itemName = 'Tempura de legumes';
                 }
             } else if (menuItem.category === 'Brazilian' && menuItem.name === 'Pastel') {
                 // Pastel importance-based pricing
@@ -829,23 +822,20 @@
         }
 
         function removeExistingItem(index) {
-            // For existing items, we need to mark them for removal
-            // Since we can't actually delete them from the DOM the same way,
-            // we'll hide them and mark them as removed
-            const orderItemDiv = document.querySelectorAll('.order-item')[index];
-            if (orderItemDiv) {
-                orderItemDiv.style.display = 'none';
-                // Mark this item as removed by setting quantity to 0
-                if (orderItems[index]) {
-                    orderItems[index].quantity = 0;
-                    orderItems[index].removed = true;
-                }
+            // For existing items, mark them as removed
+            if (orderItems[index]) {
+                orderItems[index].quantity = 0;
+                orderItems[index].removed = true;
             }
             updateOrderDisplay();
         }
 
         function removeFromOrder(index) {
-            orderItems.splice(index, 1);
+            // For newly added items, mark them as removed instead of removing from array
+            if (orderItems[index]) {
+                orderItems[index].quantity = 0;
+                orderItems[index].removed = true;
+            }
             updateOrderDisplay();
         }
 
@@ -860,16 +850,18 @@
                 orderItemsDiv.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No items in order</p>';
                 submitBtn.disabled = true;
             } else {
-                orderItemsDiv.innerHTML = activeItems.map((item, index) => `
+                orderItemsDiv.innerHTML = activeItems.map((item, displayIndex) => {
+                    const actualIndex = orderItems.indexOf(item);
+                    return `
                     <div class="order-item">
                         <div class="order-item-info">
                             <div class="order-item-name">${item.name}</div>
                             <div class="order-item-quantity">Qty: ${item.quantity}</div>
                         </div>
                         <div class="order-item-price">$${(item.price * item.quantity).toFixed(2)}</div>
-                        <button type="button" class="remove-item" onclick="removeFromOrder(orderItems.indexOf(item))">Remove</button>
+                        <button type="button" class="remove-item" onclick="removeFromOrder(${actualIndex})">Remove</button>
                     </div>
-                `).join('');
+                `}).join('');
                 submitBtn.disabled = false;
             }
 

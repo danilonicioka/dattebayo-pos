@@ -74,9 +74,9 @@ This will:
 
 Once the containers are running (wait about 30-60 seconds for the backend to start):
 
-- **Order Taking Interface**: http://localhost:8080
-- **Kitchen Display System**: http://localhost:8080/kitchen
-- **REST API**: http://localhost:8080/api
+- **Order Taking Interface**: http://localhost
+- **Kitchen Display System**: http://localhost/kitchen
+- **REST API**: http://localhost/api
 
 ### 4. Stop the System
 
@@ -94,7 +94,7 @@ docker composedown -v
 
 ### Taking Orders
 
-1. Open the order interface at http://localhost:8080
+1. Open the order interface at http://localhost
 2. Enter the table number
 3. Click on menu items to add them to the order
 4. Use category tabs to filter menu items
@@ -103,7 +103,7 @@ docker composedown -v
 
 ### Kitchen Display
 
-1. Open the kitchen display at http://localhost:8080/kitchen
+1. Open the kitchen display at http://localhost/kitchen
 2. View all pending and preparing orders
 3. Update order status:
    - **Start Preparing**: Move order from Pending to Preparing
@@ -187,8 +187,8 @@ Categories are automatically extracted from menu items. To add new categories, s
 ### Changing Ports
 
 To change the application port, modify:
-- `docker-compose.yml`: Update port mapping `"8080:8080"` to your desired port
-- `application.properties`: Update `server.port=8080`
+- `docker-compose.yml`: Update port mapping `"80"` to your desired port
+- `application.properties`: Update `server.port=80`
 
 ## Troubleshooting
 
@@ -196,7 +196,7 @@ To change the application port, modify:
 
 1. Check if PostgreSQL is healthy: `docker composeps`
 2. Check backend logs: `docker composelogs backend`
-3. Ensure port 8080 is not in use by another application
+3. Ensure port 80 is not in use by another application
 
 ### Database connection issues
 

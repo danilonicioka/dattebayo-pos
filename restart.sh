@@ -29,4 +29,4 @@ docker compose logs --tail=20 backend
 
 echo ""
 echo "✅ Done! Check if services are running with: docker compose ps"
-echo "📍 Access: http://localhost:8080"
+echo "📍 Access: http://localhost"

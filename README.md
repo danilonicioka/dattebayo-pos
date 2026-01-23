@@ -1,273 +1,111 @@
-# Restaurant POS System
+# Dattebayo Restaurant POS
 
-A Point of Sale (POS) system designed for small restaurant businesses. This system allows you to take orders and display them in the kitchen for preparation. Payments are handled externally with card machines.
+A mixed Maven + Gradle monorepo for a Restaurant Point of Sale system.
 
-## Features
+## Architecture
 
-- **Order Taking Interface**: Easy-to-use web interface for taking customer orders
-- **Kitchen Display System (KDS)**: Real-time order display for kitchen staff
-- **Order Management**: Track order status (Pending → Preparing → Ready → Completed)
-- **Menu Management**: Manage menu items with categories, prices, and availability
-- **Database Persistence**: All orders and menu items are stored in PostgreSQL
-- **Docker Support**: Easy deployment with Docker Compose
-
-## Technology Stack
-
-- **Backend**: Spring Boot 3.2.0 (Java 17)
-- **Frontend**: Thymeleaf templates with modern CSS/JavaScript
-- **Database**: PostgreSQL 15
-- **Containerization**: Docker & Docker Compose
+- **Backend**: Spring Boot + Thymeleaf + PostgreSQL (Maven)
+- **Client**: Generated Java Retrofit client from OpenAPI (Maven)
+- **Android App**: Native Android app consuming the generated client (Gradle)
+- **Infrastructure**: Docker Compose for local development
 
 ## Project Structure
 
 ```
-dattebayo-pos/
-├── docker-compose.yml          # Docker Compose configuration
-├── backend/
-│   ├── Dockerfile              # Backend Docker image
-│   ├── pom.xml                 # Maven dependencies
-│   └── src/
-│       └── main/
-│           ├── java/
-│           │   └── com/dattebayo/pos/
-│           │       ├── model/          # Entity models
-│           │       ├── repository/     # Data repositories
-│           │       ├── service/        # Business logic
-│           │       ├── controller/     # REST and Web controllers
-│           │       └── config/         # Configuration classes
-│           └── resources/
-│               ├── application.properties
-│               └── templates/          # Thymeleaf HTML templates
-└── README.md
+your-project/
+├── pom.xml                         # Maven root (parent POM)
+├── contracts/
+│   └── openapi.yaml                # API contract (OpenAPI 3.0)
+├── server/
+│   ├── pom.xml                     # Spring Boot app
+│   ├── src/
+│   └── Dockerfile
+├── clients/
+│   └── android-client/
+│       └── pom.xml                 # Generated Java client
+├── apps/
+│   └── android/                    # Android app (Gradle)
+│       ├── build.gradle
+│       ├── settings.gradle
+│       └── app/
+└── docker/
+    └── compose.dev.yml
 ```
 
-## Prerequisites
+## Getting Started
 
-Before you begin, ensure you have the following installed:
+### Prerequisites
 
-- **Docker** (version 20.10 or higher)
-- **Docker Compose** (version 2.0 or higher)
-- **Java 17** (if running locally without Docker)
-- **Maven 3.6+** (if running locally without Docker)
+- Docker & Docker Compose
+- (Optional) Maven 3.9+ and Java 17+ for local builds
+- (Optional) Android Studio for Android development
 
-## Quick Start
+### Running the Backend
 
-### 1. Clone or Navigate to the Project
+All development is done via Docker Compose. **No local Maven or Java installation required.**
 
 ```bash
-cd /home/danilo.nicioka/uchi/dattebayo-pos
+# Start the backend + database
+docker compose -f docker/compose.dev.yml up --build
+
+# Access the application
+open http://localhost:8080
 ```
 
-### 2. Start the System with Docker Compose
+The Docker build will:
+1. Build the Spring Boot application inside a Maven container
+2. Package it into a runnable JAR
+3. Run it in a lightweight JRE container
+
+### Generating the Android Client
+
+To generate the Retrofit client from the OpenAPI spec:
 
 ```bash
-docker composeup -d
+# From the root directory
+mvn clean install -pl clients/android-client
+
+# This will:
+# 1. Read contracts/openapi.yaml
+# 2. Generate Java/Retrofit client code
+# 3. Install to local Maven repository (~/.m2)
 ```
 
-This will:
-- Start PostgreSQL database
-- Build and start the Spring Boot backend
-- Create necessary database tables automatically
-- Seed initial menu items
-
-### 3. Access the Application
-
-Once the containers are running (wait about 30-60 seconds for the backend to start):
-
-- **Order Taking Interface**: http://localhost
-- **Kitchen Display System**: http://localhost/kitchen
-- **REST API**: http://localhost/api
-
-### 4. Stop the System
+### Building the Android App
 
 ```bash
-docker composedown
+cd apps/android
+./gradlew build
+
+# The app can consume the generated client via mavenLocal()
 ```
 
-To also remove volumes (database data):
+## Development Workflow
 
-```bash
-docker composedown -v
-```
+1. **API First**: Update `contracts/openapi.yaml` when adding new endpoints
+2. **Implement**: Add corresponding Spring Boot controllers in `server/src`
+3. **Generate**: Run `mvn install` in `clients/android-client` to regenerate the client
+4. **Consume**: Use the generated client in the Android app
 
-## Usage Guide
+## Environment Variables
 
-### Taking Orders
+The backend uses Spring profiles. Environment variables are defined in `docker/compose.dev.yml`:
 
-1. Open the order interface at http://localhost
-2. Enter the table number
-3. Click on menu items to add them to the order
-4. Use category tabs to filter menu items
-5. Add special instructions if needed
-6. Click "Place Order" to submit
+- `DB_HOST`: Database hostname
+- `DB_PORT`: Database port
+- `DB_NAME`: Database name
+- `DB_USER`: Database user
+- `DB_PASSWORD`: Database password
+- `TZ`: Timezone (America/Sao_Paulo)
 
-### Kitchen Display
+## Next Steps
 
-1. Open the kitchen display at http://localhost/kitchen
-2. View all pending and preparing orders
-3. Update order status:
-   - **Start Preparing**: Move order from Pending to Preparing
-   - **Mark Ready**: Move order from Preparing to Ready
-   - **Complete**: Mark order as completed (removes from kitchen display)
-4. The display auto-refreshes every 5 seconds
-
-### Order Status Flow
-
-```
-PENDING → PREPARING → READY → COMPLETED
-```
-
-- **PENDING**: Order just placed, waiting for kitchen
-- **PREPARING**: Kitchen is actively preparing the order
-- **READY**: Order is ready to be served
-- **COMPLETED**: Order has been served/completed
-
-## API Endpoints
-
-### Orders API
-
-- `GET /api/orders` - Get all orders
-- `GET /api/orders/kitchen` - Get kitchen orders (PENDING and PREPARING)
-- `GET /api/orders/status/{status}` - Get orders by status
-- `GET /api/orders/{id}` - Get order by ID
-- `POST /api/orders` - Create new order
-- `PUT /api/orders/{id}/status?status={status}` - Update order status
-
-### Menu API
-
-- `GET /api/menu` - Get all menu items
-- `GET /api/menu/available` - Get available menu items
-- `GET /api/menu/category/{category}` - Get items by category
-- `GET /api/menu/categories` - Get all categories
-- `GET /api/menu/{id}` - Get menu item by ID
-- `POST /api/menu` - Create menu item
-- `PUT /api/menu/{id}` - Update menu item
-- `DELETE /api/menu/{id}` - Delete menu item
-
-## Database Schema
-
-### Menu Items
-- `id` (Long): Primary key
-- `name` (String): Item name
-- `description` (String): Item description
-- `price` (Double): Item price
-- `category` (String): Item category
-- `available` (Boolean): Availability status
-
-### Orders
-- `id` (Long): Primary key
-- `table_number` (String): Table identifier
-- `status` (Enum): Order status (PENDING, PREPARING, READY, COMPLETED)
-- `created_at` (Timestamp): Order creation time
-- `updated_at` (Timestamp): Last update time
-- `notes` (String): Order notes
-
-### Order Items
-- `id` (Long): Primary key
-- `order_id` (Long): Foreign key to orders
-- `menu_item_id` (Long): Foreign key to menu_items
-- `quantity` (Integer): Item quantity
-- `price` (Double): Price at time of order
-- `special_instructions` (String): Special instructions
-
-## Customization
-
-### Adding Menu Items
-
-You can add menu items in several ways:
-
-1. **Via API**: Use POST `/api/menu` endpoint
-2. **Via Database**: Insert directly into PostgreSQL
-3. **Via Code**: Modify `DataInitializer.java` to add more sample items
-
-### Modifying Categories
-
-Categories are automatically extracted from menu items. To add new categories, simply create menu items with new category names.
-
-### Changing Ports
-
-To change the application port, modify:
-- `docker-compose.yml`: Update port mapping `"80"` to your desired port
-- `application.properties`: Update `server.port=80`
-
-## Troubleshooting
-
-### Backend won't start
-
-1. Check if PostgreSQL is healthy: `docker composeps`
-2. Check backend logs: `docker composelogs backend`
-3. Ensure port 80 is not in use by another application
-
-### Database connection issues
-
-1. Verify PostgreSQL is running: `docker composeps postgres`
-2. Check database credentials in `application.properties` and `docker-compose.yml`
-3. Ensure backend waits for PostgreSQL: Check `depends_on` in docker-compose.yml
-
-### Menu items not showing
-
-1. Check if DataInitializer ran: Check backend logs for initialization messages
-2. Verify database connection
-3. Check if menu items exist in database: Connect to PostgreSQL and query `menu_items` table
-
-## Development
-
-### Running Locally (without Docker)
-
-1. Start PostgreSQL manually or use Docker for database only:
-   ```bash
-   docker composeup -d postgres
-   ```
-
-2. Update `application.properties` to point to local PostgreSQL
-
-3. Run the Spring Boot application:
-   ```bash
-   cd backend
-   mvn spring-boot:run
-   ```
-
-### Building the Backend
-
-```bash
-cd backend
-mvn clean package
-```
-
-### Viewing Logs
-
-```bash
-# All services
-docker composelogs -f
-
-# Specific service
-docker composelogs -f backend
-docker composelogs -f postgres
-```
-
-## Future Enhancements
-
-Potential features you might want to add:
-
-- User authentication and roles
-- Order history and reports
-- Table management
-- Receipt printing
-- Real-time updates using WebSockets
-- Mobile-friendly interface
-- Multi-language support
+- [ ] Implement authentication (JWT or OAuth2)
+- [ ] Expand OpenAPI spec with full CRUD endpoints
+- [ ] Build Android UI screens
+- [ ] Add automated tests
+- [ ] Setup CI/CD pipeline
 
 ## License
 
-See LICENSE file for details.
-
-## Support
-
-For issues or questions, check the logs first:
-```bash
-docker composelogs backend
-```
-
----
-
-**Enjoy your Restaurant POS System! 🍽️**
+See [LICENSE](LICENSE) file.

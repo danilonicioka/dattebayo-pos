@@ -1,32 +1,33 @@
 #!/bin/bash
 
-echo "🛑 Stopping and removing containers..."
-docker compose down backend -v
+echo "🔄 Restarting Backend Service..."
+echo ""
+
+# Only rebuild and restart the backend (keeps database running)
+echo "🛑 Stopping backend container..."
+docker compose -f docker/compose.dev.yml stop backend
 
 echo ""
-echo "🧹 Cleaning up old images..."
-docker compose rm -f 
+echo "🔨 Rebuilding backend image..."
+docker compose -f docker/compose.dev.yml build backend
 
 echo ""
-echo "🔨 Rebuilding images..."
-docker compose build --no-cache
+echo "🚀 Starting backend..."
+docker compose -f docker/compose.dev.yml up -d backend
 
 echo ""
-echo "🚀 Starting services..."
-docker compose up backend -d
+echo "⏳ Waiting for backend to start..."
+sleep 5
 
 echo ""
-echo "⏳ Waiting for services to start..."
-sleep 10
-
-echo ""
-echo "📊 Checking service status..."
-docker compose ps
+echo "📊 Service status:"
+docker compose -f docker/compose.dev.yml ps
 
 echo ""
 echo "📝 Backend logs (last 20 lines):"
-docker compose logs --tail=20 backend
+docker compose -f docker/compose.dev.yml logs --tail=20 backend
 
 echo ""
-echo "✅ Done! Check if services are running with: docker compose ps"
-echo "📍 Access: http://localhost"
+echo "✅ Backend restarted!"
+echo "📍 Access: http://localhost:8080"
+echo "📊 Follow logs: docker compose -f docker/compose.dev.yml logs -f backend"

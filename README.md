@@ -49,7 +49,7 @@ All development is done via Docker Compose. **No local Maven or Java installatio
 docker compose -f docker/compose.dev.yml up --build
 
 # Access the application
-open http://localhost:8080
+open http://localhost:80
 ```
 
 The Docker build will:

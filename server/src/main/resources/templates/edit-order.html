@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,7 +25,7 @@
             margin: 0 auto;
             background: white;
             border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
             overflow: hidden;
         }
 
@@ -55,7 +56,7 @@
             position: absolute;
             top: 20px;
             left: 20px;
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.2);
             color: white;
             border: none;
             padding: 10px 15px;
@@ -69,7 +70,7 @@
         }
 
         .back-btn:hover {
-            background: rgba(255,255,255,0.3);
+            background: rgba(255, 255, 255, 0.3);
         }
 
         .content {
@@ -84,7 +85,7 @@
             border-radius: 10px;
             padding: 20px;
             border: 2px solid #e0e0e0;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         .category-tabs {
@@ -104,7 +105,8 @@
             font-weight: 600;
         }
 
-        .category-tab:hover, .category-tab.active {
+        .category-tab:hover,
+        .category-tab.active {
             background: #ee8b1b;
             color: white;
         }
@@ -126,7 +128,7 @@
 
         .menu-item:hover {
             transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             border-color: #ee8b1b;
         }
 
@@ -161,7 +163,7 @@
             display: flex;
             flex-direction: column;
             border: 2px solid #e0e0e0;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         .order-form {
@@ -181,7 +183,8 @@
             color: #080502;
         }
 
-        .form-group input, .form-group textarea {
+        .form-group input,
+        .form-group textarea {
             width: 100%;
             padding: 12px;
             border: 2px solid #ddd;
@@ -189,7 +192,8 @@
             font-size: 1em;
         }
 
-        .form-group input:focus, .form-group textarea:focus {
+        .form-group input:focus,
+        .form-group textarea:focus {
             outline: none;
             border-color: #ee8b1b;
         }
@@ -301,7 +305,7 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.5);
+            background-color: rgba(0, 0, 0, 0.5);
         }
 
         .modal-content {
@@ -311,7 +315,7 @@
             border-radius: 10px;
             width: 90%;
             max-width: 500px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
         }
 
         .modal-header {
@@ -414,6 +418,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
@@ -426,11 +431,11 @@
         <div class="content">
             <div class="menu-section">
                 <div class="category-tabs">
-                    <div class="category-tab active" data-category-filter="all" onclick="filterCategory('all')">All</div>
+                    <div class="category-tab active" data-category-filter="all" onclick="filterCategory('all')">All
+                    </div>
                     <div class="category-tab" th:each="category : ${categories}"
-                         th:attr="data-category-filter=${category}"
-                         onclick="filterCategoryFromData(this)"
-                         th:text="${category}"></div>
+                        th:attr="data-category-filter=${category}" onclick="filterCategoryFromData(this)"
+                        th:text="${category}"></div>
                 </div>
 
                 <div class="menu-items" id="menuItems">
@@ -443,10 +448,12 @@
                     Order updated successfully!
                 </div>
 
-                <form th:action="@{'/orders/' + ${order.id} + '/update'}" method="post" class="order-form" id="orderForm" onsubmit="prepareFormData()">
+                <form th:action="@{'/orders/' + ${order.id} + '/update'}" method="post" class="order-form"
+                    id="orderForm" onsubmit="prepareFormData()">
                     <div class="form-group">
                         <label for="tableNumber">Table Number:</label>
-                        <input type="text" id="tableNumber" name="tableNumber" th:value="${order.tableNumber}" required placeholder="e.g., Table 1">
+                        <input type="text" id="tableNumber" name="tableNumber" th:value="${order.tableNumber}" required
+                            placeholder="e.g., Table 1">
                     </div>
 
                     <div class="form-group">
@@ -462,7 +469,8 @@
 
                     <div class="form-group">
                         <label for="notes">Notes (optional):</label>
-                        <textarea id="notes" name="notes" rows="3" th:text="${order.notes}" placeholder="Special instructions..."></textarea>
+                        <textarea id="notes" name="notes" rows="3" th:text="${order.notes}"
+                            placeholder="Special instructions..."></textarea>
                     </div>
 
                     <!-- Hidden fields for order items - populated by JavaScript -->
@@ -501,7 +509,7 @@
         let selectedVariations = {};
 
         // Initialize with existing order data
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             loadMenuItems();
             loadCategories();
             initializeExistingOrder();
@@ -509,7 +517,7 @@
 
         function initializeExistingOrder() {
             // Convert existing order items to the format expected by the JavaScript
-            const existingItems = /*[[${order.items}]]*/ [];
+            const existingItems = /*[[${order.items}]]*/[];
             orderItems = existingItems.map(item => ({
                 id: item.id, // Keep the original ID for existing items
                 menuItemId: item.menuItemId,
@@ -761,7 +769,7 @@
                 } else {
                     itemName = 'Tempura de legumes';
                 }
-            } else if (menuItem.category === 'Brazilian' && menuItem.name === 'Pastel') {
+            } else if (menuItem.name === 'Pastel' || (menuItem.category === 'Brazilian' && menuItem.name.includes('Pastel'))) {
                 // Pastel importance-based pricing
                 const selectedVariations = variations.filter(v => v.selected).map(v => {
                     const variationData = menuItem.variations.find(vd => vd.id === v.menuItemVariationId);
@@ -918,4 +926,5 @@
         }
     </script>
 </body>
+
 </html>

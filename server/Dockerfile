@@ -14,5 +14,5 @@ RUN mvn -f server/pom.xml clean package -DskipTests
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 COPY --from=build /build/server/target/restaurant-pos-server-*.jar app.jar
-EXPOSE 8080
+EXPOSE 80
 ENTRYPOINT ["java", "-Duser.timezone=America/Sao_Paulo", "-jar", "app.jar"]

@@ -19,7 +19,7 @@ This command will:
 5. Connect to the database
 
 ### Access Points
-- **Backend API**: http://localhost:8080
+- **Backend API**: http://localhost:80
 - **Database**: localhost:5432
 
 ### Stop Everything

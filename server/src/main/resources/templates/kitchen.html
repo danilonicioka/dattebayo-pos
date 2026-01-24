@@ -395,32 +395,68 @@
             .orders-container {
                 grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
             }
+
+
+
+            /* Oldest Order Highlight */
+            @keyframes pulse-border {
+                0% {
+                    border-color: #ee8b1b;
+                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+                }
+
+                50% {
+                    border-color: #ff4500;
+                    box-shadow: 0 0 20px rgba(255, 69, 0, 0.4);
+                }
+
+                100% {
+                    border-color: #ee8b1b;
+                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+                }
+            }
+
+            .oldest-order {
+                animation: pulse-border 2s infinite;
+                border-left-width: 8px !important;
+                border-left-color: #ff4500 !important;
+                position: relative;
+                z-index: 10;
+            }
+
+            .oldest-order::after {
+                content: "🔥 NEXT UP";
+                position: absolute;
+                top: -12px;
+                right: 20px;
+                background: #ff4500;
+                color: white;
+                padding: 5px 12px;
+                border-radius: 20px;
+                font-weight: bold;
+                font-size: 0.85em;
+                box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+                border: 2px solid white;
+            }
         }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <div class="header">
-            <img th:src="@{/dattebayo-logo.png}" alt="Dattebayo Logo" />
+        <div class="header"><img th:src="@{/dattebayo-logo.png}" alt="Dattebayo Logo" />
             <div>
-                <h1><i class="fas fa-utensils"></i> Kitchen Display</h1>
-                <div class="nav-links">
-                    <a href="/" class="nav-link"><i class="fas fa-clipboard-list"></i> Orders</a>
-                    <a href="/kitchen" class="nav-link active"><i class="fas fa-utensils"></i> Kitchen</a>
-                </div>
+                <h1><i class="fas fa-utensils"></i>Kitchen Display</h1>
+                <div class="nav-links"><a href="/" class="nav-link"><i class="fas fa-clipboard-list"></i>Orders</a><a
+                        href="/kitchen" class="nav-link active"><i class="fas fa-utensils"></i>Kitchen</a></div>
             </div>
             <p>Monitor and manage orders</p>
         </div>
-
         <div class="content">
-            <div class="auto-refresh">
-                Auto-refreshing every 5 seconds...
-            </div>
-
+            <div class="auto-refresh">Auto-refreshing every 5 seconds... </div>
             <div class="orders-container" th:if="${orders != null and !orders.isEmpty()}">
-                <div class="order-card" th:each="order : ${orders}"
-                    th:classappend="${order.status.name().toLowerCase()}">
+                <div class="order-card" th:each="order, iterStat : ${orders}"
+                    th:classappend="${(iterStat.index == 0 ? 'oldest-order ' : '') + order.status.name().toLowerCase()}">
                     <div class="order-header">
                         <div>
                             <div class="order-id">Order #<span th:text="${order.id}"></span></div>
@@ -430,16 +466,14 @@
                         <div class="order-status" th:classappend="${order.status.name().toLowerCase()}"
                             th:text="${order.status}"></div>
                     </div>
-
                     <div class="order-items">
                         <div class="order-item" th:each="item : ${order.items}">
                             <div>
                                 <div class="order-item-name" th:text="${item.menuItemName}"></div>
                                 <div class="order-item-variations"
-                                    th:if="${item.variations != null and !item.variations.isEmpty()}">
-                                    <span th:each="variation : ${item.variations}" th:if="${variation.selected}">
-                                        <i class="fas fa-check"></i> <span th:text="${variation.name}"></span>
-                                    </span>
+                                    th:if="${item.variations != null and !item.variations.isEmpty()}"><span
+                                        th:each="variation : ${item.variations}" th:if="${variation.selected}"><i
+                                            class="fas fa-check"></i><span th:text="${variation.name}"></span></span>
                                 </div>
                                 <div class="order-item-instructions"
                                     th:if="${item.specialInstructions != null and !item.specialInstructions.isEmpty()}"
@@ -448,42 +482,35 @@
                             <div class="order-item-quantity" th:text="'x' + ${item.quantity}"></div>
                         </div>
                     </div>
-
-                    <div class="order-notes" th:if="${order.notes != null and !order.notes.isEmpty()}">
-                        <i class="fas fa-sticky-note"></i> <span th:text="${order.notes}"></span>
-                    </div>
-
+                    <div class="order-notes" th:if="${order.notes != null and !order.notes.isEmpty()}"><i
+                            class="fas fa-sticky-note"></i><span th:text="${order.notes}"></span></div>
                     <div class="order-actions">
                         <form th:if="${order.status.name() == 'PENDING'}"
-                            th:action="@{'/orders/' + ${order.id} + '/status'}" method="post" style="flex: 1;">
-                            <input type="hidden" name="status" value="PREPARING">
-                            <button type="submit" class="action-btn btn-preparing">Start Preparing</button>
-                        </form>
+                            th:action="@{'/orders/' + ${order.id} + '/status'}" method="post" style="flex: 1;"><input
+                                type="hidden" name="status" value="PREPARING"><button type="submit"
+                                class="action-btn btn-preparing">Start Preparing</button></form>
                         <form th:if="${order.status.name() == 'PREPARING'}"
-                            th:action="@{'/orders/' + ${order.id} + '/status'}" method="post" style="flex: 1;">
-                            <input type="hidden" name="status" value="READY">
-                            <button type="submit" class="action-btn btn-ready">Mark Ready</button>
-                        </form>
+                            th:action="@{'/orders/' + ${order.id} + '/status'}" method="post" style="flex: 1;"><input
+                                type="hidden" name="status" value="READY"><button type="submit"
+                                class="action-btn btn-ready">Mark Ready</button></form>
                         <form th:if="${order.status.name() == 'READY'}"
-                            th:action="@{'/orders/' + ${order.id} + '/status'}" method="post" style="flex: 1;">
-                            <input type="hidden" name="status" value="COMPLETED">
-                            <button type="submit" class="action-btn btn-complete">Complete</button>
-                        </form>
+                            th:action="@{'/orders/' + ${order.id} + '/status'}" method="post" style="flex: 1;"><input
+                                type="hidden" name="status" value="COMPLETED"><button type="submit"
+                                class="action-btn btn-complete">Complete</button></form>
                     </div>
                 </div>
             </div>
-
-            <div class="no-orders" th:if="${orders == null or orders.isEmpty()}">
-                <i class="fas fa-check-circle"></i> No pending orders! Kitchen is clear.
-            </div>
+            <div class="no-orders" th:if="${orders == null or orders.isEmpty()}"><i class="fas fa-check-circle"></i>No
+                pending orders ! Kitchen is clear. </div>
         </div>
     </div>
+    <script> // Auto-refresh every 5 seconds
 
-    <script>
-        // Auto-refresh every 5 seconds
         setInterval(function () {
             location.reload();
-        }, 5000);
+        }
+
+            , 5000);
     </script>
 </body>
 

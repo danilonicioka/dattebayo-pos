@@ -29,5 +29,5 @@ docker compose -f docker/compose.dev.yml logs --tail=20 backend
 
 echo ""
 echo "✅ Backend restarted!"
-echo "📍 Access: http://localhost:8080"
+echo "📍 Access: http://localhost:80"
 echo "📊 Follow logs: docker compose -f docker/compose.dev.yml logs -f backend"

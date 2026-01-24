@@ -24,7 +24,7 @@ services:
     container_name: dattebayo-backend
     restart: always
     ports:
-      - "8080:8080"
+      - "80:80"
     environment:
       DB_HOST: postgres
       DB_PORT: 5432

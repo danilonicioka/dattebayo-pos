@@ -20,13 +20,13 @@ sleep 5
 # Wait for backend to be ready
 echo "🔍 Checking backend status..."
 for i in {1..30}; do
-    if curl -s http://localhost:8080 > /dev/null 2>&1; then
+    if curl -s http://localhost:80 > /dev/null 2>&1; then
         echo ""
         echo "✅ System is ready!"
         echo ""
         echo "📍 Access the application:"
-        echo "   - Web Interface: http://localhost:8080"
-        echo "   - Kitchen Display: http://localhost:8080/kitchen"
+        echo "   - Web Interface: http://localhost:80"
+        echo "   - Kitchen Display: http://localhost:80/kitchen"
         echo "   - Database: localhost:5432"
         echo ""
         echo "📊 View logs: docker compose -f docker/compose.dev.yml logs -f"
@@ -43,5 +43,5 @@ echo "⚠️  Backend is taking longer than expected to start."
 echo "   Check logs with: docker compose -f docker/compose.dev.yml logs backend"
 echo ""
 echo "📍 Once ready, access:"
-echo "   - Web Interface: http://localhost:8080"
-echo "   - Kitchen Display: http://localhost:8080/kitchen"
+echo "   - Web Interface: http://localhost:80"
+echo "   - Kitchen Display: http://localhost:80/kitchen"

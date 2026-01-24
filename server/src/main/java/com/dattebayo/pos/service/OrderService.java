@@ -178,6 +178,10 @@ public class OrderService {
                 // Special naming for Tempura
                 boolean hasShrimp = selectedVariationNames.contains("With Shrimp");
                 displayName = hasShrimp ? "Tempura with Shrimp" : "Tempura with Vegetables";
+            } else if ("Brazilian".equals(item.getMenuItem().getCategory()) && item.getMenuItem().getName().contains("Pastel")) {
+                displayName = selectedVariationNames.isEmpty()
+                        ? item.getMenuItem().getName()
+                        : "Pastel (" + String.join(" + ", selectedVariationNames) + ")";
             } else {
                 displayName = selectedVariationNames.isEmpty()
                         ? item.getMenuItem().getName()

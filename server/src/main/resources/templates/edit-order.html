@@ -6,417 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Restaurant POS - Edit Order</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #ee8b1b 0%, #ebad1c 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #ee8b1b 0%, #ebad1c 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-            position: relative;
-        }
-
-        .header img {
-            max-width: 150px;
-            height: auto;
-            margin-bottom: 20px;
-        }
-
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-
-        .header h1 i {
-            margin-right: 10px;
-        }
-
-        .back-btn {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.9em;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .back-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .content {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 30px;
-            padding: 30px;
-        }
-
-        .menu-section {
-            background: #fefdfa;
-            border-radius: 10px;
-            padding: 20px;
-            border: 2px solid #e0e0e0;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .category-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .category-tab {
-            padding: 10px 20px;
-            background: white;
-            border: 2px solid #ee8b1b;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 600;
-        }
-
-        .category-tab:hover,
-        .category-tab.active {
-            background: #ee8b1b;
-            color: white;
-        }
-
-        .menu-items {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 20px;
-        }
-
-        .menu-item {
-            background: white;
-            border-radius: 10px;
-            padding: 15px;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: 1px solid #e0e0e0;
-        }
-
-        .menu-item:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            border-color: #ee8b1b;
-        }
-
-        .menu-item h3 {
-            color: #080502;
-            margin-bottom: 5px;
-            font-size: 1.1em;
-        }
-
-        .menu-item .description {
-            color: #666;
-            font-size: 0.9em;
-            margin-bottom: 10px;
-        }
-
-        .menu-item .price {
-            color: #ee8b1b;
-            font-weight: bold;
-            font-size: 1.2em;
-        }
-
-        .variations-indicator {
-            font-size: 0.8em;
-            color: #666;
-            margin-top: 5px;
-        }
-
-        .order-section {
-            background: #fefdfa;
-            border-radius: 10px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            border: 2px solid #e0e0e0;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .order-form {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: #080502;
-        }
-
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 1em;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #ee8b1b;
-        }
-
-        .order-items {
-            flex: 1;
-            background: white;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
-            max-height: 300px;
-            overflow-y: auto;
-            border: 1px solid #e0e0e0;
-        }
-
-        .order-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            border-bottom: 1px solid #e0e0e0;
-            margin-bottom: 5px;
-            background: #fafafa;
-            border-radius: 5px;
-        }
-
-        .order-item:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-        }
-
-        .order-item-info {
-            flex: 1;
-        }
-
-        .order-item-name {
-            font-weight: 600;
-            color: #080502;
-        }
-
-        .order-item-quantity {
-            color: #666;
-            font-size: 0.9em;
-        }
-
-        .order-item-price {
-            color: #ee8b1b;
-            font-weight: bold;
-        }
-
-        .remove-item {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.9em;
-        }
-
-        .order-total {
-            background: #ee8b1b;
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            font-size: 1.5em;
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
-
-        .submit-order {
-            background: #223c0e;
-            color: white;
-            border: none;
-            padding: 15px;
-            border-radius: 10px;
-            font-size: 1.2em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .submit-order:hover {
-            background: #1a2f0a;
-            transform: scale(1.02);
-        }
-
-        .submit-order:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-
-        .success-message {
-            background: #d4edda;
-            color: #155724;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        /* Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-        }
-
-        .modal-content {
-            background-color: white;
-            margin: 10% auto;
-            padding: 0;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .modal-header {
-            padding: 20px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-header h2 {
-            margin: 0;
-            color: #080502;
-        }
-
-        .modal-price-display {
-            padding: 15px 20px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #eee;
-            text-align: center;
-            font-size: 1.2em;
-            color: #ee8b1b;
-        }
-
-        .close {
-            color: #aaa;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .close:hover {
-            color: #000;
-        }
-
-        .modal-footer {
-            padding: 20px;
-            border-top: 1px solid #eee;
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-
-        .cancel-btn {
-            background: #6c757d;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .confirm-btn {
-            background: #ee8b1b;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .confirm-btn:hover {
-            background: #d67a1a;
-        }
-
-        .variation-group {
-            padding: 20px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .variation-group:last-child {
-            border-bottom: none;
-        }
-
-        .variation-group h3 {
-            margin: 0 0 15px 0;
-            color: #080502;
-            font-size: 1.1em;
-        }
-
-        .variation-option {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .variation-option input[type="checkbox"] {
-            margin-right: 10px;
-            transform: scale(1.2);
-        }
-
-        .variation-option label {
-            flex: 1;
-            cursor: pointer;
-        }
-
-        .variation-price {
-            color: #ee8b1b;
-            font-weight: bold;
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 
 <body>
@@ -510,7 +100,7 @@
 
         // Initialize with existing order data
         document.addEventListener('DOMContentLoaded', function () {
-            loadMenuItems();
+            loadMenuItems(); // Must be called to populate menuItems for lookups
             loadCategories();
             initializeExistingOrder();
         });
@@ -646,7 +236,7 @@
 
                         // Determine display price
                         let displayPrice = '';
-                        if (selectedMenuItem.category === 'Brazilian' && selectedMenuItem.name === 'Pastel') {
+                        if (selectedMenuItem.name === 'Pastel' || (selectedMenuItem.category === 'Brazilian' && selectedMenuItem.name.includes('Pastel'))) {
                             if (variation.name === 'Paraense') {
                                 displayPrice = '+8.00';
                             } else {
@@ -709,7 +299,7 @@
                 if (shrimpVariation) {
                     finalPrice += 2.00; // Add $2 for shrimp
                 }
-            } else if (selectedMenuItem.category === 'Brazilian' && selectedMenuItem.name === 'Pastel') {
+            } else if (selectedMenuItem.name === 'Pastel' || (selectedMenuItem.category === 'Brazilian' && selectedMenuItem.name.includes('Pastel'))) {
                 // Pastel pricing: base $0, variations add their cost
                 // Paraense: +$8, every other variation: +$2
                 selectedVariationIds.forEach(id => {
@@ -809,120 +399,114 @@
                     : menuItem.name;
             }
 
-            const existingItem = orderItems.find(item =>
-                item.menuItemId === menuItemId &&
-                JSON.stringify(item.variations) === JSON.stringify(variations)
-            );
+            orderItems.push({
+                menuItemId: menuItemId,
+                quantity: 1,
+                name: itemName,
+                price: finalPrice,
+                variations: variations,
+                isExisting: false,
+                removed: false
+            });
 
-            if (existingItem) {
-                existingItem.quantity++;
-            } else {
-                orderItems.push({
-                    menuItemId: menuItemId,
-                    quantity: 1,
-                    name: itemName,
-                    price: finalPrice,
-                    variations: variations
-                });
-            }
-
-            updateOrderDisplay();
-        }
-
-        function removeExistingItem(index) {
-            // For existing items, mark them as removed
-            if (orderItems[index]) {
-                orderItems[index].quantity = 0;
-                orderItems[index].removed = true;
-            }
             updateOrderDisplay();
         }
 
         function removeFromOrder(index) {
-            // For newly added items, mark them as removed instead of removing from array
-            if (orderItems[index]) {
-                orderItems[index].quantity = 0;
-                orderItems[index].removed = true;
-            }
+            orderItems.splice(index, 1);
             updateOrderDisplay();
+        }
+
+        function getVariationId(itemId, variationName) {
+            // Find the item in global menuItems
+            const menuItem = menuItems.find(m => m.id === itemId);
+            if (!menuItem || !menuItem.variations) return null;
+            const variation = menuItem.variations.find(v => v.name === variationName);
+            return variation ? variation.id : null;
         }
 
         function updateOrderDisplay() {
             const orderItemsDiv = document.getElementById('orderItems');
-            const submitBtn = document.getElementById('submitBtn');
+            const hiddenItemsContainer = document.getElementById('hiddenItemsContainer');
+            const totalElement = document.getElementById('orderTotal').querySelector('span');
 
-            // Filter out removed items for display
-            const activeItems = orderItems.filter(item => !item.removed && item.quantity > 0);
+            orderItemsDiv.innerHTML = '';
+            hiddenItemsContainer.innerHTML = '';
 
-            if (activeItems.length === 0) {
+            let total = 0;
+            let totalCount = 0;
+
+            if (orderItems.length === 0) {
                 orderItemsDiv.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No items in order</p>';
-                submitBtn.disabled = true;
+                document.getElementById('submitBtn').disabled = true;
             } else {
-                orderItemsDiv.innerHTML = activeItems.map((item, displayIndex) => {
-                    const actualIndex = orderItems.indexOf(item);
-                    return `
-                    <div class="order-item">
+                document.getElementById('submitBtn').disabled = false;
+
+                orderItems.forEach((item, index) => {
+                    const itemTotal = item.price * item.quantity;
+                    total += itemTotal;
+                    totalCount += item.quantity;
+
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'order-item';
+                    itemDiv.innerHTML = `
                         <div class="order-item-info">
                             <div class="order-item-name">${item.name}</div>
                             <div class="order-item-quantity">Qty: ${item.quantity}</div>
                         </div>
-                        <div class="order-item-price">R$${(item.price * item.quantity).toFixed(2)}</div>
-                        <button type="button" class="remove-item" onclick="removeFromOrder(${actualIndex})">Remove</button>
-                    </div>
-                `}).join('');
-                submitBtn.disabled = false;
+                        <div class="order-item-price">R$${itemTotal.toFixed(2)}</div>
+                        <button type="button" class="remove-item" onclick="removeFromOrder(${index})">Remove</button>
+                    `;
+                    orderItemsDiv.appendChild(itemDiv);
+
+                    // Form Hidden Inputs
+                    const itemIndex = index;
+                    const menuItemIdInput = document.createElement('input');
+                    menuItemIdInput.type = 'hidden';
+                    menuItemIdInput.name = `items[${itemIndex}].menuItemId`;
+                    menuItemIdInput.value = item.menuItemId;
+                    hiddenItemsContainer.appendChild(menuItemIdInput);
+
+                    const quantityInput = document.createElement('input');
+                    quantityInput.type = 'hidden';
+                    quantityInput.name = `items[${itemIndex}].quantity`;
+                    quantityInput.value = item.quantity;
+                    hiddenItemsContainer.appendChild(quantityInput);
+
+                    if (item.variations) {
+                        item.variations.forEach((v, vIndex) => {
+                            // Ensure we have a valid ID.
+                            // For new items v has menuItemVariationId.
+                            // For existing items v is DTO which lacks it, so we might need to lookup by name if not present.
+                            let varId = v.menuItemVariationId;
+                            if (!varId && item.isExisting) {
+                                // Attempt lookup
+                                varId = getVariationId(item.menuItemId, v.name);
+                            }
+
+                            if (varId) {
+                                const varIdInput = document.createElement('input');
+                                varIdInput.type = 'hidden';
+                                varIdInput.name = `items[${itemIndex}].variations[${vIndex}].menuItemVariationId`;
+                                varIdInput.value = varId;
+                                hiddenItemsContainer.appendChild(varIdInput);
+
+                                const varSelectedInput = document.createElement('input');
+                                varSelectedInput.type = 'hidden';
+                                varSelectedInput.name = `items[${itemIndex}].variations[${vIndex}].selected`;
+                                varSelectedInput.value = 'true';
+                                hiddenItemsContainer.appendChild(varSelectedInput);
+                            }
+                        });
+                    }
+                });
             }
 
-            const total = activeItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            document.getElementById('orderTotal').innerHTML = `Total: R$${total.toFixed(2)}`;
+            totalElement.textContent = total.toFixed(2);
         }
 
         function prepareFormData() {
-            const container = document.getElementById('hiddenItemsContainer');
-            container.innerHTML = ''; // Clear existing hidden fields
-
-            // Only include items that are not removed
-            const activeItems = orderItems.filter(item => !item.removed && item.quantity > 0);
-
-            activeItems.forEach((item, index) => {
-                // Create hidden fields for each item
-                const menuItemIdField = document.createElement('input');
-                menuItemIdField.type = 'hidden';
-                menuItemIdField.name = `items[${index}].menuItemId`;
-                menuItemIdField.value = item.menuItemId;
-                container.appendChild(menuItemIdField);
-
-                const quantityField = document.createElement('input');
-                quantityField.type = 'hidden';
-                quantityField.name = `items[${index}].quantity`;
-                quantityField.value = item.quantity;
-                container.appendChild(quantityField);
-
-                const specialInstructionsField = document.createElement('input');
-                specialInstructionsField.type = 'hidden';
-                specialInstructionsField.name = `items[${index}].specialInstructions`;
-                specialInstructionsField.value = item.specialInstructions || '';
-                container.appendChild(specialInstructionsField);
-
-                // Add variations if any
-                if (item.variations && item.variations.length > 0) {
-                    item.variations.forEach((variation, varIndex) => {
-                        const variationField = document.createElement('input');
-                        variationField.type = 'hidden';
-                        variationField.name = `items[${index}].variations[${varIndex}].menuItemVariationId`;
-                        variationField.value = variation.menuItemVariationId;
-                        container.appendChild(variationField);
-
-                        const selectedField = document.createElement('input');
-                        selectedField.type = 'hidden';
-                        selectedField.name = `items[${index}].variations[${varIndex}].selected`;
-                        selectedField.value = variation.selected;
-                        container.appendChild(selectedField);
-                    });
-                }
-            });
-
-            return true; // Allow form submission
+            // Logic is now in updateOrderDisplay
         }
     </script>
 </body>

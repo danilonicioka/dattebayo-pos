@@ -1,0 +1,204 @@
+/* Kitchen Display System page styles */
+
+.auto-refresh {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #666;
+    font-size: 0.9em;
+}
+
+.orders-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+}
+
+.order-card {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    border-left: 5px solid #ccc;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+}
+
+.order-card.pending {
+    border-left-color: #ebad1c;
+}
+
+.order-card.preparing {
+    border-left-color: #ee8b1b;
+}
+
+.order-card.ready {
+    border-left-color: #223c0e;
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #eee;
+}
+
+.order-id {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #ee8b1b;
+}
+
+.order-table {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #333;
+}
+
+.order-status {
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.order-status.pending {
+    background: #ebad1c;
+    color: #000;
+}
+
+.order-status.preparing {
+    background: #ee8b1b;
+    color: white;
+}
+
+.order-status.ready {
+    background: #223c0e;
+    color: white;
+}
+
+.order-time {
+    color: #666;
+    font-size: 0.9em;
+    margin-top: 5px;
+}
+
+.order-items {
+    margin: 15px 0;
+    flex: 1;
+}
+
+.order-item {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 15px;
+    padding: 10px;
+    margin-bottom: 5px;
+    background: #fafafa;
+    border-radius: 5px;
+}
+
+.order-item-name {
+    font-weight: 600;
+    font-size: 1.1em;
+    color: #333;
+}
+
+.order-item-quantity {
+    background: #ee8b1b;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.order-item-instructions {
+    color: #666;
+    font-size: 0.9em;
+    margin-top: 5px;
+    font-style: italic;
+}
+
+.order-item-variations {
+    color: #ee8b1b;
+    font-size: 0.9em;
+    margin-top: 3px;
+}
+
+.order-notes {
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 10px;
+    color: #666;
+    font-style: italic;
+    border-left: 3px solid #ebad1c;
+}
+
+.order-actions {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+.action-btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 1em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.action-btn:hover {
+    transform: scale(1.05);
+}
+
+.btn-preparing {
+    background: #ee8b1b;
+    color: white;
+}
+
+.btn-ready {
+    background: #223c0e;
+    color: white;
+}
+
+.btn-complete {
+    background: #080502;
+    color: white;
+}
+
+.oldest-order {
+    animation: pulse-border 2s infinite;
+    border-left-width: 8px !important;
+    border-left-color: #ff4500 !important;
+    position: relative;
+    z-index: 10;
+}
+
+.oldest-order::after {
+    content: "🔥 NEXT UP";
+    position: absolute;
+    top: -12px;
+    right: 20px;
+    background: #ff4500;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 0.85em;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+    border: 2px solid white;
+}

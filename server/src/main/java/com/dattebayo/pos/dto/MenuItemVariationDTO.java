@@ -8,5 +8,4 @@ public class MenuItemVariationDTO {
     private String name;
     private String type;
     private Double additionalPrice;
-    private Integer importance;
 }

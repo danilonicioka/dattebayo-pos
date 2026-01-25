@@ -72,7 +72,6 @@ public class MenuItemService {
                     variationDTO.setName(variation.getName());
                     variationDTO.setType(variation.getType());
                     variationDTO.setAdditionalPrice(variation.getAdditionalPrice());
-                    variationDTO.setImportance(variation.getImportance());
                     return variationDTO;
                 })
                 .collect(Collectors.toList());

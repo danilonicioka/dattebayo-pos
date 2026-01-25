@@ -3,6 +3,9 @@
 echo "🍽️  Starting Restaurant POS System..."
 echo ""
 
+# Change to project root directory
+cd "$(dirname "$0")/.."
+
 # Check if Docker is running
 if ! docker info > /dev/null 2>&1; then
     echo "❌ Docker is not running. Please start Docker first."
@@ -31,7 +34,7 @@ for i in {1..30}; do
         echo ""
         echo "📊 View logs: docker compose -f docker/compose.dev.yml logs -f"
         echo "🛑 Stop system: docker compose -f docker/compose.dev.yml down"
-        echo "🔄 Restart backend: ./restart.sh"
+        echo "🔄 Restart backend: ./scripts/restart.sh"
         exit 0
     fi
     echo -n "."

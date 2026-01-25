@@ -3,6 +3,9 @@
 echo "🔄 Restarting Backend Service..."
 echo ""
 
+# Change to project root directory
+cd "$(dirname "$0")/.."
+
 # Only rebuild and restart the backend (keeps database running)
 echo "🛑 Stopping backend container..."
 docker compose -f docker/compose.dev.yml stop backend

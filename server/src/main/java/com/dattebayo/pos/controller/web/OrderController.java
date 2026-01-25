@@ -59,6 +59,13 @@ public class OrderController {
         model.addAttribute("categories", categories);
         return "edit-order";
     }
+
+    @GetMapping("/orders/{id}/checkout")
+    public String checkoutPage(@PathVariable Long id, Model model) {
+        OrderDTO order = orderService.getOrderById(id);
+        model.addAttribute("order", order);
+        return "checkout";
+    }
     
     @PostMapping("/orders")
     public String createOrder(@ModelAttribute CreateOrderDTO createOrderDTO) {

@@ -1,0 +1,249 @@
+/* Active Orders Page Styles */
+
+.new-order-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: #223c0e;
+    color: white;
+    border: 2px solid #4a5d1f;
+    padding: 15px 30px;
+    border-radius: 10px;
+    font-size: 1.1em;
+    font-weight: bold;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    animation: pulse 2s infinite;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.new-order-btn:hover {
+    background: #1a2f0a;
+    transform: scale(1.08);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.refresh-btn {
+    background: #ee8b1b;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.refresh-btn:hover {
+    background: #d67a1a;
+}
+
+.refresh-btn i {
+    margin-right: 5px;
+}
+
+.mark-paid-btn {
+    width: 100%;
+    background: #223c0e;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 10px;
+    display: inline-block;
+    text-align: center;
+    text-decoration: none;
+    transition: background 0.3s;
+}
+
+.mark-paid-btn:hover {
+    background: #1a2f0a;
+}
+
+.mark-paid-btn i {
+    margin-right: 5px;
+}
+
+.edit-order-btn {
+    width: 100%;
+    background: #ee8b1b;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 10px;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    transition: background 0.3s;
+}
+
+.edit-order-btn:hover {
+    background: #d67a1a;
+}
+
+.edit-order-btn i {
+    margin-right: 5px;
+}
+
+/* Active Orders Grid */
+.active-orders-section {
+    background: #fefdfa;
+    border-radius: 10px;
+    padding: 20px;
+    border: 2px solid #e0e0e0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.active-orders-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.active-orders-header h2 {
+    color: #080502;
+    font-size: 1.5em;
+}
+
+.active-orders-header h2 i {
+    margin-right: 8px;
+}
+
+.active-orders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.active-order-card {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    border-left: 4px solid #ee8b1b;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e0e0e0;
+}
+
+.active-order-card .active-order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.active-order-table {
+    font-weight: bold;
+    font-size: 1.2em;
+    color: #080502;
+}
+
+.active-order-status {
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-size: 0.85em;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.active-order-status.pending {
+    background: #ebad1c;
+    color: #000;
+}
+
+.active-order-status.preparing {
+    background: #ee8b1b;
+    color: white;
+}
+
+.active-order-status.ready {
+    background: #223c0e;
+    color: white;
+}
+
+.active-order-items {
+    margin: 10px 0;
+    font-size: 0.9em;
+    color: #666;
+}
+
+.active-order-item {
+    padding: 5px 0;
+    border-bottom: 1px solid #eee;
+    background: #fafafa;
+    padding: 8px;
+    border-radius: 3px;
+    margin-bottom: 5px;
+}
+
+.active-order-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.active-order-total {
+    font-weight: bold;
+    font-size: 1.1em;
+    color: #ee8b1b;
+    margin: 10px 0;
+}
+
+.active-order-time {
+    font-size: 0.85em;
+    color: #999;
+    margin-bottom: 10px;
+}
+
+.no-active-orders {
+    text-align: center;
+    padding: 30px;
+    color: #999;
+}
+
+@media (max-width: 768px) {
+    .new-order-btn {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        top: auto;
+        width: 100%;
+        border-radius: 0;
+        justify-content: center;
+        padding: 14px;
+        font-size: 1.1em;
+        z-index: 1000;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        animation: none;
+        border: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .active-orders-section {
+        padding: 15px;
+        border: none;
+        box-shadow: none;
+        background: transparent;
+    }
+
+    .active-orders-header {
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .active-orders-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+}

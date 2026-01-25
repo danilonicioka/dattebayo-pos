@@ -23,122 +23,59 @@ public class DataInitializer implements CommandLineRunner {
             pastel.setPrice(6.00);
             pastel.setCategory("Comidas");
             pastel.setAvailable(true);
-            // Importance levels: higher = more important (becomes base price)
-            pastel.getVariations().add(new MenuItemVariation(null, "Meat", "MULTIPLE", 0.00, 3, pastel));
-            pastel.getVariations().add(new MenuItemVariation(null, "Chicken", "MULTIPLE", 0.00, 2, pastel));
-            pastel.getVariations().add(new MenuItemVariation(null, "Cheese", "MULTIPLE", 0.00, 1, pastel));
+            pastel.getVariations().add(new MenuItemVariation(null, "Queijo", "MULTIPLE", 2.00, pastel));
+            pastel.getVariations().add(new MenuItemVariation(null, "Frango", "MULTIPLE", 2.00, pastel));
+            pastel.getVariations().add(new MenuItemVariation(null, "Carne", "MULTIPLE", 2.00, pastel));
+            pastel.getVariations().add(new MenuItemVariation(null, "Calabresa", "MULTIPLE", 2.00, pastel));
+            pastel.getVariations().add(new MenuItemVariation(null, "Catupiry", "MULTIPLE", 2.00, pastel));
             menuItemRepository.save(pastel);
             
-            // Tempura with shrimp option
+            MenuItem pastelParaense = new MenuItem();
+            pastelParaense.setName("Pastel Paraense");
+            pastelParaense.setDescription("Pastel com camarão, jambu, queijo e catupiry");
+            pastelParaense.setPrice(14.00);
+            pastelParaense.setCategory("Comidas");
+            pastelParaense.setAvailable(true);
+            menuItemRepository.save(pastelParaense);
+            
+            // Tempura Com Camarão option
             MenuItem tempura = new MenuItem();
-            tempura.setName("Tempura");
-            tempura.setDescription("Japanese deep-fried battered vegetables");
-            tempura.setPrice(12.99);
-            tempura.setCategory("Japanese");
+            tempura.setName("Tempurá");
+            tempura.setDescription("Tempura de legumes com ou sem camarão");
+            tempura.setPrice(10.00);
+            tempura.setCategory("Comidas");
             tempura.setAvailable(true);
-            tempura.getVariations().add(new MenuItemVariation(null, "With Shrimp", "SINGLE", 2.00, 0, tempura));
+            tempura.getVariations().add(new MenuItemVariation(null, "Com Camarão", "SINGLE", 2.00, tempura));
             menuItemRepository.save(tempura);
+            
+            MenuItem takoyaki = new MenuItem();
+            takoyaki.setName("Takoyaki");
+            takoyaki.setDescription("Bolinho de com recheio de polvo");
+            takoyaki.setPrice(20.00);
+            takoyaki.setCategory("Comidas");
+            takoyaki.setAvailable(true);
+            menuItemRepository.save(takoyaki);
 
-            // Appetizers
-            MenuItem springRolls = new MenuItem();
-            springRolls.setName("Spring Rolls");
-            springRolls.setDescription("Crispy vegetable spring rolls with sweet chili sauce");
-            springRolls.setPrice(8.99);
-            springRolls.setCategory("Appetizers");
-            springRolls.setAvailable(true);
-            springRolls.getVariations().add(new MenuItemVariation(null, "With Shrimp", "SINGLE", 2.00, 0, springRolls));
-            menuItemRepository.save(springRolls);
-            
-            MenuItem chickenWings = new MenuItem();
-            chickenWings.setName("Chicken Wings");
-            chickenWings.setDescription("Spicy buffalo wings with blue cheese dip");
-            chickenWings.setPrice(12.99);
-            chickenWings.setCategory("Appetizers");
-            chickenWings.setAvailable(true);
-            menuItemRepository.save(chickenWings);
-            
-            MenuItem caesarSalad = new MenuItem();
-            caesarSalad.setName("Caesar Salad");
-            caesarSalad.setDescription("Fresh romaine lettuce with caesar dressing");
-            caesarSalad.setPrice(9.99);
-            caesarSalad.setCategory("Appetizers");
-            caesarSalad.setAvailable(true);
-            menuItemRepository.save(caesarSalad);
-            
-            // Main Courses
-            MenuItem grilledChicken = new MenuItem();
-            grilledChicken.setName("Grilled Chicken");
-            grilledChicken.setDescription("Herb-marinated grilled chicken breast with vegetables");
-            grilledChicken.setPrice(18.99);
-            grilledChicken.setCategory("Main Courses");
-            grilledChicken.setAvailable(true);
-            menuItemRepository.save(grilledChicken);
-            
-            MenuItem beefSteak = new MenuItem();
-            beefSteak.setName("Beef Steak");
-            beefSteak.setDescription("Tender beef steak with mashed potatoes");
-            beefSteak.setPrice(24.99);
-            beefSteak.setCategory("Main Courses");
-            beefSteak.setAvailable(true);
-            menuItemRepository.save(beefSteak);
-            
-            MenuItem salmonFillet = new MenuItem();
-            salmonFillet.setName("Salmon Fillet");
-            salmonFillet.setDescription("Pan-seared salmon with rice and vegetables");
-            salmonFillet.setPrice(22.99);
-            salmonFillet.setCategory("Main Courses");
-            salmonFillet.setAvailable(true);
-            menuItemRepository.save(salmonFillet);
-            
-            MenuItem pastaCarbonara = new MenuItem();
-            pastaCarbonara.setName("Pasta Carbonara");
-            pastaCarbonara.setDescription("Creamy pasta with bacon and parmesan");
-            pastaCarbonara.setPrice(16.99);
-            pastaCarbonara.setCategory("Main Courses");
-            pastaCarbonara.setAvailable(true);
-            menuItemRepository.save(pastaCarbonara);
-            
-            // Beverages
-            MenuItem cocaCola = new MenuItem();
-            cocaCola.setName("Coca Cola");
-            cocaCola.setDescription("Cold soft drink");
-            cocaCola.setPrice(3.99);
-            cocaCola.setCategory("Beverages");
-            cocaCola.setAvailable(true);
-            menuItemRepository.save(cocaCola);
-            
-            MenuItem orangeJuice = new MenuItem();
-            orangeJuice.setName("Orange Juice");
-            orangeJuice.setDescription("Fresh squeezed orange juice");
-            orangeJuice.setPrice(4.99);
-            orangeJuice.setCategory("Beverages");
-            orangeJuice.setAvailable(true);
-            menuItemRepository.save(orangeJuice);
-            
-            MenuItem coffee = new MenuItem();
-            coffee.setName("Coffee");
-            coffee.setDescription("Hot brewed coffee");
-            coffee.setPrice(3.49);
-            coffee.setCategory("Beverages");
-            coffee.setAvailable(true);
-            menuItemRepository.save(coffee);
-            
-            // Desserts
-            MenuItem chocolateCake = new MenuItem();
-            chocolateCake.setName("Chocolate Cake");
-            chocolateCake.setDescription("Rich chocolate layer cake");
-            chocolateCake.setPrice(7.99);
-            chocolateCake.setCategory("Desserts");
-            chocolateCake.setAvailable(true);
-            menuItemRepository.save(chocolateCake);
-            
-            MenuItem iceCream = new MenuItem();
-            iceCream.setName("Ice Cream");
-            iceCream.setDescription("Vanilla ice cream with toppings");
-            iceCream.setPrice(5.99);
-            iceCream.setCategory("Desserts");
-            iceCream.setAvailable(true);
-            menuItemRepository.save(iceCream);
+            // Yakisoba Com Camarão option
+            MenuItem yakisoba = new MenuItem();
+            yakisoba.setName("Yakisoba");
+            yakisoba.setDescription("Yakisoba de carne e frango com ou sem camarão");
+            yakisoba.setPrice(20.00);
+            yakisoba.setCategory("Comidas");
+            yakisoba.setAvailable(true);
+            yakisoba.getVariations().add(new MenuItemVariation(null, "Com Camarão", "SINGLE", 5.00, yakisoba));
+            menuItemRepository.save(yakisoba);
+
+            // Hot sushi Com Camarão option
+            MenuItem hotSushi = new MenuItem();
+            hotSushi.setName("Hot Sushi");
+            hotSushi.setDescription("Hot Sushi de salmão ou camarão");
+            hotSushi.setPrice(30.00);
+            hotSushi.setCategory("Comidas");
+            hotSushi.setAvailable(true);
+            hotSushi.getVariations().add(new MenuItemVariation(null, "De Salmão", "MULTIPLE", 0.00, hotSushi));
+            hotSushi.getVariations().add(new MenuItemVariation(null, "De Camarão", "MULTIPLE", 0.00, hotSushi));
+            menuItemRepository.save(hotSushi);
         }
     }
 }

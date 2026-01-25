@@ -1,0 +1,90 @@
+/* Checkout Page Styles */
+
+.checkout-container {
+    max-width: 600px;
+    margin: 40px auto;
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+.order-summary {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    color: #666;
+}
+
+.summary-total {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #ee8b1b;
+    margin-top: 20px;
+}
+
+.payment-section {
+    background: #fefdfa;
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid #e0e0e0;
+}
+
+.change-display {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.change-display.negative {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #991b1b;
+}
+
+.change-amount {
+    font-size: 1.8em;
+    font-weight: bold;
+    display: block;
+    margin-top: 5px;
+}
+
+.checkout-actions {
+    margin-top: 30px;
+    display: flex;
+    gap: 15px;
+}
+
+.pay-btn {
+    background: #223c0e;
+    color: white;
+}
+
+.pay-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.checkout-actions .cancel-btn,
+.checkout-actions .pay-btn {
+    flex: 1;
+    padding: 15px;
+    border-radius: 10px;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    font-size: 1.1em;
+}

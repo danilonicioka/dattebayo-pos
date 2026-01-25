@@ -24,9 +24,6 @@ public class MenuItemVariation {
     @Column(nullable = false)
     private Double additionalPrice = 0.0;
 
-    @Column(nullable = false)
-    private Integer importance = 0; // Higher values = higher importance
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "menu_item_id", nullable = false)
     private MenuItem menuItem;

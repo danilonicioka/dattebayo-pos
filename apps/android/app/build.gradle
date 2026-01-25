@@ -33,5 +33,5 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     
     // Generated client (will be available after mvn install in clients/android-client)
-    // implementation 'com.dattebayo:restaurant-pos-android-client:1.0.0'
+    implementation 'com.dattebayo:restaurant-pos-android-client:1.0.0'
 }

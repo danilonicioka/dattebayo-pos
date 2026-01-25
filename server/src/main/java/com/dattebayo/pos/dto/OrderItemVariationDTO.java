@@ -9,5 +9,4 @@ public class OrderItemVariationDTO {
     private String type;
     private Double additionalPrice;
     private Boolean selected;
-    private Integer importance;
 }

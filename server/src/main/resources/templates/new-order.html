@@ -4,18 +4,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Restaurant POS - New Order</title>
+    <title>Novo Pedido</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/order-entry.css}">
 </head>
 
 <body>
     <div class="container">
         <div class="header">
-            <a href="/" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Orders</a>
+            <a href="/" class="back-btn"><i class="fas fa-arrow-left"></i> Voltar aos Pedidos</a>
             <img th:src="@{/dattebayo-logo.png}" alt="Dattebayo Logo" />
-            <h1><i class="fas fa-plus-circle"></i> Create New Order</h1>
-            <p>Select items from the menu to create an order</p>
+            <h1><i class="fas fa-plus-circle"></i> Create Novo Pedido</h1>
+            <p>Selecione itens do menu para criar um pedido</p>
         </div>
 
         <div class="content">
@@ -36,19 +37,19 @@
             <div id="orderSection" class="order-section">
                 <div class="close-mobile-order" onclick="closeMobileOrder()"><i class="fas fa-times"></i></div>
                 <div th:if="${param.success}" class="success-message">
-                    Order placed successfully!
+                    Pedido criado com sucesso!
                 </div>
 
                 <div class="order-form" id="orderForm">
                     <div class="form-group">
-                        <label for="tableNumber">Table Number:</label>
-                        <input type="text" id="tableNumber" required placeholder="e.g., Table 1">
+                        <label for="tableNumber">Identificador da Mesa:</label>
+                        <input type="text" id="tableNumber" required placeholder="e.g., Mesa 1">
                     </div>
 
                     <div class="form-group">
-                        <label>Order Items:</label>
+                        <label>Itens do Pedido:</label>
                         <div class="order-items" id="orderItems">
-                            <p style="text-align: center; color: #999; padding: 20px;">No items in order</p>
+                            <p style="text-align: center; color: #999; padding: 20px;">Nenhum item no pedido</p>
                         </div>
                     </div>
 
@@ -57,12 +58,12 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="notes">Notes (optional):</label>
-                        <textarea id="notes" rows="3" placeholder="Special instructions..."></textarea>
+                        <label for="notes">Observações (opcional):</label>
+                        <textarea id="notes" rows="3" placeholder="Instruções especiais..."></textarea>
                     </div>
 
-                    <button type="button" class="submit-order" id="submitBtn" onclick="submitOrder()" disabled>Place
-                        Order</button>
+                    <button type="button" class="submit-order" id="submitBtn" onclick="submitOrder()" disabled>Criar
+                        Pedido</button>
                 </div>
             </div>
         </div>
@@ -73,16 +74,16 @@
     <div class="mobile-checkout-bar">
         <div class="cart-summary" onclick="openMobileOrder()">
             <div style="font-weight: bold; color: #ee8b1b;" id="mobileTotal">R$0.00</div>
-            <div style="font-size: 0.8em; color: #666;" id="mobileItemCount">0 items</div>
+            <div style="font-size: 0.8em; color: #666;" id="mobileItemCount">0 itens</div>
         </div>
-        <button onclick="openMobileOrder()" class="confirm-btn">View Order</button>
+        <button onclick="openMobileOrder()" class="confirm-btn">Ver Pedido</button>
     </div>
 
     <!-- Variation Selection Modal -->
     <div id="variationModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="modalItemName">Select Options</h2>
+                <h2 id="modalItemName">Selecionar Opções</h2>
                 <span class="close" onclick="closeVariationModal()">&times;</span>
             </div>
             <div id="modalPriceDisplay" class="modal-price-display">
@@ -92,8 +93,8 @@
                 <!-- Variations will be loaded here -->
             </div>
             <div class="modal-footer">
-                <button onclick="closeVariationModal()" class="cancel-btn">Cancel</button>
-                <button onclick="confirmAddToOrder()" class="confirm-btn">Add to Order</button>
+                <button onclick="closeVariationModal()" class="cancel-btn">Cancelar</button>
+                <button onclick="confirmAddToOrder()" class="confirm-btn">Adicionar ao Pedido</button>
             </div>
         </div>
     </div>
@@ -225,7 +226,7 @@
 
                         // Determine display price
                         let displayPrice = '';
-                        if (selectedMenuItem.category === 'Brazilian' && selectedMenuItem.name === 'Pastel') {
+                        if (selectedMenuItem.category === 'Comidas' && selectedMenuItem.name === 'Pastel') {
                             if (variation.name === 'Paraense') {
                                 displayPrice = '+8.00';
                             } else {
@@ -278,17 +279,17 @@
             let finalPrice = selectedMenuItem.price;
             const selectedVariationIds = Object.keys(selectedVariations).map(id => parseInt(id));
 
-            if (selectedMenuItem.category === 'Japanese' && selectedMenuItem.name === 'Tempura') {
+            if (selectedMenuItem.category === 'Comidas' && selectedMenuItem.name === 'Tempura') {
                 // Tempura special logic
                 const shrimpVariation = selectedVariationIds.find(id => {
                     const variationData = selectedMenuItem.variations.find(v => v.id === id);
-                    return variationData && variationData.name === 'With Shrimp';
+                    return variationData && variationData.name === 'Com Camarão';
                 });
 
                 if (shrimpVariation) {
                     finalPrice += 2.00; // Add $2 for shrimp
                 }
-            } else if (selectedMenuItem.category === 'Brazilian' && selectedMenuItem.name === 'Pastel') {
+            } else if (selectedMenuItem.category === 'Comidas' && selectedMenuItem.name === 'Pastel') {
                 // Pastel pricing: base $0, variations add their cost
                 // Paraense: +$8, every other variation: +$2
                 selectedVariationIds.forEach(id => {
@@ -335,45 +336,77 @@
             let itemName = menuItem.name;
             const selectedVariationNames = [];
 
-            if (menuItem.category === 'Japanese' && menuItem.name === 'Tempura') {
-                // Tempura special logic
+            if (menuItem.category === 'Comidas' && menuItem.name === 'Tempurá') {
+                // Tempurá special logic
                 const shrimpVariation = variations.find(v => {
                     const variationData = menuItem.variations.find(vd => vd.id === v.menuItemVariationId);
-                    return variationData && variationData.name === 'With Shrimp' && v.selected;
+                    return variationData && variationData.name === 'Com Camarão' && v.selected;
                 });
 
                 if (shrimpVariation) {
                     finalPrice += 2.00; // Add $2 for shrimp
-                    itemName = 'Tempura com camarão';
+                    itemName = 'Tempurá Com Camarão';
                 } else {
-                    itemName = 'Tempura de legumes';
+                    itemName = 'Tempurá De Legumes';
                 }
-            } else if (menuItem.name === 'Pastel' || (menuItem.category === 'Brazilian' && menuItem.name.includes('Pastel'))) {
-                // Pastel importance-based pricing
-                const selectedVariations = variations.filter(v => v.selected).map(v => {
+
+            } else if (menuItem.category === 'Comidas' && menuItem.name === 'Yakisoba') {
+                // Yakisoba special logic
+                const shrimpVariation = variations.find(v => {
                     const variationData = menuItem.variations.find(vd => vd.id === v.menuItemVariationId);
-                    return variationData;
-                }).filter(v => v); // Remove nulls
+                    return variationData && variationData.name === 'Com Camarão' && v.selected;
+                });
 
-                if (selectedVariations.length > 0) {
-                    // Find the variation with highest importance
-                    const maxImportance = Math.max(...selectedVariations.map(v => v.importance));
-                    const highestImportanceVariations = selectedVariations.filter(v => v.importance === maxImportance);
-
-                    // The highest importance variation becomes the base price
-                    // Lower importance variations add $2 each
-                    selectedVariations.forEach(variation => {
-                        if (variation.importance < maxImportance) {
-                            finalPrice += 2.00;
-                        }
-                        selectedVariationNames.push(variation.name);
-                    });
+                if (shrimpVariation) {
+                    finalPrice += 5.00; // Add $5 for shrimp
+                    itemName = 'Yakisoba Com Camarão';
+                } else {
+                    itemName = 'Yakisoba Simples';
                 }
+
+            } else if (menuItem.category === 'Comidas' && menuItem.name === 'Hot Sushi') {
+                // Hot Sushi special logic
+                const selected = variations
+                    .filter(v => v.selected)
+                    .map(v => menuItem.variations.find(vd => vd.id === v.menuItemVariationId))
+                    .filter(Boolean);
+
+                selected.forEach(variation => {
+                    finalPrice += variation.additionalPrice;
+                    selectedVariationNames.push(variation.name);
+                });
+
+                if (selectedVariationNames.length > 1) {
+                    itemName = `Hot Sushi (${selectedVariationNames.join(' + ')})`;
+                } else {
+                    itemName = selectedVariationNames.length === 0
+                        ? menuItem.name
+                        : `Hot Sushi (${selectedVariationNames[0]})`;
+                }
+
+            } else if (menuItem.name === 'Pastel') {
+                // Pastel rule:
+                // Paraense: +8.00
+                // Any other selected variation: +2.00 each
+                const selected = variations
+                    .filter(v => v.selected)
+                    .map(v => menuItem.variations.find(vd => vd.id === v.menuItemVariationId))
+                    .filter(Boolean);
+
+                selected.forEach(variation => {
+                    if (variation.name === 'Paraense') {
+                        finalPrice += 8.00;
+                    } else {
+                        finalPrice += 2.00;
+                    }
+                    selectedVariationNames.push(variation.name);
+                });
 
                 itemName = selectedVariationNames.length > 0
                     ? `Pastel (${selectedVariationNames.join(' + ')})`
                     : 'Pastel';
-            } else {
+            }
+            else {
                 // Default logic for other items
                 variations.forEach(variation => {
                     const variationData = menuItem.variations.find(v => v.id === variation.menuItemVariationId);
@@ -413,6 +446,20 @@
             updateOrderDisplay();
         }
 
+        function incrementQuantity(index) {
+            orderItems[index].quantity++;
+            updateOrderDisplay();
+        }
+
+        function decrementQuantity(index) {
+            if (orderItems[index].quantity > 1) {
+                orderItems[index].quantity--;
+            } else {
+                removeFromOrder(index);
+            }
+            updateOrderDisplay();
+        }
+
         function updateOrderDisplay() {
             const orderItemsDiv = document.getElementById('orderItems');
             const submitBtn = document.getElementById('submitBtn');
@@ -425,10 +472,14 @@
                     <div class="order-item">
                         <div class="order-item-info">
                             <div class="order-item-name">${item.name}</div>
-                            <div class="order-item-quantity">Qty: ${item.quantity}</div>
+                            <div class="quantity-controls">
+                                <button type="button" class="qty-btn" onclick="decrementQuantity(${index})">-</button>
+                                <span class="qty-value">${item.quantity}</span>
+                                <button type="button" class="qty-btn" onclick="incrementQuantity(${index})">+</button>
+                            </div>
                         </div>
                         <div class="order-item-price">R$${(item.price * item.quantity).toFixed(2)}</div>
-                        <button type="button" class="remove-item" onclick="removeFromOrder(${index})">Remove</button>
+                        <button type="button" class="remove-item" title="Remove Item" onclick="removeFromOrder(${index})"><i class="fas fa-trash"></i></button>
                     </div>
                 `).join('');
                 submitBtn.disabled = false;

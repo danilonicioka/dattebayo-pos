@@ -226,13 +226,7 @@
 
                         // Determine display price
                         let displayPrice = '';
-                        if (selectedMenuItem.category === 'Comidas' && selectedMenuItem.name === 'Pastel') {
-                            if (variation.name === 'Paraense') {
-                                displayPrice = '+8.00';
-                            } else {
-                                displayPrice = '+2.00';
-                            }
-                        } else if (variation.additionalPrice > 0) {
+                        if (variation.additionalPrice > 0) {
                             displayPrice = `+${variation.additionalPrice.toFixed(2)}`;
                         }
 
@@ -289,21 +283,8 @@
                 if (shrimpVariation) {
                     finalPrice += 2.00; // Add $2 for shrimp
                 }
-            } else if (selectedMenuItem.category === 'Comidas' && selectedMenuItem.name === 'Pastel') {
-                // Pastel pricing: base $0, variations add their cost
-                // Paraense: +$8, every other variation: +$2
-                selectedVariationIds.forEach(id => {
-                    const variationData = selectedMenuItem.variations.find(v => v.id === id);
-                    if (variationData) {
-                        if (variationData.name === 'Paraense') {
-                            finalPrice += 8.00;
-                        } else {
-                            finalPrice += 2.00;
-                        }
-                    }
-                });
             } else {
-                // Default logic for other items
+                // Default logic for items with variations
                 selectedVariationIds.forEach(id => {
                     const variationData = selectedMenuItem.variations.find(v => v.id === id);
                     if (variationData) {
@@ -384,29 +365,7 @@
                         : `Hot Sushi (${selectedVariationNames[0]})`;
                 }
 
-            } else if (menuItem.name === 'Pastel') {
-                // Pastel rule:
-                // Paraense: +8.00
-                // Any other selected variation: +2.00 each
-                const selected = variations
-                    .filter(v => v.selected)
-                    .map(v => menuItem.variations.find(vd => vd.id === v.menuItemVariationId))
-                    .filter(Boolean);
-
-                selected.forEach(variation => {
-                    if (variation.name === 'Paraense') {
-                        finalPrice += 8.00;
-                    } else {
-                        finalPrice += 2.00;
-                    }
-                    selectedVariationNames.push(variation.name);
-                });
-
-                itemName = selectedVariationNames.length > 0
-                    ? `Pastel (${selectedVariationNames.join(' + ')})`
-                    : 'Pastel';
-            }
-            else {
+            } else {
                 // Default logic for other items
                 variations.forEach(variation => {
                     const variationData = menuItem.variations.find(v => v.id === variation.menuItemVariationId);

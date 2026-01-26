@@ -45,52 +45,63 @@
     margin-right: 5px;
 }
 
-.mark-paid-btn {
+/* Order Card Actions Normalization */
+.edit-order-btn,
+.mark-paid-btn,
+.finalize-order-btn {
     width: 100%;
-    background: #223c0e;
-    color: white;
-    border: none;
-    padding: 10px;
-    border-radius: 5px;
-    cursor: pointer;
+    padding: 12px;
+    border-radius: 8px;
     font-weight: bold;
+    font-size: 1em;
     margin-top: 10px;
-    display: inline-block;
-    text-align: center;
     text-decoration: none;
-    transition: background 0.3s;
-}
-
-.mark-paid-btn:hover {
-    background: #1a2f0a;
-}
-
-.mark-paid-btn i {
-    margin-right: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: inherit;
+    box-sizing: border-box;
+    appearance: none;
+    -webkit-appearance: none;
+    outline: none;
+    text-transform: none;
 }
 
 .edit-order-btn {
-    width: 100%;
     background: #ee8b1b;
     color: white;
-    border: none;
-    padding: 10px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    margin-top: 10px;
-    text-decoration: none;
-    display: inline-block;
-    text-align: center;
-    transition: background 0.3s;
 }
 
 .edit-order-btn:hover {
     background: #d67a1a;
 }
 
-.edit-order-btn i {
-    margin-right: 5px;
+.mark-paid-btn {
+    background: #223c0e;
+    color: white;
+}
+
+.mark-paid-btn:hover {
+    background: #1a2f0a;
+}
+
+.finalize-order-btn {
+    background: #4a5d1f;
+    color: white;
+}
+
+.finalize-order-btn:hover {
+    background: #394818;
+}
+
+.active-order-card form {
+    margin: 0;
+    width: 100%;
+    display: block;
 }
 
 /* Active Orders Grid */

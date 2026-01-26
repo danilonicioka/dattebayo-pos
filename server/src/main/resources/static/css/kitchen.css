@@ -189,7 +189,7 @@
 }
 
 .oldest-order::after {
-    content: "🔥 NEXT UP";
+    content: "🔥 Próximo Pedido";
     position: absolute;
     top: -12px;
     right: 20px;

@@ -244,13 +244,20 @@
 }
 
 .variation-option input[type="checkbox"] {
-    margin-right: 10px;
+    margin-right: 12px;
     transform: scale(1.2);
+}
+
+.variation-option label {
+    flex: 1;
+    cursor: pointer;
 }
 
 .variation-price {
     color: #ee8b1b;
     font-weight: bold;
+    margin-left: auto;
+    padding-left: 10px;
 }
 
 /* Mobile Specifics */

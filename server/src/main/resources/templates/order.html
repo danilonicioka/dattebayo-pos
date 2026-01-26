@@ -50,7 +50,9 @@
                         <div class="active-order-header">
                             <div class="active-order-table" th:text="'Mesa ' + ${order.tableNumber}"></div>
                             <div class="active-order-status" th:classappend="${order.status.name().toLowerCase()}"
-                                th:text="${order.status}"></div>
+                                th:text="${order.status.name() == 'PENDING' ? 'Pendente' : 
+                                          order.status.name() == 'PREPARING' ? 'Preparando' : 
+                                          order.status.name() == 'READY' ? 'Pronto' : 'Concluído'}"></div>
                         </div>
                         <div class="active-order-time" th:text="${#temporals.format(order.createdAt, 'HH:mm')}"></div>
                         <div class="active-order-items">
@@ -62,6 +64,11 @@
                             th:text="'Total: R$' + ${#numbers.formatDecimal(order.total, 1, 2)}"></div>
                         <a th:href="@{'/orders/' + ${order.id} + '/edit'}" class="edit-order-btn"><i
                                 class="fas fa-edit"></i> Editar Pedido</a>
+                        <form th:action="@{'/orders/' + ${order.id} + '/mark-paid'}" method="post">
+                            <button type="submit" class="finalize-order-btn">
+                                <i class="fas fa-money-bill-wave"></i> Finalizar Pedido
+                            </button>
+                        </form>
                         <a th:href="@{'/orders/' + ${order.id} + '/checkout'}" class="mark-paid-btn">
                             <i class="fas fa-check"></i> Fazer a Conta
                         </a>

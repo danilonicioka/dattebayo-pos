@@ -31,8 +31,9 @@
                             <div class="order-table" th:text="'Mesa ' + ${order.tableNumber}"></div>
                             <div class="order-time" th:text="${#temporals.format(order.createdAt, 'HH:mm:ss')}"></div>
                         </div>
-                        <div class="order-status" th:classappend="${order.status.name().toLowerCase()}"
-                            th:text="${order.status}"></div>
+                        <div class="order-status" th:classappend="${order.status.name().toLowerCase()}" th:text="${order.status.name() == 'PENDING' ? 'Pendente' : 
+                                      order.status.name() == 'PREPARING' ? 'Preparando' : 
+                                      order.status.name() == 'READY' ? 'Pronto' : 'Concluído'}"></div>
                     </div>
                     <div class="order-items">
                         <div class="order-item" th:each="item : ${order.items}">

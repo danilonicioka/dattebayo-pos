@@ -21,7 +21,7 @@
             <!--<p>Monitor and manage orders</p>-->
         </div>
         <div class="content">
-            <div class="auto-refresh">Atualizando a cada 5 segundos...</div>
+            <!--<div class="auto-refresh">Atualizando a cada 5 segundos...</div>-->
             <div class="orders-container" th:if="${orders != null and !orders.isEmpty()}">
                 <div class="order-card" th:each="order, iterStat : ${orders}"
                     th:classappend="${(iterStat.index == 0 ? 'oldest-order ' : '') + order.status.name().toLowerCase()}">

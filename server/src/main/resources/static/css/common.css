@@ -177,15 +177,22 @@ body {
 
 .close {
     color: #aaa;
-    font-size: 24px;
+    font-size: 28px;
     font-weight: bold;
     cursor: pointer;
-    transition: color 0.2s;
-    line-height: 1;
+    transition: all 0.2s;
+    line-height: 20px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
 }
 
 .close:hover {
     color: #000;
+    background: #f0f0f0;
 }
 
 .modal-footer {

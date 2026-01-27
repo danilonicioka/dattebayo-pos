@@ -79,6 +79,25 @@ public class MenuItemApiController {
         return ResponseEntity.notFound().build();
     }
 
+    @PatchMapping("/{id}/manual-price")
+    public ResponseEntity<MenuItem> updateManualPrice(@PathVariable Long id, @RequestBody Map<String, Object> payload) {
+        Optional<MenuItem> menuItemOpt = menuItemService.getMenuItemById(id);
+        if (menuItemOpt.isPresent()) {
+            MenuItem menuItem = menuItemOpt.get();
+            if (payload.containsKey("manualPrice")) {
+                menuItem.setManualPrice(Double.parseDouble(payload.get("manualPrice").toString()));
+            }
+            if (payload.containsKey("manualPriceEnabled")) {
+                menuItem.setManualPriceEnabled(Boolean.parseBoolean(payload.get("manualPriceEnabled").toString()));
+            }
+            if (payload.containsKey("applyMarkup")) {
+                menuItem.setApplyMarkup(Boolean.parseBoolean(payload.get("applyMarkup").toString()));
+            }
+            return ResponseEntity.ok(menuItemService.saveMenuItem(menuItem));
+        }
+        return ResponseEntity.notFound().build();
+    }
+
     @GetMapping("/markup")
     public ResponseEntity<Map<String, Object>> getMarkupSettings() {
         return ResponseEntity.ok(Map.of(

@@ -13,12 +13,18 @@
 <body>
     <div class="container">
         <div class="header">
-            <a href="/" class="back-btn"><i class="fas fa-arrow-left"></i> Voltar aos Pedidos</a>
+            <a href="/" class="back-btn"><i class="fas fa-arrow-left"></i> Voltar</a>
             <img th:src="@{/dattebayo-logo.png}" alt="Dattebayo Logo" />
-            <h1><i class="fas fa-edit"></i> Editar Pedido</h1>
+            <div>
+                <h1><i class="fas fa-edit"></i> Editar Pedido</h1>
+                <div class="nav-links">
+                    <a href="/" class="nav-link"><i class="fas fa-clipboard-list"></i> Pedidos</a>
+                    <a href="/kitchen" class="nav-link"><i class="fas fa-utensils"></i> Cozinha</a>
+                    <a href="/menu-management" class="nav-link"><i class="fas fa-cog"></i> Menu</a>
+                </div>
+            </div>
             <p id="markupNotice" style="color: #223c0e; font-weight: bold; margin-top: 5px; display: none;">Calculando
-                preços com markup global</p>
-            <p>Modificar pedido da Mesa <span th:text="${order.tableNumber}"></span></p>
+                preços com taxa extra</p>
         </div>
 
         <div class="content">
@@ -124,7 +130,7 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.enabled && data.percentage > 0) {
-                        document.getElementById('markupNotice').textContent = `Preços ajustados com markup de ${data.percentage}%`;
+                        document.getElementById('markupNotice').textContent = `Preços ajustados com taxa extra de ${data.percentage}%`;
                         document.getElementById('markupNotice').style.display = 'block';
                     }
                 });

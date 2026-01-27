@@ -48,7 +48,10 @@ public class OrderService {
             orderItem.setOrder(order);
             orderItem.setMenuItem(menuItem);
             orderItem.setQuantity(itemRequest.getQuantity());
-            orderItem.setPrice(configurationService.applyMarkup(menuItem.getPrice()));
+            Double basePrice = (menuItem.getManualPriceEnabled() && menuItem.getManualPrice() != null) 
+                    ? menuItem.getManualPrice() 
+                    : menuItem.getPrice();
+            orderItem.setPrice(menuItem.getApplyMarkup() ? configurationService.applyMarkup(basePrice) : Math.round(basePrice));
             orderItem.setSpecialInstructions(itemRequest.getSpecialInstructions());
             
             // Handle variations and pricing
@@ -210,7 +213,10 @@ public class OrderService {
             orderItem.setOrder(order);
             orderItem.setMenuItem(menuItem);
             orderItem.setQuantity(itemRequest.getQuantity());
-            orderItem.setPrice(configurationService.applyMarkup(menuItem.getPrice()));
+            Double basePrice = (menuItem.getManualPriceEnabled() && menuItem.getManualPrice() != null) 
+                    ? menuItem.getManualPrice() 
+                    : menuItem.getPrice();
+            orderItem.setPrice(menuItem.getApplyMarkup() ? configurationService.applyMarkup(basePrice) : Math.round(basePrice));
             orderItem.setSpecialInstructions(itemRequest.getSpecialInstructions());
             
             // Handle variations and pricing
@@ -247,7 +253,9 @@ public class OrderService {
 
         // Add additional price if variation is selected
         if (variationRequest.getSelected()) {
-            orderItem.setPrice(orderItem.getPrice() + configurationService.applyMarkup(variation.getAdditionalPrice()));
+            Double additionalPrice = variation.getAdditionalPrice();
+            Double processedAdditional = orderItem.getMenuItem().getApplyMarkup() ? configurationService.applyMarkup(additionalPrice) : Math.round(additionalPrice);
+            orderItem.setPrice(orderItem.getPrice() + processedAdditional);
         }
     }
 }

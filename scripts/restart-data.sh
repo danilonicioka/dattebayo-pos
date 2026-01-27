@@ -7,10 +7,11 @@ echo ""
 cd "$(dirname "$0")/.."
 
 # Only rebuild and restart the backend (keeps database running)
-echo "🛑 Stopping backend container..."
-docker compose -f docker/compose.dev.yml down
+echo "🛑 Stopping containers and removing volumes..."
+docker compose -f docker/compose.dev.yml down -v
 
-docker volume prune -a -y
+echo "🧹 Cleaning up unused volumes and cache..."
+docker volume prune -f
 
 echo ""
 echo "🔨 Rebuilding backend image..."

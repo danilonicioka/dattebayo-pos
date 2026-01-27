@@ -33,6 +33,13 @@ public class MenuItem {
     @Column(nullable = false)
     private Boolean available = true;
 
+    private Double manualPrice;
+    
+    private Boolean manualPriceEnabled = false;
+
+    @Column(nullable = false)
+    private Boolean applyMarkup = true;
+
     @OneToMany(mappedBy = "menuItem", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MenuItemVariation> variations = new ArrayList<>();
 }

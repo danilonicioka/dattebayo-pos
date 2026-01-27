@@ -64,10 +64,18 @@ public class MenuItemService {
         dto.setId(menuItem.getId());
         dto.setName(menuItem.getName());
         dto.setDescription(menuItem.getDescription());
-        dto.setPrice(menuItem.getPrice());
         dto.setCategory(menuItem.getCategory());
         dto.setAvailable(menuItem.getAvailable());
-        dto.setPrice(configurationService.applyMarkup(menuItem.getPrice()));
+        dto.setBasePrice(menuItem.getPrice());
+        dto.setManualPrice(menuItem.getManualPrice());
+        dto.setManualPriceEnabled(menuItem.getManualPriceEnabled());
+        dto.setApplyMarkup(menuItem.getApplyMarkup());
+
+        Double basePrice = (menuItem.getManualPriceEnabled() && menuItem.getManualPrice() != null) 
+                ? menuItem.getManualPrice() 
+                : menuItem.getPrice();
+        
+        dto.setPrice(menuItem.getApplyMarkup() ? configurationService.applyMarkup(basePrice) : Math.round(basePrice));
 
         List<MenuItemVariationDTO> variationDTOs = menuItem.getVariations().stream()
                 .map(variation -> {
@@ -75,7 +83,10 @@ public class MenuItemService {
                     variationDTO.setId(variation.getId());
                     variationDTO.setName(variation.getName());
                     variationDTO.setType(variation.getType());
-                    variationDTO.setAdditionalPrice(configurationService.applyMarkup(variation.getAdditionalPrice()));
+                    
+                    Double additionalPrice = variation.getAdditionalPrice();
+                    variationDTO.setAdditionalPrice(menuItem.getApplyMarkup() ? configurationService.applyMarkup(additionalPrice) : Math.round(additionalPrice));
+                    
                     return variationDTO;
                 })
                 .collect(Collectors.toList());

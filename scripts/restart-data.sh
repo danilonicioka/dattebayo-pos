@@ -10,11 +10,11 @@ cd "$(dirname "$0")/.."
 echo "🛑 Stopping backend container..."
 docker compose -f docker/compose.dev.yml down
 
-docker volume prune -a
+docker volume prune -a -y
 
 echo ""
 echo "🔨 Rebuilding backend image..."
-docker compose -f docker/compose.dev.yml build backend
+docker compose -f docker/compose.dev.yml build --no-cache backend
 
 echo ""
 echo "🚀 Starting backend..."

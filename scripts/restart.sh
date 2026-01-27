@@ -12,7 +12,7 @@ docker compose -f docker/compose.dev.yml stop backend
 
 echo ""
 echo "🔨 Rebuilding backend image..."
-docker compose -f docker/compose.dev.yml build backend
+docker compose -f docker/compose.dev.yml build --no-cache backend
 
 echo ""
 echo "🚀 Starting backend..."

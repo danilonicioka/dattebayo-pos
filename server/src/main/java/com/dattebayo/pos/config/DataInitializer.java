@@ -15,19 +15,6 @@ public class DataInitializer implements CommandLineRunner {
     
     @Override
     public void run(String... args) {
-        // First check if Pastel exists and has a "Paraense" variation to remove
-        menuItemRepository.findAll().stream()
-            .filter(item -> "Pastel".equals(item.getName()))
-            .findFirst()
-            .ifPresent(pastel -> {
-                boolean removed = pastel.getVariations().removeIf(v -> "Paraense".equals(v.getName()));
-                if (removed) {
-                    menuItemRepository.save(pastel);
-                }
-            });
-
-        // Current initialization logic
-        if (menuItemRepository.count() == 0 || !menuItemRepository.findAll().stream().anyMatch(i -> "Pastel Paraense".equals(i.getName()))) {
             if (menuItemRepository.count() == 0) {
                 // Comidas
                 MenuItem pastel = new MenuItem();
@@ -43,6 +30,15 @@ public class DataInitializer implements CommandLineRunner {
                 pastel.getVariations().add(new MenuItemVariation(null, "Catupiry", "MULTIPLE", 2.00, pastel));
                 menuItemRepository.save(pastel);
                 
+                MenuItem pastelParaense = new MenuItem();
+                pastelParaense.setName("Pastel Paraense");
+                pastelParaense.setDescription("Pastel com camarão, jambu, queijo e catupiry");
+                pastelParaense.setPrice(14.00);
+                pastelParaense.setCategory("Comidas");
+                pastelParaense.setAvailable(true);
+                menuItemRepository.save(pastelParaense);
+            
+                // Tempura Com Camarão option
                 MenuItem tempura = new MenuItem();
                 tempura.setName("Tempurá");
                 tempura.setDescription("Tempura de legumes com ou sem camarão");
@@ -60,6 +56,7 @@ public class DataInitializer implements CommandLineRunner {
                 takoyaki.setAvailable(true);
                 menuItemRepository.save(takoyaki);
 
+                // Yakisoba Com Camarão option
                 MenuItem yakisoba = new MenuItem();
                 yakisoba.setName("Yakisoba");
                 yakisoba.setDescription("Yakisoba de carne e frango com ou sem camarão");
@@ -69,6 +66,7 @@ public class DataInitializer implements CommandLineRunner {
                 yakisoba.getVariations().add(new MenuItemVariation(null, "Com Camarão", "SINGLE", 5.00, yakisoba));
                 menuItemRepository.save(yakisoba);
 
+                // Hot sushi Com Camarão option
                 MenuItem hotSushi = new MenuItem();
                 hotSushi.setName("Hot Sushi");
                 hotSushi.setDescription("Hot Sushi de salmão ou camarão");
@@ -78,18 +76,37 @@ public class DataInitializer implements CommandLineRunner {
                 hotSushi.getVariations().add(new MenuItemVariation(null, "De Salmão", "MULTIPLE", 0.00, hotSushi));
                 hotSushi.getVariations().add(new MenuItemVariation(null, "De Camarão", "MULTIPLE", 0.00, hotSushi));
                 menuItemRepository.save(hotSushi);
-            }
 
-            // Ensure Pastel Paraense exists
-            if (!menuItemRepository.findAll().stream().anyMatch(i -> "Pastel Paraense".equals(i.getName()))) {
-                MenuItem pastelParaense = new MenuItem();
-                pastelParaense.setName("Pastel Paraense");
-                pastelParaense.setDescription("Pastel com camarão, jambu, queijo e catupiry");
-                pastelParaense.setPrice(14.00);
-                pastelParaense.setCategory("Comidas");
-                pastelParaense.setAvailable(true);
-                menuItemRepository.save(pastelParaense);
+                // Mini hot temaki com Camarão option
+                MenuItem hotTemaki = new MenuItem();
+                hotTemaki.setName("Hot Temaki");
+                hotTemaki.setDescription("Hot Temaki de salmão ou camarão");
+                hotTemaki.setPrice(18.00);
+                hotTemaki.setCategory("Comidas");
+                hotTemaki.setAvailable(true);
+                hotTemaki.getVariations().add(new MenuItemVariation(null, "De Salmão", "MULTIPLE", 0.00, hotTemaki));
+                hotTemaki.getVariations().add(new MenuItemVariation(null, "De Camarão", "MULTIPLE", 0.00, hotTemaki));
+                menuItemRepository.save(hotTemaki);
+
+                // Gyoza
+                MenuItem gyoza = new MenuItem();
+                gyoza.setName("Gyoza");
+                gyoza.setDescription("Gyoza de carne bovina com legumes");
+                gyoza.setPrice(15.00);
+                gyoza.setCategory("Comidas");
+                gyoza.setAvailable(true);
+                menuItemRepository.save(gyoza);
+
+                // Camarão Milanesa
+                MenuItem camaraoMilanesa = new MenuItem();
+                camaraoMilanesa.setName("Camarão Milanesa");
+                camaraoMilanesa.setDescription("Camarão rosa empanado e frito");
+                camaraoMilanesa.setPrice(0.00);
+                camaraoMilanesa.setCategory("Comidas");
+                camaraoMilanesa.setAvailable(true);
+                camaraoMilanesa.getVariations().add(new MenuItemVariation(null, "Unidade", "MULTIPLE", 5.00, camaraoMilanesa));
+                camaraoMilanesa.getVariations().add(new MenuItemVariation(null, "Porção com 5 unidades", "MULTIPLE", 20.00, camaraoMilanesa));
+                menuItemRepository.save(camaraoMilanesa);
             }
-        }
     }
 }

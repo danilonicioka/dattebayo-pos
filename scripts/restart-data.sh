@@ -1,0 +1,38 @@
+#!/bin/bash
+
+echo "🔄 Restarting Backend Service..."
+echo ""
+
+# Change to project root directory
+cd "$(dirname "$0")/.."
+
+# Only rebuild and restart the backend (keeps database running)
+echo "🛑 Stopping backend container..."
+docker compose -f docker/compose.dev.yml down
+
+docker volume prune -a
+
+echo ""
+echo "🔨 Rebuilding backend image..."
+docker compose -f docker/compose.dev.yml build backend
+
+echo ""
+echo "🚀 Starting backend..."
+docker compose -f docker/compose.dev.yml up -d
+
+echo ""
+echo "⏳ Waiting for backend to start..."
+sleep 5
+
+echo ""
+echo "📊 Service status:"
+docker compose -f docker/compose.dev.yml ps
+
+echo ""
+echo "📝 Backend logs (last 20 lines):"
+docker compose -f docker/compose.dev.yml logs --tail=20 backend
+
+echo ""
+echo "✅ Backend restarted!"
+echo "📍 Access: http://localhost:80"
+echo "📊 Follow logs: docker compose -f docker/compose.dev.yml logs -f backend"

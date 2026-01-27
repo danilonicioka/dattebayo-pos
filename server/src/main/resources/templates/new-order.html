@@ -16,6 +16,8 @@
             <a href="/" class="back-btn"><i class="fas fa-arrow-left"></i> Voltar aos Pedidos</a>
             <img th:src="@{/dattebayo-logo.png}" alt="Dattebayo Logo" />
             <h1><i class="fas fa-plus-circle"></i> Create Novo Pedido</h1>
+            <p id="markupNotice" style="color: #223c0e; font-weight: bold; margin-top: 5px; display: none;">Calculando
+                preços com markup global</p>
             <p>Selecione itens do menu para criar um pedido</p>
         </div>
 
@@ -109,10 +111,22 @@
         document.addEventListener('DOMContentLoaded', function () {
             loadMenuItems();
             loadCategories();
+            checkMarkup();
         });
 
+        function checkMarkup() {
+            fetch('/api/menu/markup')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.enabled && data.percentage > 0) {
+                        document.getElementById('markupNotice').textContent = `Preços ajustados com markup de ${data.percentage}%`;
+                        document.getElementById('markupNotice').style.display = 'block';
+                    }
+                });
+        }
+
         function loadMenuItems() {
-            fetch('/api/menu')
+            fetch('/api/menu/available')
                 .then(response => response.json())
                 .then(data => {
                     menuItems = data;
@@ -152,6 +166,8 @@
             menuItemsDiv.innerHTML = '';
 
             menuItems.forEach(item => {
+                if (!item.available) return;
+
                 const menuItemDiv = document.createElement('div');
                 menuItemDiv.className = 'menu-item';
                 menuItemDiv.setAttribute('data-category', item.category);
@@ -160,7 +176,7 @@
                 menuItemDiv.innerHTML = `
                     <h3>${item.name}</h3>
                     <div class="description">${item.description}</div>
-                    <div class="price">R$${item.price.toFixed(2)}</div>
+                    <div class="price">R$${item.price.toFixed(0)}</div>
                     ${item.variations && item.variations.length > 0 ? '<div class="variations-indicator">⚙️ Options available</div>' : ''}
                 `;
 
@@ -227,7 +243,7 @@
                         // Determine display price
                         let displayPrice = '';
                         if (variation.additionalPrice > 0) {
-                            displayPrice = `+${variation.additionalPrice.toFixed(2)}`;
+                            displayPrice = `+${variation.additionalPrice.toFixed(0)}`;
                         }
 
                         optionDiv.innerHTML = `
@@ -293,7 +309,7 @@
                 });
             }
 
-            document.getElementById('modalItemPrice').textContent = finalPrice.toFixed(2);
+            document.getElementById('modalItemPrice').textContent = finalPrice.toFixed(0);
         }
 
         function confirmAddToOrder() {
@@ -437,7 +453,7 @@
                                 <button type="button" class="qty-btn" onclick="incrementQuantity(${index})">+</button>
                             </div>
                         </div>
-                        <div class="order-item-price">R$${(item.price * item.quantity).toFixed(2)}</div>
+                        <div class="order-item-price">R$${(item.price * item.quantity).toFixed(0)}</div>
                         <button type="button" class="remove-item" title="Remove Item" onclick="removeFromOrder(${index})"><i class="fas fa-trash"></i></button>
                     </div>
                 `).join('');
@@ -445,11 +461,11 @@
             }
 
             const total = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            document.getElementById('orderTotal').textContent = `Total: R$${total.toFixed(2)}`;
+            document.getElementById('orderTotal').textContent = `Total: R$${total.toFixed(0)}`;
 
             // Update mobile checkout bar
             const count = orderItems.reduce((sum, item) => sum + item.quantity, 0);
-            document.getElementById('mobileTotal').textContent = `R$${total.toFixed(2)}`;
+            document.getElementById('mobileTotal').textContent = `R$${total.toFixed(0)}`;
             document.getElementById('mobileItemCount').textContent = `${count} item${count !== 1 ? 's' : ''}`;
         }
 

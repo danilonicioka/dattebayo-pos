@@ -18,6 +18,9 @@ public class MenuItemService {
     @Autowired
     private MenuItemRepository menuItemRepository;
     
+    @Autowired
+    private ConfigurationService configurationService;
+    
     public List<MenuItemDTO> getAllMenuItems() {
         return menuItemRepository.findAll().stream()
                 .map(this::convertToDTO)
@@ -64,6 +67,7 @@ public class MenuItemService {
         dto.setPrice(menuItem.getPrice());
         dto.setCategory(menuItem.getCategory());
         dto.setAvailable(menuItem.getAvailable());
+        dto.setPrice(configurationService.applyMarkup(menuItem.getPrice()));
 
         List<MenuItemVariationDTO> variationDTOs = menuItem.getVariations().stream()
                 .map(variation -> {
@@ -71,7 +75,7 @@ public class MenuItemService {
                     variationDTO.setId(variation.getId());
                     variationDTO.setName(variation.getName());
                     variationDTO.setType(variation.getType());
-                    variationDTO.setAdditionalPrice(variation.getAdditionalPrice());
+                    variationDTO.setAdditionalPrice(configurationService.applyMarkup(variation.getAdditionalPrice()));
                     return variationDTO;
                 })
                 .collect(Collectors.toList());

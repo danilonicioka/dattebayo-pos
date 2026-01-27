@@ -27,6 +27,9 @@ public class OrderService {
     @Autowired
     private OrderItemVariationRepository orderItemVariationRepository;
     
+    @Autowired
+    private ConfigurationService configurationService;
+    
     public OrderDTO createOrder(CreateOrderDTO createOrderDTO) {
         Order order = new Order();
         order.setTableNumber(createOrderDTO.getTableNumber());
@@ -45,7 +48,7 @@ public class OrderService {
             orderItem.setOrder(order);
             orderItem.setMenuItem(menuItem);
             orderItem.setQuantity(itemRequest.getQuantity());
-            orderItem.setPrice(menuItem.getPrice());
+            orderItem.setPrice(configurationService.applyMarkup(menuItem.getPrice()));
             orderItem.setSpecialInstructions(itemRequest.getSpecialInstructions());
             
             // Handle variations and pricing
@@ -207,7 +210,7 @@ public class OrderService {
             orderItem.setOrder(order);
             orderItem.setMenuItem(menuItem);
             orderItem.setQuantity(itemRequest.getQuantity());
-            orderItem.setPrice(menuItem.getPrice());
+            orderItem.setPrice(configurationService.applyMarkup(menuItem.getPrice()));
             orderItem.setSpecialInstructions(itemRequest.getSpecialInstructions());
             
             // Handle variations and pricing
@@ -244,7 +247,7 @@ public class OrderService {
 
         // Add additional price if variation is selected
         if (variationRequest.getSelected()) {
-            orderItem.setPrice(orderItem.getPrice() + variation.getAdditionalPrice());
+            orderItem.setPrice(orderItem.getPrice() + configurationService.applyMarkup(variation.getAdditionalPrice()));
         }
     }
 }

@@ -25,11 +25,11 @@
                     <h3>Resumo do Pedido</h3>
                     <div th:each="item : ${order.items}" class="summary-item">
                         <span th:text="${item.quantity} + 'x ' + ${item.menuItemName}"></span>
-                        <span th:text="'R$' + ${#numbers.formatDecimal(item.price * item.quantity, 1, 2)}"></span>
+                        <span th:text="'R$' + ${#numbers.formatDecimal(item.price * item.quantity, 1, 0)}"></span>
                     </div>
                     <div class="summary-total">
                         <span>Total:</span>
-                        <span th:text="'R$' + ${#numbers.formatDecimal(order.total, 1, 2)}"></span>
+                        <span th:text="'R$' + ${#numbers.formatDecimal(order.total, 1, 0)}"></span>
                     </div>
                 </div>
 
@@ -75,7 +75,7 @@
                 confirmBtn.disabled = true;
             }
 
-            changeAmountDisplay.textContent = change.toFixed(2);
+            changeAmountDisplay.textContent = change.toFixed(0);
         }
 
         function confirmPayment() {

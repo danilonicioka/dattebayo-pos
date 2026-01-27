@@ -20,6 +20,7 @@
                 <div class="nav-links">
                     <a href="/" class="nav-link active"><i class="fas fa-clipboard-list"></i> Pedidos</a>
                     <a href="/kitchen" class="nav-link"><i class="fas fa-utensils"></i> Cozinha</a>
+                    <a href="/menu-management" class="nav-link"><i class="fas fa-cog"></i> Menu</a>
                 </div>
             </div>
             <!-- <p>Order Management</p> -->
@@ -61,7 +62,7 @@
                             </div>
                         </div>
                         <div class="active-order-total"
-                            th:text="'Total: R$' + ${#numbers.formatDecimal(order.total, 1, 2)}"></div>
+                            th:text="'Total: R$' + ${#numbers.formatDecimal(order.total, 1, 0)}"></div>
                         <a th:href="@{'/orders/' + ${order.id} + '/edit'}" class="edit-order-btn"><i
                                 class="fas fa-edit"></i> Editar Pedido</a>
                         <form th:action="@{'/orders/' + ${order.id} + '/mark-paid'}" method="post">

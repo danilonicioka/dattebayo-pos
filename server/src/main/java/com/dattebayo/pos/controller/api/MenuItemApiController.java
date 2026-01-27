@@ -3,10 +3,12 @@ package com.dattebayo.pos.controller.api;
 import com.dattebayo.pos.dto.MenuItemDTO;
 import com.dattebayo.pos.model.MenuItem;
 import com.dattebayo.pos.service.MenuItemService;
+import com.dattebayo.pos.service.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -16,6 +18,9 @@ public class MenuItemApiController {
     
     @Autowired
     private MenuItemService menuItemService;
+    
+    @Autowired
+    private ConfigurationService configurationService;
     
     @GetMapping
     public ResponseEntity<List<MenuItemDTO>> getAllMenuItems() {
@@ -59,5 +64,37 @@ public class MenuItemApiController {
     public ResponseEntity<Void> deleteMenuItem(@PathVariable Long id) {
         menuItemService.deleteMenuItem(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/available")
+    public ResponseEntity<MenuItem> toggleAvailability(@PathVariable Long id, @RequestBody Map<String, Boolean> payload) {
+        Optional<MenuItem> menuItemOpt = menuItemService.getMenuItemById(id);
+        if (menuItemOpt.isPresent()) {
+            MenuItem menuItem = menuItemOpt.get();
+            if (payload.containsKey("available")) {
+                menuItem.setAvailable(payload.get("available"));
+                return ResponseEntity.ok(menuItemService.saveMenuItem(menuItem));
+            }
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/markup")
+    public ResponseEntity<Map<String, Object>> getMarkupSettings() {
+        return ResponseEntity.ok(Map.of(
+                "percentage", configurationService.getPriceMarkup(),
+                "enabled", configurationService.isMarkupEnabled()
+        ));
+    }
+
+    @PatchMapping("/markup")
+    public ResponseEntity<Void> updateMarkupSettings(@RequestBody Map<String, Object> payload) {
+        if (payload.containsKey("percentage")) {
+            configurationService.setPriceMarkup(Double.parseDouble(payload.get("percentage").toString()));
+        }
+        if (payload.containsKey("enabled")) {
+            configurationService.setMarkupEnabled(Boolean.parseBoolean(payload.get("enabled").toString()));
+        }
+        return ResponseEntity.ok().build();
     }
 }

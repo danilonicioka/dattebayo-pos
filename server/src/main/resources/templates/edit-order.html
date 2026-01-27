@@ -16,6 +16,8 @@
             <a href="/" class="back-btn"><i class="fas fa-arrow-left"></i> Voltar aos Pedidos</a>
             <img th:src="@{/dattebayo-logo.png}" alt="Dattebayo Logo" />
             <h1><i class="fas fa-edit"></i> Editar Pedido</h1>
+            <p id="markupNotice" style="color: #223c0e; font-weight: bold; margin-top: 5px; display: none;">Calculando
+                preços com markup global</p>
             <p>Modificar pedido da Mesa <span th:text="${order.tableNumber}"></span></p>
         </div>
 
@@ -56,7 +58,7 @@
                     </div>
 
                     <div class="order-total" id="orderTotal">
-                        Total: R$<span th:text="${#numbers.formatDecimal(order.total, 1, 2)}"></span>
+                        Total: R$<span th:text="${#numbers.formatDecimal(order.total, 1, 0)}"></span>
                     </div>
 
                     <div class="form-group">
@@ -114,7 +116,19 @@
             loadMenuItems(); // Must be called to populate menuItems for lookups
             loadCategories();
             initializeExistingOrder();
+            checkMarkup();
         });
+
+        function checkMarkup() {
+            fetch('/api/menu/markup')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.enabled && data.percentage > 0) {
+                        document.getElementById('markupNotice').textContent = `Preços ajustados com markup de ${data.percentage}%`;
+                        document.getElementById('markupNotice').style.display = 'block';
+                    }
+                });
+        }
 
         function initializeExistingOrder() {
             // Convert existing order items to the format expected by the JavaScript
@@ -133,7 +147,7 @@
         }
 
         function loadMenuItems() {
-            fetch('/api/menu')
+            fetch('/api/menu/available')
                 .then(response => response.json())
                 .then(data => {
                     menuItems = data;
@@ -173,6 +187,8 @@
             menuItemsDiv.innerHTML = '';
 
             menuItems.forEach(item => {
+                if (!item.available) return;
+
                 const menuItemDiv = document.createElement('div');
                 menuItemDiv.className = 'menu-item';
                 menuItemDiv.setAttribute('data-category', item.category);
@@ -181,7 +197,7 @@
                 menuItemDiv.innerHTML = `
                     <h3>${item.name}</h3>
                     <div class="description">${item.description}</div>
-                    <div class="price">R$${item.price.toFixed(2)}</div>
+                    <div class="price">R$${item.price.toFixed(0)}</div>
                     ${item.variations && item.variations.length > 0 ? '<div class="variations-indicator">⚙️ Options available</div>' : ''}
                 `;
 
@@ -254,7 +270,7 @@
                                 displayPrice = '+2.00';
                             }
                         } else if (variation.additionalPrice > 0) {
-                            displayPrice = `+${variation.additionalPrice.toFixed(2)}`;
+                            displayPrice = `+${variation.additionalPrice.toFixed(0)}`;
                         }
 
                         optionDiv.innerHTML = `
@@ -333,7 +349,7 @@
                 });
             }
 
-            document.getElementById('modalItemPrice').textContent = finalPrice.toFixed(2);
+            document.getElementById('modalItemPrice').textContent = finalPrice.toFixed(0);
         }
 
         function confirmAddToOrder() {
@@ -505,7 +521,7 @@
                                 <button type="button" class="qty-btn" onclick="incrementQuantity(${index})">+</button>
                             </div>
                         </div>
-                        <div class="order-item-price">R$${itemTotal.toFixed(2)}</div>
+                        <div class="order-item-price">R$${itemTotal.toFixed(0)}</div>
                         <button type="button" class="remove-item" title="Remove Item" onclick="removeFromOrder(${index})"><i class="fas fa-trash"></i></button>
                     `;
                     orderItemsDiv.appendChild(itemDiv);
@@ -553,13 +569,13 @@
                 });
             }
 
-            totalElement.textContent = total.toFixed(2);
+            totalElement.textContent = total.toFixed(0);
 
             // Update mobile checkout bar
             const mobileTotal = document.getElementById('mobileTotal');
             const mobileItemCount = document.getElementById('mobileItemCount');
             if (mobileTotal && mobileItemCount) {
-                mobileTotal.textContent = `R$${total.toFixed(2)}`;
+                mobileTotal.textContent = `R$${total.toFixed(0)}`;
                 mobileItemCount.textContent = `${totalCount} items`;
             }
         }

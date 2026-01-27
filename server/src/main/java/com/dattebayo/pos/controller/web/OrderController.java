@@ -40,6 +40,15 @@ public class OrderController {
         model.addAttribute("categories", categories);
         return "new-order";
     }
+
+    @GetMapping("/menu-management")
+    public String menuManagementPage(Model model) {
+        List<MenuItemDTO> menuItems = menuItemService.getAllMenuItems();
+        List<String> categories = menuItemService.getAllCategories();
+        model.addAttribute("menuItems", menuItems);
+        model.addAttribute("categories", categories);
+        return "menu-management";
+    }
     
     @GetMapping("/kitchen")
     public String kitchenPage(Model model) {

@@ -10,4 +10,6 @@ public class OrderItemVariationRequestDTO {
 
     @NotNull(message = "Selected status is required")
     private Boolean selected;
+
+    private Integer quantity;
 }

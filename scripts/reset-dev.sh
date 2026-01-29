@@ -22,7 +22,7 @@ echo "🛑 Stopping containers and removing volumes..."
 docker compose -f docker/compose.yml --env-file "$ENV_FILE" down -v
 
 echo "🧹 Cleaning up unused volumes and cache..."
-docker volume prune -f
+docker volume prune -fa
 
 echo ""
 echo "🔨 Rebuilding backend image..."

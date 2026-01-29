@@ -125,7 +125,13 @@ public class OrderService {
             // Build display name including selected variations
             List<String> selectedVariationNames = item.getVariations().stream()
                     .filter(OrderItemVariation::getSelected)
-                    .map(variation -> variation.getMenuItemVariation().getName())
+                    .map(variation -> {
+                        String name = variation.getMenuItemVariation().getName();
+                        if (variation.getQuantity() != null && variation.getQuantity() > 1) {
+                            return variation.getQuantity() + "x " + name;
+                        }
+                        return name;
+                    })
                     .collect(Collectors.toList());
 
             String displayName;
@@ -168,6 +174,7 @@ public class OrderService {
                         variationDTO.setType(variation.getMenuItemVariation().getType());
                         variationDTO.setAdditionalPrice(variation.getMenuItemVariation().getAdditionalPrice());
                         variationDTO.setSelected(variation.getSelected());
+                        variationDTO.setQuantity(variation.getQuantity());
                         return variationDTO;
                     })
                     .collect(Collectors.toList());
@@ -248,14 +255,21 @@ public class OrderService {
         orderItemVariation.setOrderItem(orderItem);
         orderItemVariation.setMenuItemVariation(variation);
         orderItemVariation.setSelected(variationRequest.getSelected());
+        
+        // Handle quantity
+        int qty = variationRequest.getQuantity() != null && variationRequest.getQuantity() > 0 
+                ? variationRequest.getQuantity() 
+                : 1;
+        orderItemVariation.setQuantity(qty);
 
         orderItem.getVariations().add(orderItemVariation);
 
-        // Add additional price if variation is selected
+        // Add additional price if variation is selected, multiplying by quantity
         if (variationRequest.getSelected()) {
             Double additionalPrice = variation.getAdditionalPrice();
             Double processedAdditional = orderItem.getMenuItem().getApplyMarkup() ? configurationService.applyMarkup(additionalPrice) : Math.round(additionalPrice);
-            orderItem.setPrice(orderItem.getPrice() + processedAdditional);
+            // Multiply the additional price by the quantity of this variation
+            orderItem.setPrice(orderItem.getPrice() + (processedAdditional * qty));
         }
     }
 }

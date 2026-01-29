@@ -135,6 +135,12 @@
     gap: 20px;
 }
 
+@media (max-width: 768px) {
+    .active-orders-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 .active-order-card {
     background: white;
     border-radius: 10px;

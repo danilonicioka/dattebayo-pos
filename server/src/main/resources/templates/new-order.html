@@ -253,12 +253,37 @@
                             displayPrice = `+${variation.additionalPrice.toFixed(0)}`;
                         }
 
-                        optionDiv.innerHTML = `
-                            <input type="${inputType}" id="${inputId}"
-                                   onchange="toggleVariation(${variation.id}, '${type}', this.checked)">
-                            <label for="${inputId}">${variation.name}</label>
-                            ${displayPrice ? `<span class="variation-price">R$${displayPrice}</span>` : ''}
-                        `;
+                        // Special logic for "Unidade" variation in "Camarão Milanesa"
+                        // Or generically if variation name is "Unidade"
+                        const isQuantityVariation = variation.name.toLowerCase() === 'unidade' ||
+                            (menuItem.name.includes('Camarão Milanesa') && variation.name === 'Unidade');
+
+                        if (isQuantityVariation) {
+                            optionDiv.innerHTML = `
+                                <div style="display: flex; align-items: center; width: 100%;">
+                                    <input type="checkbox" id="${inputId}" 
+                                           onchange="toggleVariation(${variation.id}, '${type}', this.checked)"
+                                           style="margin-right: 15px;">
+                                    <label for="${inputId}" style="flex:1;">${variation.name}</label>
+                                    
+                                    <div id="qty-container-${variation.id}" style="display: none; align-items: center; margin-left: 10px;">
+                                        <input type="number" id="qty-${variation.id}" value="1" min="1" 
+                                               style="width: 50px; padding: 5px; border-radius: 5px; border: 1px solid #ccc;"
+                                               onclick="event.stopPropagation()"
+                                               onchange="updateVariationQuantity(${variation.id}, this.value)">
+                                    </div>
+                                    
+                                    ${displayPrice ? `<span class="variation-price">R$${displayPrice}</span>` : ''}
+                                </div>
+                            `;
+                        } else {
+                            optionDiv.innerHTML = `
+                                <input type="${inputType}" id="${inputId}"
+                                       onchange="toggleVariation(${variation.id}, '${type}', this.checked)">
+                                <label for="${inputId}">${variation.name}</label>
+                                ${displayPrice ? `<span class="variation-price">R$${displayPrice}</span>` : ''}
+                            `;
+                        }
 
                         groupDiv.appendChild(optionDiv);
                     });
@@ -282,12 +307,29 @@
 
         function toggleVariation(variationId, type, checked) {
             if (checked) {
-                selectedVariations[variationId] = true;
+                selectedVariations[variationId] = { selected: true, quantity: 1 };
+                // Show quantity input if exists
+                const qtyContainer = document.getElementById(`qty-container-${variationId}`);
+                if (qtyContainer) {
+                    qtyContainer.style.display = 'flex';
+                    // Focus logic could go here
+                }
             } else {
                 delete selectedVariations[variationId];
+                const qtyContainer = document.getElementById(`qty-container-${variationId}`);
+                if (qtyContainer) {
+                    qtyContainer.style.display = 'none';
+                }
             }
 
             updateModalPrice();
+        }
+
+        function updateVariationQuantity(variationId, quantity) {
+            if (selectedVariations[variationId]) {
+                selectedVariations[variationId].quantity = parseInt(quantity) || 1;
+                updateModalPrice();
+            }
         }
 
         function updateModalPrice() {
@@ -297,7 +339,7 @@
             const selectedVariationIds = Object.keys(selectedVariations).map(id => parseInt(id));
 
             if (selectedMenuItem.category === 'Comidas' && selectedMenuItem.name === 'Tempura') {
-                // Tempura special logic
+                // Tempura special logic (simplified for minimal regression, assuming checked means selected)
                 const shrimpVariation = selectedVariationIds.find(id => {
                     const variationData = selectedMenuItem.variations.find(v => v.id === id);
                     return variationData && variationData.name === 'Com Camarão';
@@ -311,7 +353,8 @@
                 selectedVariationIds.forEach(id => {
                     const variationData = selectedMenuItem.variations.find(v => v.id === id);
                     if (variationData) {
-                        finalPrice += variationData.additionalPrice;
+                        const qty = selectedVariations[id].quantity || 1;
+                        finalPrice += (variationData.additionalPrice * qty);
                     }
                 });
             }
@@ -324,7 +367,8 @@
 
             const variations = Object.keys(selectedVariations).map(id => ({
                 menuItemVariationId: parseInt(id),
-                selected: true
+                selected: true,
+                quantity: selectedVariations[id].quantity || 1
             }));
 
             addToOrder(selectedMenuItem.id, variations);
@@ -369,17 +413,25 @@
                 }
 
             } else if (menuItem.category === 'Comidas' && menuItem.name === 'Hot Sushi') {
-                // Hot Sushi special logic
+                // Hot Sushi logic ...
                 const selected = variations
                     .filter(v => v.selected)
-                    .map(v => menuItem.variations.find(vd => vd.id === v.menuItemVariationId))
-                    .filter(Boolean);
+                    .map(v => ({
+                        data: menuItem.variations.find(vd => vd.id === v.menuItemVariationId),
+                        qty: v.quantity || 1
+                    }))
+                    .filter(item => item.data);
 
-                selected.forEach(variation => {
-                    finalPrice += variation.additionalPrice;
-                    selectedVariationNames.push(variation.name);
+                selected.forEach(item => {
+                    finalPrice += item.data.additionalPrice * item.qty;
+                    if (item.qty > 1) {
+                        selectedVariationNames.push(`${item.qty}x ${item.data.name}`);
+                    } else {
+                        selectedVariationNames.push(item.data.name);
+                    }
                 });
 
+                // Original logic for naming might need tweak if multiple units are allowed for hot sushi too
                 if (selectedVariationNames.length > 1) {
                     itemName = `Hot Sushi (${selectedVariationNames.join(' + ')})`;
                 } else {
@@ -393,8 +445,13 @@
                 variations.forEach(variation => {
                     const variationData = menuItem.variations.find(v => v.id === variation.menuItemVariationId);
                     if (variationData && variation.selected) {
-                        finalPrice += variationData.additionalPrice;
-                        selectedVariationNames.push(variationData.name);
+                        const qty = variation.quantity || 1;
+                        finalPrice += (variationData.additionalPrice * qty);
+                        if (qty > 1) {
+                            selectedVariationNames.push(`${qty}x ${variationData.name}`);
+                        } else {
+                            selectedVariationNames.push(variationData.name);
+                        }
                     }
                 });
 

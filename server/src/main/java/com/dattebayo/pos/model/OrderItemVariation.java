@@ -25,4 +25,7 @@ public class OrderItemVariation {
 
     @Column(nullable = false)
     private Boolean selected = true; // For single type variations, this indicates if it's selected
+
+    @Column(nullable = false)
+    private Integer quantity = 1;
 }

@@ -135,14 +135,14 @@ public class DataInitializer implements CommandLineRunner {
                 camaraoMilanesa.setPrice(0.00);
                 camaraoMilanesa.setCategory("Comidas");
                 camaraoMilanesa.setAvailable(true);
-                camaraoMilanesa.getVariations().add(new MenuItemVariation(null, "Unidade", "MULTIPLE", 6.00, camaraoMilanesa));
-                camaraoMilanesa.getVariations().add(new MenuItemVariation(null, "Porção com 5 unidades", "MULTIPLE", 25.00, camaraoMilanesa));
+                camaraoMilanesa.getVariations().add(new MenuItemVariation(null, "Unidade", "SINGLE", 6.00, camaraoMilanesa));
+                camaraoMilanesa.getVariations().add(new MenuItemVariation(null, "Porção com 5 unidades", "SINGLE", 25.00, camaraoMilanesa));
                 menuItemRepository.save(camaraoMilanesa);
 
                 // Bubble
                 MenuItem bubble = new MenuItem();
                 bubble.setName("Bubble");
-                bubble.setDescription("Suco com bolinha saborizadas");
+                bubble.setDescription("Suco com bolinhas saborizadas (300 ml)");
                 bubble.setPrice(15.00);
                 bubble.setCategory("Bebidas");
                 bubble.setAvailable(true);

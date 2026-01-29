@@ -52,7 +52,7 @@
                     id="orderForm" onsubmit="prepareFormData()">
                     <div class="form-group">
                         <label for="tableNumber">Identificador da Mesa:</label>
-                        <input type="text" id="tableNumber" name="tableNumber" th:value="${order.tableNumber}" required
+                        <input type="text" id="tableNumber" name="tableNumber" th:value="${order.tableNumber}"
                             placeholder="e.g., Mesa 1">
                     </div>
 
@@ -257,34 +257,59 @@
                     const groupDiv = document.createElement('div');
                     groupDiv.className = 'variation-group';
 
-                    const typeTitle = type === 'MULTIPLE' ? 'Escolha o(s) sabor(es):' : 'Options:';
+                    const typeTitle = type === 'MULTIPLE' ? 'Escolha o(s) sabor(es):' : 'Selecione uma opção:';
                     groupDiv.innerHTML = `<h3>${typeTitle}</h3>`;
 
                     variationsByType[type].forEach(variation => {
                         const optionDiv = document.createElement('div');
                         optionDiv.className = 'variation-option';
 
-                        const inputType = type === 'MULTIPLE' ? 'checkbox' : 'checkbox';
+                        const inputType = type === 'MULTIPLE' ? 'checkbox' : 'radio';
+                        const inputName = type === 'MULTIPLE' ? '' : `variation-group-${type}`;
                         const inputId = `variation-${variation.id}`;
 
                         // Determine display price
                         let displayPrice = '';
                         if (selectedMenuItem.name === 'Pastel' || (selectedMenuItem.category === 'Comidas' && selectedMenuItem.name.includes('Pastel'))) {
                             if (variation.name === 'Paraense') {
-                                displayPrice = '+8.00';
+                                displayPrice = '+R$8.00';
                             } else {
-                                displayPrice = '+2.00';
+                                displayPrice = '+R$2.00';
                             }
                         } else if (variation.additionalPrice > 0) {
-                            displayPrice = `+${variation.additionalPrice.toFixed(0)}`;
+                            displayPrice = `+R$${variation.additionalPrice.toFixed(0)}`;
                         }
 
-                        optionDiv.innerHTML = `
-                            <input type="${inputType}" id="${inputId}"
-                                   onchange="toggleVariation(${variation.id}, '${type}', this.checked)">
-                            <label for="${inputId}">${variation.name}</label>
-                            ${displayPrice ? `<span class="variation-price">R$${displayPrice}</span>` : ''}
-                        `;
+                        // Special logic for "Unidade" variation in "Camarão Milanesa"
+                        const isQuantityVariation = variation.name.toLowerCase() === 'unidade' ||
+                            (menuItem.name.includes('Camarão Milanesa') && variation.name === 'Unidade');
+
+                        if (isQuantityVariation) {
+                            optionDiv.innerHTML = `
+                                <div style="display: flex; align-items: center; width: 100%;">
+                                    <input type="${inputType}" id="${inputId}" name="${inputName}"
+                                           onchange="toggleVariation(${variation.id}, '${type}', this.checked)"
+                                           style="margin-right: 15px;">
+                                    <label for="${inputId}" style="flex:1;">${variation.name}</label>
+                                    
+                                    <div id="qty-container-${variation.id}" style="display: none; align-items: center; margin-left: 10px;">
+                                        <input type="number" id="qty-${variation.id}" value="1" min="1" 
+                                               style="width: 50px; padding: 5px; border-radius: 5px; border: 1px solid #ccc;"
+                                               onclick="event.stopPropagation()"
+                                               onchange="updateVariationQuantity(${variation.id}, this.value)">
+                                    </div>
+                                    
+                                    ${displayPrice ? `<span class="variation-price">${displayPrice}</span>` : ''}
+                                </div>
+                            `;
+                        } else {
+                            optionDiv.innerHTML = `
+                                <input type="${inputType}" id="${inputId}" name="${inputName}"
+                                       onchange="toggleVariation(${variation.id}, '${type}', this.checked)">
+                                <label for="${inputId}">${variation.name}</label>
+                                ${displayPrice ? `<span class="variation-price">${displayPrice}</span>` : ''}
+                            `;
+                        }
 
                         groupDiv.appendChild(optionDiv);
                     });
@@ -307,13 +332,41 @@
         }
 
         function toggleVariation(variationId, type, checked) {
+            if (type === 'SINGLE' && checked) {
+                // For SINGLE, we need to unselect others of the same type in our state object
+                // Find potential siblings (variations of same type)
+                if (selectedMenuItem && selectedMenuItem.variations) {
+                    const siblings = selectedMenuItem.variations.filter(v => v.type === type && v.id !== variationId);
+                    siblings.forEach(sib => {
+                        delete selectedVariations[sib.id];
+                        const sibQty = document.getElementById(`qty-container-${sib.id}`);
+                        if (sibQty) sibQty.style.display = 'none';
+                    });
+                }
+            }
+
             if (checked) {
-                selectedVariations[variationId] = true;
+                selectedVariations[variationId] = { selected: true, quantity: 1 };
+                const qtyContainer = document.getElementById(`qty-container-${variationId}`);
+                if (qtyContainer) {
+                    qtyContainer.style.display = 'flex';
+                }
             } else {
                 delete selectedVariations[variationId];
+                const qtyContainer = document.getElementById(`qty-container-${variationId}`);
+                if (qtyContainer) {
+                    qtyContainer.style.display = 'none';
+                }
             }
 
             updateModalPrice();
+        }
+
+        function updateVariationQuantity(variationId, quantity) {
+            if (selectedVariations[variationId]) {
+                selectedVariations[variationId].quantity = parseInt(quantity) || 1;
+                updateModalPrice();
+            }
         }
 
         function updateModalPrice() {

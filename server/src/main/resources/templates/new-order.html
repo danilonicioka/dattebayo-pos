@@ -51,8 +51,8 @@
 
                 <div class="order-form" id="orderForm">
                     <div class="form-group">
-                        <label for="tableNumber">Identificador da Mesa:</label>
-                        <input type="text" id="tableNumber" required placeholder="e.g., Mesa 1">
+                        <label for="tableNumber">Identificador da Mesa (Opcional):</label>
+                        <input type="text" id="tableNumber" placeholder="e.g., Mesa 1">
                     </div>
 
                     <div class="form-group">
@@ -237,20 +237,23 @@
                     const groupDiv = document.createElement('div');
                     groupDiv.className = 'variation-group';
 
-                    const typeTitle = type === 'MULTIPLE' ? 'Escolha o(s) sabor(es):' : 'Options:';
+                    const typeTitle = type === 'MULTIPLE' ? 'Escolha o(s) sabor(es):' : 'Selecione uma opção:';
                     groupDiv.innerHTML = `<h3>${typeTitle}</h3>`;
 
                     variationsByType[type].forEach(variation => {
                         const optionDiv = document.createElement('div');
                         optionDiv.className = 'variation-option';
 
-                        const inputType = type === 'MULTIPLE' ? 'checkbox' : 'checkbox';
+                        // For SINGLE type, use radio but we need a unique name per group per item interaction
+                        // Using 'variation-group-TYPE' is enough within this modal
+                        const inputType = type === 'MULTIPLE' ? 'checkbox' : 'radio';
+                        const inputName = type === 'MULTIPLE' ? '' : `variation-group-${type}`;
                         const inputId = `variation-${variation.id}`;
 
                         // Determine display price
                         let displayPrice = '';
                         if (variation.additionalPrice > 0) {
-                            displayPrice = `+${variation.additionalPrice.toFixed(0)}`;
+                            displayPrice = `+R$${variation.additionalPrice.toFixed(0)}`;
                         }
 
                         // Special logic for "Unidade" variation in "Camarão Milanesa"
@@ -258,10 +261,12 @@
                         const isQuantityVariation = variation.name.toLowerCase() === 'unidade' ||
                             (menuItem.name.includes('Camarão Milanesa') && variation.name === 'Unidade');
 
+                        // Checkbox vs Radio HTML structure handled by input type and name
+
                         if (isQuantityVariation) {
                             optionDiv.innerHTML = `
                                 <div style="display: flex; align-items: center; width: 100%;">
-                                    <input type="checkbox" id="${inputId}" 
+                                    <input type="${inputType}" id="${inputId}" name="${inputName}"
                                            onchange="toggleVariation(${variation.id}, '${type}', this.checked)"
                                            style="margin-right: 15px;">
                                     <label for="${inputId}" style="flex:1;">${variation.name}</label>
@@ -273,15 +278,15 @@
                                                onchange="updateVariationQuantity(${variation.id}, this.value)">
                                     </div>
                                     
-                                    ${displayPrice ? `<span class="variation-price">R$${displayPrice}</span>` : ''}
+                                    ${displayPrice ? `<span class="variation-price">${displayPrice}</span>` : ''}
                                 </div>
                             `;
                         } else {
                             optionDiv.innerHTML = `
-                                <input type="${inputType}" id="${inputId}"
+                                <input type="${inputType}" id="${inputId}" name="${inputName}"
                                        onchange="toggleVariation(${variation.id}, '${type}', this.checked)">
                                 <label for="${inputId}">${variation.name}</label>
-                                ${displayPrice ? `<span class="variation-price">R$${displayPrice}</span>` : ''}
+                                ${displayPrice ? `<span class="variation-price">${displayPrice}</span>` : ''}
                             `;
                         }
 
@@ -306,13 +311,29 @@
         }
 
         function toggleVariation(variationId, type, checked) {
+            if (type === 'SINGLE' && checked) {
+                // For SINGLE, we need to unselect others of the same type in our state object
+                // The radio button UI handles itself, but we need to sync our state
+
+                // Find potential siblings (variations of same type)
+                if (selectedMenuItem && selectedMenuItem.variations) {
+                    const siblings = selectedMenuItem.variations.filter(v => v.type === type && v.id !== variationId);
+                    siblings.forEach(sib => {
+                        // Remove sibling from selected state
+                        delete selectedVariations[sib.id];
+                        // Hide quantity for sibling if applicable
+                        const sibQty = document.getElementById(`qty-container-${sib.id}`);
+                        if (sibQty) sibQty.style.display = 'none';
+                    });
+                }
+            }
+
             if (checked) {
                 selectedVariations[variationId] = { selected: true, quantity: 1 };
                 // Show quantity input if exists
                 const qtyContainer = document.getElementById(`qty-container-${variationId}`);
                 if (qtyContainer) {
                     qtyContainer.style.display = 'flex';
-                    // Focus logic could go here
                 }
             } else {
                 delete selectedVariations[variationId];
@@ -545,10 +566,8 @@
             const tableNumber = document.getElementById('tableNumber').value.trim();
             const notes = document.getElementById('notes').value.trim();
 
-            if (!tableNumber) {
-                alert('Please enter a table number');
-                return;
-            }
+            // Table number validation removed as it is now optional
+
 
             if (orderItems.length === 0) {
                 alert('Please add at least one item to the order');

@@ -7,7 +7,6 @@ import java.util.List;
 
 @Data
 public class CreateOrderDTO {
-    @NotBlank(message = "Table number is required")
     private String tableNumber;
     
     @NotEmpty(message = "Order must have at least one item")

@@ -15,13 +15,13 @@ import java.util.List;
 @Controller
 @RequestMapping("/")
 public class OrderController {
-    
+
     @Autowired
     private MenuItemService menuItemService;
-    
+
     @Autowired
     private OrderService orderService;
-    
+
     @GetMapping
     public String orderPage(Model model) {
         // Get active orders (not completed/paid)
@@ -31,7 +31,7 @@ public class OrderController {
         model.addAttribute("activeOrders", activeOrders);
         return "order";
     }
-    
+
     @GetMapping("/new-order")
     public String newOrderPage(Model model) {
         List<MenuItemDTO> menuItems = menuItemService.getAvailableMenuItems();
@@ -49,20 +49,33 @@ public class OrderController {
         model.addAttribute("categories", categories);
         return "menu-management";
     }
-    
+
     @GetMapping("/kitchen")
     public String kitchenPage(Model model) {
         List<OrderDTO> kitchenOrders = orderService.getKitchenOrders();
         model.addAttribute("orders", kitchenOrders);
         return "kitchen";
     }
-    
+
+    @GetMapping("/history")
+    public String historyPage(Model model) {
+        List<OrderDTO> completedOrders = orderService.getCompletedOrders();
+        model.addAttribute("orders", completedOrders);
+        return "history";
+    }
+
+    @PostMapping("/history/clear")
+    public String clearHistory() {
+        orderService.clearOrderHistory();
+        return "redirect:/history?cleared=true";
+    }
+
     @GetMapping("/orders/{id}/edit")
     public String editOrderPage(@PathVariable Long id, Model model) {
         OrderDTO order = orderService.getOrderById(id);
         List<MenuItemDTO> menuItems = menuItemService.getAvailableMenuItems();
         List<String> categories = menuItemService.getAllCategories();
-        
+
         model.addAttribute("order", order);
         model.addAttribute("menuItems", menuItems);
         model.addAttribute("categories", categories);
@@ -75,13 +88,13 @@ public class OrderController {
         model.addAttribute("order", order);
         return "checkout";
     }
-    
+
     @PostMapping("/orders")
     public String createOrder(@ModelAttribute CreateOrderDTO createOrderDTO) {
         orderService.createOrder(createOrderDTO);
         return "redirect:/new-order?success=true";
     }
-    
+
     @PostMapping("/orders/{id}/status")
     public String updateOrderStatus(@PathVariable Long id, @RequestParam String status) {
         try {
@@ -92,7 +105,7 @@ public class OrderController {
         }
         return "redirect:/kitchen";
     }
-    
+
     @PostMapping("/orders/{id}/mark-paid")
     public String markOrderAsPaid(@PathVariable Long id) {
         try {
@@ -102,7 +115,7 @@ public class OrderController {
         }
         return "redirect:/?paid=true";
     }
-    
+
     @PostMapping("/orders/{id}/update")
     public String updateOrder(@PathVariable Long id, @ModelAttribute CreateOrderDTO createOrderDTO) {
         try {

@@ -1,0 +1,181 @@
+/* History Page Styles */
+
+/* Reuse container and header styles from common.css */
+
+.history-container {
+    padding: 2rem;
+    max-width: 1200px;
+    /* Wider for table */
+    margin: 0 auto;
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.history-header h2 {
+    color: var(--text-dark);
+    font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.clear-history-btn {
+    background-color: transparent;
+    color: #dc3545;
+    border: 1px solid #dc3545;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.clear-history-btn:hover {
+    background-color: #dc3545;
+    color: white;
+}
+
+.history-header h2 i {
+    color: var(--primary-color);
+}
+
+.history-table-container {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.history-table th,
+.history-table td {
+    padding: 1rem 1.5rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.history-table th {
+    background-color: var(--bg-light);
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+}
+
+.history-table tr:last-child td {
+    border-bottom: none;
+}
+
+.history-table tr:hover {
+    background-color: var(--bg-light);
+}
+
+.order-id {
+    font-family: monospace;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+/* Items specific styling */
+.history-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    font-size: 0.9rem;
+}
+
+.history-item {
+    color: var(--text-dark);
+}
+
+.total-amount {
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.order-date {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.no-history {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+}
+
+/* Status Badge - Reused/Adapted */
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-badge.completed {
+    background-color: rgba(76, 175, 80, 0.1);
+    color: #4CAF50;
+    border: 1px solid rgba(76, 175, 80, 0.2);
+}
+
+/* Responsive Table */
+@media (max-width: 768px) {
+    .history-table thead {
+        display: none;
+    }
+
+    .history-table,
+    .history-table tbody,
+    .history-table tr,
+    .history-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .history-table tr {
+        margin-bottom: 1rem;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: var(--card-shadow);
+        padding: 1rem;
+        border: 1px solid var(--border-color);
+    }
+
+    .history-table td {
+        padding: 0.5rem 0;
+        border-bottom: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .history-table td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-right: 1rem;
+    }
+
+    .history-items-list {
+        align-items: flex-end;
+    }
+}

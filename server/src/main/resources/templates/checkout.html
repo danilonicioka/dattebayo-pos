@@ -21,6 +21,7 @@
                     <a href="/" class="nav-link"><i class="fas fa-clipboard-list"></i> Pedidos</a>
                     <a href="/kitchen" class="nav-link"><i class="fas fa-utensils"></i> Cozinha</a>
                     <a href="/menu-management" class="nav-link"><i class="fas fa-cog"></i> Menu</a>
+                    <a href="/history" class="nav-link"><i class="fas fa-history"></i> Histórico</a>
                 </div>
             </div>
         </div>
@@ -53,7 +54,7 @@
 
                 <div class="checkout-actions">
                     <a href="/" class="cancel-btn">Cancelar</a>
-                    <button id="confirmPaymentBtn" onclick="confirmPayment()" class="pay-btn" disabled>Confirmar
+                    <button id="confirmPaymentBtn" onclick="confirmPayment()" class="pay-btn">Confirmar
                         Pagamento</button>
                 </div>
             </div>
@@ -73,13 +74,13 @@
             const confirmBtn = document.getElementById('confirmPaymentBtn');
             const changeAmountDisplay = document.getElementById('changeAmountDisplay');
 
+            // Logic updated: always enable confirm button, just show negative change if underpaid
             if (amountPaid >= orderTotal) {
                 changeDisplay.classList.remove('negative');
-                confirmBtn.disabled = false;
             } else {
                 changeDisplay.classList.add('negative');
-                confirmBtn.disabled = true;
             }
+            confirmBtn.disabled = false;
 
             changeAmountDisplay.textContent = change.toFixed(0);
         }

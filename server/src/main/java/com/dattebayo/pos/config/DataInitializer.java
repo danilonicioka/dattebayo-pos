@@ -33,7 +33,7 @@ public class DataInitializer implements CommandLineRunner {
                 MenuItem pastelParaense = new MenuItem();
                 pastelParaense.setName("Pastel Paraense");
                 pastelParaense.setDescription("Pastel com camarão, jambu, queijo e catupiry");
-                pastelParaense.setPrice(14.00);
+                pastelParaense.setPrice(15.00);
                 pastelParaense.setCategory("Comidas");
                 pastelParaense.setAvailable(true);
                 menuItemRepository.save(pastelParaense);
@@ -51,7 +51,7 @@ public class DataInitializer implements CommandLineRunner {
                 MenuItem takoyaki = new MenuItem();
                 takoyaki.setName("Takoyaki");
                 takoyaki.setDescription("Bolinho de com recheio de polvo");
-                takoyaki.setPrice(20.00);
+                takoyaki.setPrice(23.00);
                 takoyaki.setCategory("Comidas");
                 takoyaki.setAvailable(true);
                 menuItemRepository.save(takoyaki);
@@ -60,7 +60,7 @@ public class DataInitializer implements CommandLineRunner {
                 MenuItem yakisoba = new MenuItem();
                 yakisoba.setName("Yakisoba");
                 yakisoba.setDescription("Yakisoba de carne e frango com ou sem camarão");
-                yakisoba.setPrice(20.00);
+                yakisoba.setPrice(22.00);
                 yakisoba.setCategory("Comidas");
                 yakisoba.setAvailable(true);
                 yakisoba.getVariations().add(new MenuItemVariation(null, "Com Camarão", "SINGLE", 5.00, yakisoba));
@@ -70,7 +70,7 @@ public class DataInitializer implements CommandLineRunner {
                 MenuItem hotSushi = new MenuItem();
                 hotSushi.setName("Hot Sushi");
                 hotSushi.setDescription("Hot Sushi de salmão ou camarão");
-                hotSushi.setPrice(30.00);
+                hotSushi.setPrice(35.00);
                 hotSushi.setCategory("Comidas");
                 hotSushi.setAvailable(true);
                 hotSushi.getVariations().add(new MenuItemVariation(null, "De Salmão", "MULTIPLE", 0.00, hotSushi));
@@ -81,7 +81,7 @@ public class DataInitializer implements CommandLineRunner {
                 MenuItem hotTemaki = new MenuItem();
                 hotTemaki.setName("Hot Temaki");
                 hotTemaki.setDescription("Hot Temaki de salmão ou camarão");
-                hotTemaki.setPrice(18.00);
+                hotTemaki.setPrice(20.00);
                 hotTemaki.setCategory("Comidas");
                 hotTemaki.setAvailable(true);
                 hotTemaki.getVariations().add(new MenuItemVariation(null, "De Salmão", "MULTIPLE", 0.00, hotTemaki));
@@ -92,7 +92,7 @@ public class DataInitializer implements CommandLineRunner {
                 MenuItem gyoza = new MenuItem();
                 gyoza.setName("Gyoza");
                 gyoza.setDescription("Gyoza de carne bovina com legumes");
-                gyoza.setPrice(15.00);
+                gyoza.setPrice(17.00);
                 gyoza.setCategory("Comidas");
                 gyoza.setAvailable(true);
                 menuItemRepository.save(gyoza);
@@ -104,8 +104,8 @@ public class DataInitializer implements CommandLineRunner {
                 camaraoMilanesa.setPrice(0.00);
                 camaraoMilanesa.setCategory("Comidas");
                 camaraoMilanesa.setAvailable(true);
-                camaraoMilanesa.getVariations().add(new MenuItemVariation(null, "Unidade", "MULTIPLE", 5.00, camaraoMilanesa));
-                camaraoMilanesa.getVariations().add(new MenuItemVariation(null, "Porção com 5 unidades", "MULTIPLE", 20.00, camaraoMilanesa));
+                camaraoMilanesa.getVariations().add(new MenuItemVariation(null, "Unidade", "MULTIPLE", 6.00, camaraoMilanesa));
+                camaraoMilanesa.getVariations().add(new MenuItemVariation(null, "Porção com 5 unidades", "MULTIPLE", 25.00, camaraoMilanesa));
                 menuItemRepository.save(camaraoMilanesa);
 
                 // Bubble

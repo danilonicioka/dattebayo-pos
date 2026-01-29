@@ -33,3 +33,7 @@ captures/
 *.apk
 *.ap_
 *.dex
+
+# Environment variables
+*.env
+.env*

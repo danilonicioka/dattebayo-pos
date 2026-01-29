@@ -2,13 +2,12 @@ services:
   postgres:
     image: postgres:15-alpine
     restart: always
-    container_name: dattebayo-postgres
     environment:
       POSTGRES_DB: restaurant_pos
       POSTGRES_USER: pos_user
       POSTGRES_PASSWORD: pos_password
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -21,10 +20,9 @@ services:
     build:
       context: ../.
       dockerfile: server/Dockerfile
-    container_name: dattebayo-backend
     restart: always
     ports:
-      - "80:80"
+      - "${APP_PORT:-80}:80"
     environment:
       DB_HOST: postgres
       DB_PORT: 5432

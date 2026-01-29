@@ -23,6 +23,7 @@ public class MenuItemService {
     
     public List<MenuItemDTO> getAllMenuItems() {
         return menuItemRepository.findAll().stream()
+                .sorted((a, b) -> a.getId().compareTo(b.getId()))
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }

@@ -84,9 +84,31 @@ public class DataInitializer implements CommandLineRunner {
                 hotTemaki.setPrice(20.00);
                 hotTemaki.setCategory("Comidas");
                 hotTemaki.setAvailable(true);
-                hotTemaki.getVariations().add(new MenuItemVariation(null, "De Salmão", "MULTIPLE", 0.00, hotTemaki));
-                hotTemaki.getVariations().add(new MenuItemVariation(null, "De Camarão", "MULTIPLE", 0.00, hotTemaki));
+                hotTemaki.getVariations().add(new MenuItemVariation(null, "De Salmão", "SINGLE", 0.00, hotTemaki));
+                hotTemaki.getVariations().add(new MenuItemVariation(null, "De Camarão", "SINGLE", 0.00, hotTemaki));
                 menuItemRepository.save(hotTemaki);
+
+                // Hot ball com Camarão option
+                MenuItem hotBall = new MenuItem();
+                hotBall.setName("Hot Ball");
+                hotBall.setDescription("Bolinho de sushi (salmão ou camarão) com queijo empanado e frito");
+                hotBall.setPrice(12.00);
+                hotBall.setCategory("Comidas");
+                hotBall.setAvailable(true);
+                hotBall.getVariations().add(new MenuItemVariation(null, "De Salmão", "SINGLE", 0.00, hotBall));
+                hotBall.getVariations().add(new MenuItemVariation(null, "De Camarão", "SINGLE", 0.00, hotBall));
+                menuItemRepository.save(hotBall);
+
+                // Hot coreano com Camarão option
+                MenuItem hotCoreano = new MenuItem();
+                hotCoreano.setName("Hot Coreano");
+                hotCoreano.setDescription("Espeto de salmão ou camarão com queijo empanado com massa estilo coreano");
+                hotCoreano.setPrice(20.00);
+                hotCoreano.setCategory("Comidas");
+                hotCoreano.setAvailable(true);
+                hotCoreano.getVariations().add(new MenuItemVariation(null, "De Salmão", "SINGLE", 0.00, hotCoreano));
+                hotCoreano.getVariations().add(new MenuItemVariation(null, "De Camarão", "SINGLE", 0.00, hotCoreano));
+                menuItemRepository.save(hotCoreano);
 
                 // Gyoza
                 MenuItem gyoza = new MenuItem();
@@ -96,6 +118,15 @@ public class DataInitializer implements CommandLineRunner {
                 gyoza.setCategory("Comidas");
                 gyoza.setAvailable(true);
                 menuItemRepository.save(gyoza);
+
+                // Polvo no espeto
+                MenuItem polvoNoEspeto = new MenuItem();
+                polvoNoEspeto.setName("Polvo no Espeto");
+                polvoNoEspeto.setDescription("Polvo no espeto frito na chapa acompanhado de arroz");
+                polvoNoEspeto.setPrice(20.00);
+                polvoNoEspeto.setCategory("Comidas");
+                polvoNoEspeto.setAvailable(true);
+                menuItemRepository.save(polvoNoEspeto);
 
                 // Camarão Milanesa
                 MenuItem camaraoMilanesa = new MenuItem();

@@ -107,6 +107,15 @@ public class DataInitializer implements CommandLineRunner {
                 camaraoMilanesa.getVariations().add(new MenuItemVariation(null, "Unidade", "MULTIPLE", 5.00, camaraoMilanesa));
                 camaraoMilanesa.getVariations().add(new MenuItemVariation(null, "Porção com 5 unidades", "MULTIPLE", 20.00, camaraoMilanesa));
                 menuItemRepository.save(camaraoMilanesa);
+
+                // Bubble
+                MenuItem bubble = new MenuItem();
+                bubble.setName("Bubble");
+                bubble.setDescription("Suco com bolinha saborizadas");
+                bubble.setPrice(15.00);
+                bubble.setCategory("Bebidas");
+                bubble.setAvailable(true);
+                menuItemRepository.save(bubble);
             }
     }
 }

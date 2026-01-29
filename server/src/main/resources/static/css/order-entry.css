@@ -369,4 +369,15 @@
     .close-mobile-order {
         display: block !important;
     }
+
+    .order-form {
+        overflow-y: auto;
+        padding-bottom: 20px;
+        /* Add some padding at the bottom for better scroll experience */
+    }
+
+    .order-items {
+        max-height: none;
+        /* Let the form scroll instead of the list */
+    }
 }

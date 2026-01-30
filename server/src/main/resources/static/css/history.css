@@ -24,6 +24,34 @@
     gap: 0.8rem;
 }
 
+.history-header h2 i {
+    color: var(--primary-color);
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.summary-btn {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.summary-btn:hover {
+    background-color: var(--primary-dark);
+}
+
 .clear-history-btn {
     background-color: transparent;
     color: #dc3545;
@@ -41,10 +69,6 @@
 .clear-history-btn:hover {
     background-color: #dc3545;
     color: white;
-}
-
-.history-header h2 i {
-    color: var(--primary-color);
 }
 
 .history-table-container {
@@ -139,6 +163,17 @@
 
 /* Responsive Table */
 @media (max-width: 768px) {
+    .history-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .header-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
     .history-table thead {
         display: none;
     }
@@ -154,28 +189,41 @@
     .history-table tr {
         margin-bottom: 1rem;
         background-color: white;
-        border-radius: 8px;
-        box-shadow: var(--card-shadow);
-        padding: 1rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        padding: 1.2rem;
         border: 1px solid var(--border-color);
+        position: relative;
     }
 
     .history-table td {
-        padding: 0.5rem 0;
-        border-bottom: none;
+        padding: 0.8rem 0;
+        border-bottom: 1px solid #eee;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        text-align: right;
+    }
+
+    .history-table td:last-child {
+        border-bottom: none;
     }
 
     .history-table td::before {
         content: attr(data-label);
         font-weight: 600;
         color: var(--text-muted);
-        margin-right: 1rem;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        text-align: left;
     }
 
     .history-items-list {
         align-items: flex-end;
+        text-align: right;
+    }
+
+    .history-container {
+        padding: 1rem;
     }
 }

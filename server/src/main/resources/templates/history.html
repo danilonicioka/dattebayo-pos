@@ -13,14 +13,15 @@
 <body>
     <div class="container">
         <div class="header">
-            <a href="/" class="back-btn"><i class="fas fa-arrow-left"></i> Voltar</a>
+            <a href="/sales-summary" class="admin-nav-btn">
+                <i class="fas fa-user-shield"></i> Adm
+            </a>
             <img th:src="@{/dattebayo-logo.png}" alt="Dattebayo Logo" />
             <div>
                 <h1><i class="fas fa-history"></i> Histórico</h1>
                 <div class="nav-links">
                     <a href="/" class="nav-link"><i class="fas fa-clipboard-list"></i> Pedidos</a>
                     <a href="/kitchen" class="nav-link"><i class="fas fa-utensils"></i> Cozinha</a>
-                    <a href="/menu-management" class="nav-link"><i class="fas fa-cog"></i> Menu</a>
                     <a href="/history" class="nav-link active"><i class="fas fa-history"></i> Histórico</a>
                 </div>
             </div>
@@ -30,11 +31,15 @@
             <div class="history-container">
                 <div class="history-header">
                     <h2>Últimos Pedidos Entregues</h2>
-                    <form th:if="${orders != null and !orders.isEmpty()}" th:action="@{/history/clear}" method="post"
-                        onsubmit="return confirm('Tem certeza que deseja apagar todo o histórico? Esta ação não pode ser desfeita.');">
-                        <button type="submit" class="clear-history-btn"><i class="fas fa-trash-alt"></i> Limpar
-                            Histórico</button>
-                    </form>
+                    <div class="header-actions">
+                        <form th:if="${orders != null and !orders.isEmpty()}" th:action="@{/history/clear}"
+                            method="post"
+                            onsubmit="return confirm('Tem certeza que deseja apagar todo o histórico? Esta ação não pode ser desfeita.');"
+                            style="display:inline;">
+                            <button type="submit" class="clear-history-btn"><i class="fas fa-trash-alt"></i> Limpar
+                                Histórico</button>
+                        </form>
+                    </div>
                 </div>
 
                 <div th:if="${orders == null or orders.isEmpty()}" class="no-history">

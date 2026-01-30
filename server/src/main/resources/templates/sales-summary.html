@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resumo de Vendas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/sales-summary.css}">
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/" class="admin-nav-btn">
+                <i class="fas fa-arrow-left"></i> Voltar para Pedidos
+            </a>
+            <img th:src="@{/dattebayo-logo.png}" alt="Dattebayo Logo" />
+            <div>
+                <h1><i class="fas fa-chart-pie"></i> Resumo de Vendas</h1>
+                <div class="nav-links">
+                    <a href="/sales-summary" class="nav-link active"><i class="fas fa-chart-pie"></i> Resumo</a>
+                    <a href="/menu-management" class="nav-link"><i class="fas fa-cog"></i> Menu</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="summary-container">
+                <div th:if="${totalRevenue == 0}" class="no-data">
+                    <i class="fas fa-inbox fa-3x"></i>
+                    <p>Nenhum dado de vendas disponível.</p>
+                </div>
+
+                <div th:if="${totalRevenue > 0}">
+                    <!-- Stats Overview -->
+                    <div class="stats-overview">
+                        <!-- Total Revenue Card -->
+                        <div class="stat-card revenue-card">
+                            <div class="stat-icon"><i class="fas fa-coins"></i></div>
+                            <div class="stat-info">
+                                <h3>Faturamento Total</h3>
+                                <div class="stat-amount"
+                                    th:text="'R$ ' + ${#numbers.formatDecimal(totalRevenue, 1, 2, 'COMMA')}"></div>
+                            </div>
+                        </div>
+
+                        <!-- Total Items Sold Card -->
+                        <div class="stat-card items-card">
+                            <div class="stat-icon"><i class="fas fa-shopping-basket"></i></div>
+                            <div class="stat-info">
+                                <h3>Itens Vendidos</h3>
+                                <div class="stat-amount" th:text="${totalItemsSold}"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Category Groups -->
+                    <div class="category-groups">
+                        <div th:each="categoryEntry : ${salesByCategory}" class="category-section">
+                            <h3 class="category-title" th:text="${categoryEntry.key}">Categoria</h3>
+                            <div class="summary-grid">
+                                <div th:each="item : ${categoryEntry.value}" class="summary-card">
+                                    <div class="summary-count" th:text="${item.quantity}"></div>
+                                    <div class="summary-label" th:text="${item.menuItemName}"></div>
+                                    <div class="summary-total"
+                                        th:text="'R$ ' + ${#numbers.formatDecimal(item.total, 1, 2, 'COMMA')}"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

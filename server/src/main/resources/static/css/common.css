@@ -1,3 +1,16 @@
+/* CSS Variables */
+:root {
+    --primary-color: #ee8b1b;
+    --primary-dark: #d67a1a;
+    --secondary-color: #223c0e;
+    --text-dark: #080502;
+    --text-muted: #666666;
+    --bg-light: #f8f9fa;
+    --border-color: #dddddd;
+    --success-green: #28a745;
+    --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
 /* Core Basics */
 * {
     margin: 0;
@@ -95,6 +108,32 @@ body {
     text-decoration: none;
     display: inline-flex;
     align-items: center;
+}
+
+.admin-nav-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    font-size: 0.9em;
+    padding: 8px 15px;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 100;
+}
+
+.admin-nav-btn:hover {
+    background: rgba(255, 255, 255, 0.35);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .back-btn:hover {
@@ -290,11 +329,15 @@ body {
 
     .header {
         padding: 15px 10px;
+        padding-top: 60px;
+        /* Make room for top-left button */
         display: flex;
+        flex-direction: column;
         align-items: center;
+        justify-content: center;
         gap: 15px;
-        text-align: left;
-        flex-wrap: wrap;
+        text-align: center;
+        position: relative;
     }
 
     .header h1 {

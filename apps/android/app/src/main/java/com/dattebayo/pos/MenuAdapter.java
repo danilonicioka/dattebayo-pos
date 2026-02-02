@@ -1,0 +1,55 @@
+package com.dattebayo.pos;
+
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+import com.dattebayo.pos.model.MenuItem;
+import java.util.List;
+
+public class MenuAdapter extends RecyclerView.Adapter<MenuAdapter.MenuViewHolder> {
+
+    private List<MenuItem> menuItems;
+
+    public MenuAdapter(List<MenuItem> menuItems) {
+        this.menuItems = menuItems;
+    }
+
+    public void updateData(List<MenuItem> newItems) {
+        this.menuItems = newItems;
+        notifyDataSetChanged();
+    }
+
+    @NonNull
+    @Override
+    public MenuViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_menu, parent, false);
+        return new MenuViewHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull MenuViewHolder holder, int position) {
+        MenuItem item = menuItems.get(position);
+        holder.tvName.setText(item.getName());
+        holder.tvDescription.setText(item.getDescription());
+        holder.tvPrice.setText("$" + String.format("%.2f", item.getPrice()));
+    }
+
+    @Override
+    public int getItemCount() {
+        return menuItems != null ? menuItems.size() : 0;
+    }
+
+    static class MenuViewHolder extends RecyclerView.ViewHolder {
+        TextView tvName, tvDescription, tvPrice;
+
+        public MenuViewHolder(@NonNull View itemView) {
+            super(itemView);
+            tvName = itemView.findViewById(R.id.tvName);
+            tvDescription = itemView.findViewById(R.id.tvDescription);
+            tvPrice = itemView.findViewById(R.id.tvPrice);
+        }
+    }
+}

@@ -1,4 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Dattebayo POS</string>
+    
+    <!-- Dashboard -->
+    <string name="title_dashboard">Dattebayo Dashboard</string>
+    <string name="btn_menu">Menu</string>
+    <string name="btn_new_order">New Order</string>
+    <string name="btn_kitchen">Kitchen View</string>
+    <string name="btn_orders">All Orders</string>
+    
+    <!-- Menu -->
+    <string name="title_menu">Menu Items</string>
+    <string name="loading">Loading...</string>
+    <string name="error_loading">Error loading data</string>
+    
+    <!-- Order -->
+    <string name="title_create_order">Create Order</string>
+    <string name="label_table_number">Table Number</string>
+    <string name="label_notes">Notes</string>
+    <string name="btn_add_item">Add Item</string>
+    <string name="btn_submit_order">Submit Order</string>
+    <string name="msg_order_created">Order Created Successfully!</string>
+    <string name="msg_order_failed">Failed to create order</string>
+    
+    <!-- Kitchen -->
+    <string name="title_kitchen">Kitchen Display</string>
+    <string name="label_status">Status: %s</string>
+    <string name="label_time">Time: %s</string>
+    <string name="btn_ready">Mark Ready</string>
 </resources>

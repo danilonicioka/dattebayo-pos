@@ -4,18 +4,19 @@
     <uses-permission android:name="android.permission.INTERNET" />
     
     <application
+        android:name=".DattebayoApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/Theme.AppCompat.Light">
+        android:theme="@style/Theme.AppCompat.Light"
+        android:usesCleartextTraffic="true">
         
-        <!-- Main activity placeholder -->
-        <!-- <activity android:name=".MainActivity" android:exported="true">
+        <activity android:name=".MainActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity> -->
+        </activity>
         
     </application>
     

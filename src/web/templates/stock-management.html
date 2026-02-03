@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dattebayo - Gerenciamento de Estoque</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/stock-management.css}">
+    <style>
+        .nav-links .nav-link.active {
+            color: var(--primary-orange);
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/sales-summary" class="admin-nav-btn">
+                <i class="fas fa-user-shield"></i> Adm
+            </a>
+            <img th:src="@{/dattebayo-logo.png}" alt="Dattebayo Logo" />
+            <div>
+                <h1><i class="fas fa-boxes"></i> Gerenciamento de Estoque</h1>
+                <div class="nav-links">
+                    <a href="/new-order" class="nav-link"><i class="fas fa-plus-circle"></i> Novo Pedido</a>
+                    <a href="/" class="nav-link"><i class="fas fa-clipboard-list"></i> Pedidos</a>
+                    <a href="/kitchen" class="nav-link"><i class="fas fa-utensils"></i> Cozinha</a>
+                    <a href="/history" class="nav-link"><i class="fas fa-history"></i> Histórico</a>
+                    <a href="/stock-management" class="nav-link active"><i class="fas fa-boxes"></i> Estoque</a>
+                </div>
+            </div>
+            <p style="opacity: 0;">Spacer</p>
+        </div>
+
+        <div class="content">
+
+            <!-- SECTION 2: Inventário por Categoria -->
+            <section class="config-section">
+                <h2 class="section-title"><i class="fas fa-utensils"></i> Itens do Menu</h2>
+
+                <div th:each="category : ${categories}" class="category-group">
+                    <h3
+                        style="margin: 30px 0 20px 0; color: #555; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px;">
+                        <i class="fas fa-chevron-right" style="font-size: 0.8em; color: var(--primary-orange);"></i>
+                        <span th:text="${category}">Category</span>
+                    </h3>
+
+                    <div class="management-grid">
+                        <div th:each="item : ${menuItems}" th:if="${item.category == category}" class="management-item">
+
+                            <!-- Header: Title & Status -->
+                            <div class="item-header">
+                                <div class="item-title-box">
+                                    <h3 th:text="${item.name}">Item Name</h3>
+                                </div>
+                            </div>
+
+                            <!-- Pricing Configuration Card -->
+                            <div class="pricing-config-card">
+
+                                <!-- Stock Configuration -->
+                                <div class="price-row" style="padding-top: 8px; border-top: 1px solid #f0f0f0;">
+                                    <div class="manual-input-wrapper">
+                                        <label class="switch small-switch" title="Controlar Estoque">
+                                            <input type="checkbox" th:id="'stock-enabled-' + ${item.id}"
+                                                th:checked="${item.stockQuantity != null}"
+                                                th:onchange="'toggleStockTracking(' + ${item.id} + ', this.checked)'">
+                                            <span class="slider"></span>
+                                        </label>
+                                        <span class="price-label">Estoque:</span>
+                                    </div>
+                                    <input type="number" th:id="'stock-qty-' + ${item.id}" step="1"
+                                        th:value="${item.stockQuantity != null ? item.stockQuantity : 0}"
+                                        class="manual-price-input" th:disabled="${item.stockQuantity == null}"
+                                        th:onchange="'updateStock(' + ${item.id} + ')'" placeholder="∞">
+                                </div>
+                            </div>
+
+                        </div> <!-- End Item Card -->
+                    </div> <!-- End Grid -->
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        function toggleStockTracking(id, isEnabled) {
+            const stockInput = document.getElementById('stock-qty-' + id);
+            stockInput.disabled = !isEnabled;
+
+            let payload = {};
+            if (isEnabled) {
+                payload.stockQuantity = parseInt(stockInput.value) || 0;
+            } else {
+                payload.stockQuantity = null;
+            }
+
+            updateStockBackend(id, payload);
+        }
+
+        function updateStock(id) {
+            const stockInput = document.getElementById('stock-qty-' + id);
+            const value = parseInt(stockInput.value);
+            updateStockBackend(id, { stockQuantity: value });
+        }
+
+        function updateStockBackend(id, payload) {
+            fetch('/api/menu/' + id + '/stock', {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        alert('Erro ao atualizar estoque.');
+                        location.reload();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating stock:', error);
+                    alert('Erro de conexão.');
+                });
+        }
+    </script>
+</body>
+
+</html>

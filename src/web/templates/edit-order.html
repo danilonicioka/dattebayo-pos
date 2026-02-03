@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Pedido</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/order-entry.css}">
+    <style>
+        .stock-badge {
+            display: inline-block;
+            background-color: #e3f2fd;
+            color: #1565c0;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            margin-top: 5px;
+            font-weight: bold;
+        }
+
+        .stock-badge.low {
+            background-color: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .stock-badge.out {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/sales-summary" class="admin-nav-btn">
+                <i class="fas fa-user-shield"></i> Adm
+            </a>
+            <img th:src="@{/dattebayo-logo.png}" alt="Dattebayo Logo" />
+            <div>
+                <h1><i class="fas fa-edit"></i> Editar Pedido</h1>
+                <div class="nav-links">
+                    <a href="/new-order" class="nav-link"><i class="fas fa-plus-circle"></i> Novo Pedido</a>
+                    <a href="/" class="nav-link"><i class="fas fa-clipboard-list"></i> Pedidos</a>
+                    <a href="/kitchen" class="nav-link"><i class="fas fa-utensils"></i> Cozinha</a>
+                    <a href="/history" class="nav-link"><i class="fas fa-history"></i> Histórico</a>
+                    <a href="/stock-management" class="nav-link"><i class="fas fa-boxes"></i> Estoque</a>
+                </div>
+            </div>
+            <p id="markupNotice" style="color: #223c0e; font-weight: bold; margin-top: 5px; display: none;">Calculando
+                preços com taxa extra</p>
+        </div>
+
+        <div class="content">
+            <div class="menu-section">
+                <div class="category-tabs">
+                    <div class="category-tab active" data-category-filter="all" onclick="filterCategory('all')">All
+                    </div>
+                    <div class="category-tab" th:each="category : ${categories}"
+                        th:attr="data-category-filter=${category}" onclick="filterCategoryFromData(this)"
+                        th:text="${category}"></div>
+                </div>
+
+                <div class="menu-items" id="menuItems">
+                    <!-- Menu items will be loaded dynamically -->
+                </div>
+            </div>
+
+            <div class="order-section" id="orderSection">
+                <span class="close-mobile-order" onclick="closeMobileOrder()">&times;</span>
+                <div th:if="${param.success}" class="success-message">
+                    Pedido atualizado com sucesso!
+                </div>
+
+                <form th:action="@{'/orders/' + ${order.id} + '/update'}" method="post" class="order-form"
+                    id="orderForm" onsubmit="prepareFormData()">
+                    <div class="form-group">
+                        <label for="tableNumber">Identificador da Mesa:</label>
+                        <input type="text" id="tableNumber" name="tableNumber" th:value="${order.tableNumber}"
+                            placeholder="e.g., Mesa 1">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Itens do Pedido:</label>
+                        <div class="order-items" id="orderItems">
+                            <!-- Items will be rendered by JavaScript -->
+                        </div>
+                    </div>
+
+                    <div class="order-total" id="orderTotal">
+                        Total: R$<span th:text="${#numbers.formatDecimal(order.total, 1, 0)}"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="notes">Observações (opcional):</label>
+                        <textarea id="notes" name="notes" rows="3" th:text="${order.notes}"
+                            placeholder="Instruções especiais..."></textarea>
+                    </div>
+
+                    <!-- Hidden fields for order items - populated by JavaScript -->
+                    <div id="hiddenItemsContainer"></div>
+
+                    <button type="submit" class="submit-order" id="submitBtn">Atualizar Pedido</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Checkout Bar -->
+    <div class="mobile-checkout-bar">
+        <div class="cart-summary" onclick="openMobileOrder()">
+            <div style="font-weight: bold; color: #ee8b1b;" id="mobileTotal">R$0.00</div>
+            <div style="font-size: 0.8em; color: #666;" id="mobileItemCount">0 items</div>
+        </div>
+        <button onclick="openMobileOrder()" class="confirm-btn">Ver Pedido</button>
+    </div>
+
+    <!-- Variation Selection Modal -->
+    <div id="variationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalItemName">Selecionar Opções</h2>
+                <span class="close" onclick="closeVariationModal()">&times;</span>
+            </div>
+            <div id="modalPriceDisplay" class="modal-price-display">
+                <strong>Total: R$<span id="modalItemPrice">0.00</span></strong>
+            </div>
+            <div id="variationOptions">
+                <!-- Variations will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeVariationModal()" class="cancel-btn">Cancelar</button>
+                <button onclick="confirmAddToOrder()" class="confirm-btn">Adicionar ao Pedido</button>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        let menuItems = [];
+        let orderItems = [];
+        let selectedMenuItem = null;
+        let selectedVariations = {};
+
+        // Initialize with existing order data
+        document.addEventListener('DOMContentLoaded', function () {
+            loadMenuItems(); // Must be called to populate menuItems for lookups
+            loadCategories();
+            initializeExistingOrder();
+            checkMarkup();
+        });
+
+        function checkMarkup() {
+            fetch('/api/menu/markup')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.enabled && data.percentage > 0) {
+                        document.getElementById('markupNotice').textContent = `Preços ajustados com taxa extra de ${data.percentage}%`;
+                        document.getElementById('markupNotice').style.display = 'block';
+                    }
+                });
+        }
+
+        function initializeExistingOrder() {
+            // Convert existing order items to the format expected by the JavaScript
+            const existingItems = /*[[${order.items}]]*/[];
+            orderItems = existingItems.map(item => ({
+                id: item.id, // Keep the original ID for existing items
+                menuItemId: item.menuItemId,
+                quantity: item.quantity,
+                name: item.menuItemName,
+                price: item.price,
+                variations: item.variations || [],
+                isExisting: true, // Mark as existing item
+                removed: false // Initialize as not removed
+            }));
+            updateOrderDisplay();
+        }
+
+        function loadMenuItems() {
+            fetch('/api/menu/available')
+                .then(response => response.json())
+                .then(data => {
+                    menuItems = data;
+                    renderMenuItems();
+                })
+                .catch(error => console.error('Error loading menu items:', error));
+        }
+
+        function loadCategories() {
+            fetch('/api/menu/categories')
+                .then(response => response.json())
+                .then(categories => {
+                    renderCategories(categories);
+                })
+                .catch(error => console.error('Error loading categories:', error));
+        }
+
+        function renderCategories(categories) {
+            const categoryTabs = document.querySelector('.category-tabs');
+            // Clear existing tabs except "All"
+            const allTab = categoryTabs.querySelector('[data-category-filter="all"]');
+            categoryTabs.innerHTML = '';
+            categoryTabs.appendChild(allTab);
+
+            categories.forEach(category => {
+                const tab = document.createElement('div');
+                tab.className = 'category-tab';
+                tab.setAttribute('data-category-filter', category);
+                tab.onclick = () => filterCategory(category);
+                tab.textContent = category;
+                categoryTabs.appendChild(tab);
+            });
+        }
+
+        function renderMenuItems() {
+            const menuItemsDiv = document.getElementById('menuItems');
+            menuItemsDiv.innerHTML = '';
+
+            menuItems.forEach(item => {
+                if (!item.available) return;
+
+                const menuItemDiv = document.createElement('div');
+                menuItemDiv.className = 'menu-item';
+                menuItemDiv.setAttribute('data-category', item.category);
+
+                // Stock Logic
+                let stockHtml = '';
+                if (item.stockQuantity !== null) {
+                    if (item.stockQuantity <= 0) {
+                        stockHtml = '<div class="stock-badge out">Sem Estoque</div>';
+                        menuItemDiv.style.opacity = '0.6';
+                        menuItemDiv.style.pointerEvents = 'none'; // Disable click
+                    } else if (item.stockQuantity < 5) {
+                        stockHtml = `<div class="stock-badge low">Restante: ${item.stockQuantity}</div>`;
+                        menuItemDiv.onclick = () => openVariationModal(item);
+                    } else {
+                        stockHtml = `<div class="stock-badge">Restante: ${item.stockQuantity}</div>`;
+                        menuItemDiv.onclick = () => openVariationModal(item);
+                    }
+                } else {
+                    menuItemDiv.onclick = () => openVariationModal(item);
+                }
+
+                menuItemDiv.innerHTML = `
+                    <h3>${item.name}</h3>
+                    <div class="description">${item.description}</div>
+                    <div class="price">R$${item.price.toFixed(0)}</div>
+                    ${stockHtml}
+                    ${item.variations && item.variations.length > 0 ? '<div class="variations-indicator">⚙️ Options available</div>' : ''}
+                `;
+
+                menuItemsDiv.appendChild(menuItemDiv);
+            });
+        }
+
+        function filterCategory(category) {
+            document.querySelectorAll('.category-tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const items = document.querySelectorAll('.menu-item');
+            items.forEach(item => {
+                if (category === 'all' || item.getAttribute('data-category') === category) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        function filterCategoryFromData(element) {
+            const category = element.getAttribute('data-category-filter');
+            filterCategory(category);
+        }
+
+        function openVariationModal(menuItem) {
+            selectedMenuItem = menuItem;
+            selectedVariations = {};
+
+            // If item has no variations, add it directly to the order
+            if (!menuItem.variations || menuItem.variations.length === 0) {
+                addToOrder(menuItem.id, []);
+                return;
+            }
+
+            document.getElementById('modalItemName').textContent = menuItem.name;
+            document.getElementById('variationOptions').innerHTML = '';
+
+            if (menuItem.variations && menuItem.variations.length > 0) {
+                // Group variations by type
+                const variationsByType = {};
+                menuItem.variations.forEach(variation => {
+                    if (!variationsByType[variation.type]) {
+                        variationsByType[variation.type] = [];
+                    }
+                    variationsByType[variation.type].push(variation);
+                });
+
+                Object.keys(variationsByType).forEach(type => {
+                    const groupDiv = document.createElement('div');
+                    groupDiv.className = 'variation-group';
+
+                    const typeTitle = type === 'MULTIPLE' ? 'Escolha o(s) sabor(es):' : 'Selecione uma opção:';
+                    groupDiv.innerHTML = `<h3>${typeTitle}</h3>`;
+
+                    variationsByType[type].forEach(variation => {
+                        const optionDiv = document.createElement('div');
+                        optionDiv.className = 'variation-option';
+
+                        const inputType = type === 'MULTIPLE' ? 'checkbox' : 'radio';
+                        const inputName = type === 'MULTIPLE' ? '' : `variation-group-${type}`;
+                        const inputId = `variation-${variation.id}`;
+
+                        // Determine display price
+                        let displayPrice = '';
+                        if (selectedMenuItem.name === 'Pastel' || (selectedMenuItem.category === 'Comidas' && selectedMenuItem.name.includes('Pastel'))) {
+                            if (variation.name === 'Paraense') {
+                                displayPrice = '+R$8.00';
+                            } else {
+                                displayPrice = '+R$2.00';
+                            }
+                        } else if (variation.additionalPrice > 0) {
+                            displayPrice = `+R$${variation.additionalPrice.toFixed(0)}`;
+                        }
+
+                        // Special logic for "Unidade" variation in "Camarão Milanesa"
+                        const isQuantityVariation = variation.name.toLowerCase() === 'unidade' ||
+                            (menuItem.name.includes('Camarão Milanesa') && variation.name === 'Unidade');
+
+                        if (isQuantityVariation) {
+                            optionDiv.innerHTML = `
+                                <div style="display: flex; align-items: center; width: 100%;">
+                                    <input type="${inputType}" id="${inputId}" name="${inputName}"
+                                           onchange="toggleVariation(${variation.id}, '${type}', this.checked)"
+                                           style="margin-right: 15px;">
+                                    <label for="${inputId}" style="flex:1;">${variation.name}</label>
+                                    
+                                    <div id="qty-container-${variation.id}" style="display: none; align-items: center; margin-left: 10px;">
+                                        <input type="number" id="qty-${variation.id}" value="1" min="1" 
+                                               style="width: 50px; padding: 5px; border-radius: 5px; border: 1px solid #ccc;"
+                                               onclick="event.stopPropagation()"
+                                               onchange="updateVariationQuantity(${variation.id}, this.value)">
+                                    </div>
+                                    
+                                    ${displayPrice ? `<span class="variation-price">${displayPrice}</span>` : ''}
+                                </div>
+                            `;
+                        } else {
+                            optionDiv.innerHTML = `
+                                <input type="${inputType}" id="${inputId}" name="${inputName}"
+                                       onchange="toggleVariation(${variation.id}, '${type}', this.checked)">
+                                <label for="${inputId}">${variation.name}</label>
+                                ${displayPrice ? `<span class="variation-price">${displayPrice}</span>` : ''}
+                            `;
+                        }
+
+                        groupDiv.appendChild(optionDiv);
+                    });
+
+                    document.getElementById('variationOptions').appendChild(groupDiv);
+                });
+            } else {
+                // No variations, just show confirmation
+                document.getElementById('variationOptions').innerHTML = '<p>No options available for this item.</p>';
+            }
+
+            updateModalPrice();
+            document.getElementById('variationModal').style.display = 'block';
+        }
+
+        function closeVariationModal() {
+            document.getElementById('variationModal').style.display = 'none';
+            selectedMenuItem = null;
+            selectedVariations = {};
+        }
+
+        function toggleVariation(variationId, type, checked) {
+            if (type === 'SINGLE' && checked) {
+                // For SINGLE, we need to unselect others of the same type in our state object
+                // Find potential siblings (variations of same type)
+                if (selectedMenuItem && selectedMenuItem.variations) {
+                    const siblings = selectedMenuItem.variations.filter(v => v.type === type && v.id !== variationId);
+                    siblings.forEach(sib => {
+                        delete selectedVariations[sib.id];
+                        const sibQty = document.getElementById(`qty-container-${sib.id}`);
+                        if (sibQty) sibQty.style.display = 'none';
+                    });
+                }
+            }
+
+            if (checked) {
+                selectedVariations[variationId] = { selected: true, quantity: 1 };
+                const qtyContainer = document.getElementById(`qty-container-${variationId}`);
+                if (qtyContainer) {
+                    qtyContainer.style.display = 'flex';
+                }
+            } else {
+                delete selectedVariations[variationId];
+                const qtyContainer = document.getElementById(`qty-container-${variationId}`);
+                if (qtyContainer) {
+                    qtyContainer.style.display = 'none';
+                }
+            }
+
+            updateModalPrice();
+        }
+
+        function updateVariationQuantity(variationId, quantity) {
+            if (selectedVariations[variationId]) {
+                selectedVariations[variationId].quantity = parseInt(quantity) || 1;
+                updateModalPrice();
+            }
+        }
+
+        function updateModalPrice() {
+            if (!selectedMenuItem) return;
+
+            let finalPrice = selectedMenuItem.price;
+            const selectedVariationIds = Object.keys(selectedVariations).map(id => parseInt(id));
+
+            if (selectedMenuItem.category === 'Comidas' && selectedMenuItem.name === 'Tempurá') {
+                // Tempurá special logic
+                const shrimpVariation = selectedVariationIds.find(id => {
+                    const variationData = selectedMenuItem.variations.find(v => v.id === id);
+                    return variationData && variationData.name === 'Com Camarão';
+                });
+
+                if (shrimpVariation) {
+                    finalPrice += 2.00; // Add $2 for shrimp
+                }
+            } else if (selectedMenuItem.name === 'Pastel') {
+                // Pastel pricing: base $0, variations add their cost
+                // Paraense: +$8, every other variation: +$2
+                selectedVariationIds.forEach(id => {
+                    const variationData = selectedMenuItem.variations.find(v => v.id === id);
+                    if (variationData) {
+                        if (variationData.name === 'Paraense') {
+                            finalPrice += 8.00;
+                        } else {
+                            finalPrice += 2.00;
+                        }
+                    }
+                });
+            } else {
+                // Default logic for other items
+                selectedVariationIds.forEach(id => {
+                    const variationData = selectedMenuItem.variations.find(v => v.id === id);
+                    if (variationData) {
+                        finalPrice += variationData.additionalPrice;
+                    }
+                });
+            }
+
+            document.getElementById('modalItemPrice').textContent = finalPrice.toFixed(0);
+        }
+
+        function confirmAddToOrder() {
+            if (!selectedMenuItem) return;
+
+            const variations = Object.keys(selectedVariations).map(id => ({
+                menuItemVariationId: parseInt(id),
+                selected: true
+            }));
+
+            addToOrder(selectedMenuItem.id, variations);
+            closeVariationModal();
+        }
+
+
+        function addToOrder(menuItemId, variations = []) {
+            const menuItem = menuItems.find(item => item.id === menuItemId);
+            if (!menuItem) return;
+
+            let finalPrice = menuItem.price;
+            let itemName = menuItem.name;
+            const selectedVariationNames = [];
+
+            if (menuItem.category === 'Comidas' && menuItem.name === 'Tempurá') {
+                const shrimpVariation = variations.find(v => {
+                    const variationData = menuItem.variations.find(vd => vd.id === v.menuItemVariationId);
+                    return variationData && variationData.name === 'Com Camarão' && v.selected;
+                });
+
+                if (shrimpVariation) {
+                    finalPrice += 2.00;
+                    itemName = 'Tempurá Com Camarão';
+                } else {
+                    itemName = 'Tempurá De Legumes';
+                }
+            } else if (menuItem.category === 'Comidas' && menuItem.name === 'Yakisoba') {
+                const shrimpVariation = variations.find(v => {
+                    const variationData = menuItem.variations.find(vd => vd.id === v.menuItemVariationId);
+                    return variationData && variationData.name === 'Com Camarão' && v.selected;
+                });
+
+                if (shrimpVariation) {
+                    finalPrice += 5.00;
+                    itemName = 'Yakisoba Com Camarão';
+                } else {
+                    itemName = 'Yakisoba Simples';
+                }
+            } else if (menuItem.category === 'Comidas' && menuItem.name === 'Hot Sushi') {
+                const selected = variations
+                    .filter(v => v.selected)
+                    .map(v => menuItem.variations.find(vd => vd.id === v.menuItemVariationId))
+                    .filter(Boolean);
+
+                selected.forEach(variation => {
+                    finalPrice += variation.additionalPrice;
+                    selectedVariationNames.push(variation.name);
+                });
+
+                if (selectedVariationNames.length > 1) {
+                    itemName = `Hot Sushi (${selectedVariationNames.join(' + ')})`;
+                } else {
+                    itemName = selectedVariationNames.length === 0
+                        ? menuItem.name
+                        : `Hot Sushi (${selectedVariationNames[0]})`;
+                }
+            } else if (menuItem.name === 'Pastel') {
+                const selected = variations
+                    .filter(v => v.selected)
+                    .map(v => menuItem.variations.find(vd => vd.id === v.menuItemVariationId))
+                    .filter(Boolean);
+
+                selected.forEach(variation => {
+                    if (variation.name === 'Paraense') {
+                        finalPrice += 8.00;
+                    } else {
+                        finalPrice += 2.00;
+                    }
+                    selectedVariationNames.push(variation.name);
+                });
+
+                itemName = selectedVariationNames.length > 0
+                    ? `Pastel (${selectedVariationNames.join(' + ')})`
+                    : 'Pastel';
+            } else {
+                variations.forEach(variation => {
+                    const variationData = menuItem.variations.find(v => v.id === variation.menuItemVariationId);
+                    if (variationData && variation.selected) {
+                        finalPrice += variationData.additionalPrice;
+                        selectedVariationNames.push(variationData.name);
+                    }
+                });
+
+                itemName = selectedVariationNames.length > 0
+                    ? `${menuItem.name} (${selectedVariationNames.join(', ')})`
+                    : menuItem.name;
+            }
+
+            orderItems.push({
+                menuItemId: menuItemId,
+                quantity: 1,
+                name: itemName,
+                price: finalPrice,
+                variations: variations,
+                isExisting: false,
+                removed: false
+            });
+
+            updateOrderDisplay();
+        }
+
+
+        function removeFromOrder(index) {
+            orderItems.splice(index, 1);
+            updateOrderDisplay();
+        }
+
+        function incrementQuantity(index) {
+            orderItems[index].quantity++;
+            updateOrderDisplay();
+        }
+
+        function decrementQuantity(index) {
+            if (orderItems[index].quantity > 1) {
+                orderItems[index].quantity--;
+            } else {
+                removeFromOrder(index);
+            }
+            updateOrderDisplay();
+        }
+
+        function getVariationId(itemId, variationName) {
+            // Find the item in global menuItems
+            const menuItem = menuItems.find(m => m.id === itemId);
+            if (!menuItem || !menuItem.variations) return null;
+            const variation = menuItem.variations.find(v => v.name === variationName);
+            return variation ? variation.id : null;
+        }
+
+        function updateOrderDisplay() {
+            const orderItemsDiv = document.getElementById('orderItems');
+            const hiddenItemsContainer = document.getElementById('hiddenItemsContainer');
+            const totalElement = document.getElementById('orderTotal').querySelector('span');
+
+            orderItemsDiv.innerHTML = '';
+            hiddenItemsContainer.innerHTML = '';
+
+            let total = 0;
+            let totalCount = 0;
+
+            if (orderItems.length === 0) {
+                orderItemsDiv.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No items in order</p>';
+                document.getElementById('submitBtn').disabled = true;
+            } else {
+                document.getElementById('submitBtn').disabled = false;
+
+                orderItems.forEach((item, index) => {
+                    const itemTotal = item.price * item.quantity;
+                    total += itemTotal;
+                    totalCount += item.quantity;
+
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'order-item';
+                    itemDiv.innerHTML = `
+                        <div class="order-item-info">
+                            <div class="order-item-name">${item.name}</div>
+                            <div class="quantity-controls">
+                                <button type="button" class="qty-btn" onclick="decrementQuantity(${index})">-</button>
+                                <span class="qty-value">${item.quantity}</span>
+                                <button type="button" class="qty-btn" onclick="incrementQuantity(${index})">+</button>
+                            </div>
+                        </div>
+                        <div class="order-item-price">R$${itemTotal.toFixed(0)}</div>
+                        <button type="button" class="remove-item" title="Remove Item" onclick="removeFromOrder(${index})"><i class="fas fa-trash"></i></button>
+                    `;
+                    orderItemsDiv.appendChild(itemDiv);
+
+                    // Form Hidden Inputs
+                    const itemIndex = index;
+                    const menuItemIdInput = document.createElement('input');
+                    menuItemIdInput.type = 'hidden';
+                    menuItemIdInput.name = `items[${itemIndex}].menuItemId`;
+                    menuItemIdInput.value = item.menuItemId;
+                    hiddenItemsContainer.appendChild(menuItemIdInput);
+
+                    const quantityInput = document.createElement('input');
+                    quantityInput.type = 'hidden';
+                    quantityInput.name = `items[${itemIndex}].quantity`;
+                    quantityInput.value = item.quantity;
+                    hiddenItemsContainer.appendChild(quantityInput);
+
+                    if (item.variations) {
+                        item.variations.forEach((v, vIndex) => {
+                            // Ensure we have a valid ID.
+                            // For new items v has menuItemVariationId.
+                            // For existing items v is DTO which lacks it, so we might need to lookup by name if not present.
+                            let varId = v.menuItemVariationId;
+                            if (!varId && item.isExisting) {
+                                // Attempt lookup
+                                varId = getVariationId(item.menuItemId, v.name);
+                            }
+
+                            if (varId) {
+                                const varIdInput = document.createElement('input');
+                                varIdInput.type = 'hidden';
+                                varIdInput.name = `items[${itemIndex}].variations[${vIndex}].menuItemVariationId`;
+                                varIdInput.value = varId;
+                                hiddenItemsContainer.appendChild(varIdInput);
+
+                                const varSelectedInput = document.createElement('input');
+                                varSelectedInput.type = 'hidden';
+                                varSelectedInput.name = `items[${itemIndex}].variations[${vIndex}].selected`;
+                                varSelectedInput.value = 'true';
+                                hiddenItemsContainer.appendChild(varSelectedInput);
+                            }
+                        });
+                    }
+                });
+            }
+
+            totalElement.textContent = total.toFixed(0);
+
+            // Update mobile checkout bar
+            const mobileTotal = document.getElementById('mobileTotal');
+            const mobileItemCount = document.getElementById('mobileItemCount');
+            if (mobileTotal && mobileItemCount) {
+                mobileTotal.textContent = `R$${total.toFixed(0)}`;
+                mobileItemCount.textContent = `${totalCount} items`;
+            }
+        }
+
+        function openMobileOrder() {
+            document.getElementById('orderSection').classList.add('mobile-open');
+        }
+
+        function closeMobileOrder() {
+            document.getElementById('orderSection').classList.remove('mobile-open');
+        }
+
+        function prepareFormData() {
+            // Logic is now in updateOrderDisplay
+        }
+    </script>
+</body>
+
+</html>

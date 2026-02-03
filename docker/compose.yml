@@ -18,8 +18,8 @@ services:
 
   backend:
     build:
-      context: ../.
-      dockerfile: server/Dockerfile
+      context: ../src
+      dockerfile: backend/Dockerfile
     restart: always
     ports:
       - "${APP_PORT:-80}:80"

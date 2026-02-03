@@ -1,0 +1,83 @@
+openapi: 3.0.3
+info:
+  title: Dattebayo Restaurant POS API
+  description: API for the Restaurant Point of Sale System
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Development server
+
+paths:
+  /api/health:
+    get:
+      summary: Health check endpoint
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: UP
+
+  # Additional endpoints will be added here as the API evolves
+  # Example: /api/orders, /api/menu, etc.
+
+components:
+  schemas:
+    MenuItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          format: double
+        category:
+          type: string
+        available:
+          type: boolean
+        stockQuantity:
+          type: integer
+          description: "Number of items in stock. Null means unlimited."
+        applyMarkup:
+          type: boolean
+        manualPrice:
+          type: number
+          format: double
+        manualPriceEnabled:
+          type: boolean
+        variations:
+          type: array
+          items:
+            $ref: '#/components/schemas/MenuItemVariation'
+
+    MenuItemVariation:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        type:
+          type: string
+        additionalPrice:
+          type: number
+          format: double
+
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [UP, DOWN]

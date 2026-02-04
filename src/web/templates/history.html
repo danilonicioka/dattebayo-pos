@@ -81,7 +81,8 @@
                                         th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
                                 </td>
                                 <td data-label="Status">
-                                    <span class="status-badge completed">Concluído</span>
+                                    <span class="status-badge" th:classappend="${order.status.name().toLowerCase()}"
+                                        th:text="${order.status.name() == 'COMPLETED' ? 'Concluído' : 'Cancelado'}">Status</span>
                                 </td>
                             </tr>
                         </tbody>

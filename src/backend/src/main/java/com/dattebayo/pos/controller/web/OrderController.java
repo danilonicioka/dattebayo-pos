@@ -27,7 +27,7 @@ public class OrderController {
     public String orderPage(Model model) {
         // Get active orders (not completed/paid)
         List<OrderDTO> activeOrders = orderService.getAllOrders().stream()
-                .filter(order -> order.getStatus() != Order.OrderStatus.COMPLETED)
+                .filter(order -> order.getStatus() != Order.OrderStatus.COMPLETED && order.getStatus() != Order.OrderStatus.CANCELLED)
                 .toList();
         model.addAttribute("activeOrders", activeOrders);
         return "order";
@@ -60,7 +60,7 @@ public class OrderController {
 
     @GetMapping("/history")
     public String historyPage(Model model) {
-        List<OrderDTO> completedOrders = orderService.getCompletedOrders();
+        List<OrderDTO> completedOrders = orderService.getHistoryOrders();
         model.addAttribute("orders", completedOrders);
         return "history";
     }
@@ -169,6 +169,16 @@ public class OrderController {
             // Handle error
         }
         return "redirect:/kitchen";
+    }
+    
+    @PostMapping("/orders/{id}/cancel")
+    public String cancelOrder(@PathVariable Long id) {
+        try {
+            orderService.cancelOrder(id);
+        } catch (Exception e) {
+            // Handle error
+        }
+        return "redirect:/?cancelled=true";
     }
 
     @PostMapping("/orders/{id}/mark-paid")

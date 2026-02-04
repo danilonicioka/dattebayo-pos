@@ -60,37 +60,87 @@
                             </div>
 
                             <!-- Pricing Configuration Card -->
-                            <div class="pricing-config-card">
+                            <!-- Stock Configuration (Only if no variations OR specific exceptions) -->
+                            <div class="stock-control-group"
+                                th:if="${#lists.isEmpty(item.variations) or item.name == 'Tempurá' or item.name == 'Yakisoba' or item.name == 'Camarão Milanesa'}">
+                                <div class="stock-toggle-line">
+                                    <label class="switch small-switch" title="Controlar Estoque">
+                                        <input type="checkbox" th:id="'stock-enabled-' + ${item.id}"
+                                            th:checked="${item.stockQuantity != null}"
+                                            th:onchange="'toggleStockTracking(' + ${item.id} + ', this.checked)'">
+                                        <span class="slider"></span>
+                                    </label>
+                                    <span class="control-label">Controlar Estoque</span>
+                                </div>
 
-                                <!-- Stock Configuration -->
-                                <div class="price-row" style="padding-top: 8px; border-top: 1px solid #f0f0f0;">
-                                    <div class="manual-input-wrapper">
-                                        <label class="switch small-switch" title="Controlar Estoque">
-                                            <input type="checkbox" th:id="'stock-enabled-' + ${item.id}"
-                                                th:checked="${item.stockQuantity != null}"
-                                                th:onchange="'toggleStockTracking(' + ${item.id} + ', this.checked)'">
-                                            <span class="slider"></span>
-                                        </label>
-                                        <span class="price-label">Estoque:</span>
-                                    </div>
+                                <div class="stock-input-line"
+                                    th:style="${item.stockQuantity == null ? 'opacity: 0.5; pointer-events: none;' : ''}"
+                                    th:id="'stock-input-wrapper-' + ${item.id}">
+                                    <span class="price-label">Qtd:</span>
                                     <input type="number" th:id="'stock-qty-' + ${item.id}" step="1"
                                         th:value="${item.stockQuantity != null ? item.stockQuantity : 0}"
-                                        class="manual-price-input" th:disabled="${item.stockQuantity == null}"
-                                        th:onchange="'updateStock(' + ${item.id} + ')'" placeholder="∞">
+                                        th:classappend="${item.stockQuantity != null && item.stockQuantity < 5} ? 'low-stock-warning' : ''"
+                                        class="manual-price-input" th:onchange="'updateStock(' + ${item.id} + ')'"
+                                        placeholder="0">
                                 </div>
                             </div>
 
-                        </div> <!-- End Item Card -->
-                    </div> <!-- End Grid -->
-                </div>
-            </section>
+                            <!-- Variation Stock Configuration -->
+                            <div th:if="${not #lists.isEmpty(item.variations) and item.name != 'Tempurá' and item.name != 'Yakisoba' and item.name != 'Camarão Milanesa'}"
+                                class="variation-stock-section"
+                                style="margin-top: 15px; border-top: 1px dashed #eee; padding-top: 10px;">
+                                <h4 style="font-size: 0.9em; color: #666; margin-bottom: 8px;">Variações</h4>
+                                <div th:each="variation : ${item.variations}" class="variation-row">
+                                    <div class="variation-info">
+                                        <label class="switch tiny-switch">
+                                            <input type="checkbox" th:id="'var-stock-enabled-' + ${variation.id}"
+                                                th:checked="${variation.stockQuantity != null}"
+                                                th:onchange="'toggleVariationStock(' + ${variation.id} + ', this.checked)'">
+                                            <span class="slider"></span>
+                                        </label>
+                                        <span th:text="${variation.name}" class="variation-name">Variation
+                                            Name</span>
+                                    </div>
+
+                                    <div class="variation-input-wrapper"
+                                        th:id="'var-stock-input-wrapper-' + ${variation.id}"
+                                        th:style="${variation.stockQuantity == null ? 'opacity: 0.5; pointer-events: none;' : ''}">
+                                        <input type="number" th:id="'var-stock-qty-' + ${variation.id}" step="1"
+                                            th:value="${variation.stockQuantity != null ? variation.stockQuantity : 0}"
+                                            th:classappend="${variation.stockQuantity != null && variation.stockQuantity < 5} ? 'low-stock-warning' : ''"
+                                            class="manual-price-input small-input"
+                                            th:onchange="'updateVariationStock(' + ${variation.id} + ')'"
+                                            placeholder="0">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div> <!-- End Item Card -->
+                </div> <!-- End Grid -->
         </div>
+        </section>
+    </div>
     </div>
 
     <script>
         function toggleStockTracking(id, isEnabled) {
             const stockInput = document.getElementById('stock-qty-' + id);
-            stockInput.disabled = !isEnabled;
+            const wrapper = document.getElementById('stock-input-wrapper-' + id);
+
+            // stockInput.disabled = !isEnabled; // Not strictly needed if we hide via opacity/pointer-events, but good for accessibility
+
+            if (isEnabled) {
+                if (wrapper) {
+                    wrapper.style.opacity = '1';
+                    wrapper.style.pointerEvents = 'auto';
+                }
+            } else {
+                if (wrapper) {
+                    wrapper.style.opacity = '0.5';
+                    wrapper.style.pointerEvents = 'none';
+                }
+            }
 
             let payload = {};
             if (isEnabled) {
@@ -124,6 +174,60 @@
                 })
                 .catch(error => {
                     console.error('Error updating stock:', error);
+                    alert('Erro de conexão.');
+                });
+        }
+
+        function toggleVariationStock(id, isEnabled) {
+            const stockInput = document.getElementById('var-stock-qty-' + id);
+            const wrapper = document.getElementById('var-stock-input-wrapper-' + id);
+
+            // stockInput.disabled = !isEnabled;
+
+            if (isEnabled) {
+                if (wrapper) {
+                    wrapper.style.opacity = '1';
+                    wrapper.style.pointerEvents = 'auto';
+                }
+            } else {
+                if (wrapper) {
+                    wrapper.style.opacity = '0.5';
+                    wrapper.style.pointerEvents = 'none';
+                }
+            }
+
+            let payload = {};
+            if (isEnabled) {
+                payload.stockQuantity = parseInt(stockInput.value) || 0;
+            } else {
+                payload.stockQuantity = null;
+            }
+
+            updateVariationStockBackend(id, payload);
+        }
+
+        function updateVariationStock(id) {
+            const stockInput = document.getElementById('var-stock-qty-' + id);
+            const value = parseInt(stockInput.value);
+            updateVariationStockBackend(id, { stockQuantity: value });
+        }
+
+        function updateVariationStockBackend(id, payload) {
+            fetch('/api/menu/variations/' + id + '/stock', {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        alert('Erro ao atualizar estoque da variação.');
+                        location.reload();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating variation stock:', error);
                     alert('Erro de conexão.');
                 });
         }

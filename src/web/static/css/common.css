@@ -18,6 +18,10 @@
     box-sizing: border-box;
 }
 
+html {
+    overflow-y: scroll;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, #ee8b1b 0%, #ebad1c 100%);
@@ -50,14 +54,16 @@ body {
 }
 
 .header img {
-    max-width: 150px;
+    max-width: 100px;
+    /* Reduced from 150px */
     height: auto;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 .header h1 {
-    font-size: 2.5em;
-    margin-bottom: 10px;
+    font-size: 1.8em;
+    /* Reduced from 2.5em */
+    margin-bottom: 5px;
 }
 
 .header h1 i {

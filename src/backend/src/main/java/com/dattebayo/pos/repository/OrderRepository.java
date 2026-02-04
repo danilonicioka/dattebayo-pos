@@ -16,4 +16,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByStatusOrderByCreatedAtDesc(Order.OrderStatus status);
 
     void deleteByStatus(Order.OrderStatus status);
+
+    List<Order> findByStatusInOrderByCreatedAtDesc(List<Order.OrderStatus> statuses);
 }

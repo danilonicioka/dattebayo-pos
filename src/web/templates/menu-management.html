@@ -83,6 +83,17 @@
                                         <span class="slider"></span>
                                     </label>
                                 </div>
+
+                                <!-- Markup Toggle -->
+                                <div class="price-row" style="justify-content: flex-end;">
+                                    <label th:class="'markup-pill ' + (${item.applyMarkup} ? 'active' : '')"
+                                        th:id="'markup-pill-' + ${item.id}">
+                                        <input type="checkbox" th:id="'apply-markup-' + ${item.id}"
+                                            th:checked="${item.applyMarkup}"
+                                            th:onchange="'toggleApplyMarkup(' + ${item.id} + ', this.checked)'">
+                                        <i class="fas fa-percent"></i> Aplicar Markup
+                                    </label>
+                                </div>
                             </div>
 
                             <!-- Pricing Configuration Card -->
@@ -116,33 +127,6 @@
                                         th:onchange="'updateManualPrice(' + ${item.id} + ')'">
                                 </div>
 
-                                <!-- Markup Toggle -->
-                                <div class="price-row" style="justify-content: flex-end;">
-                                    <label th:class="'markup-pill ' + (${item.applyMarkup} ? 'active' : '')"
-                                        th:id="'markup-pill-' + ${item.id}">
-                                        <input type="checkbox" th:id="'apply-markup-' + ${item.id}"
-                                            th:checked="${item.applyMarkup}"
-                                            th:onchange="'toggleApplyMarkup(' + ${item.id} + ', this.checked)'">
-                                        <i class="fas fa-percent"></i> Aplicar Markup
-                                    </label>
-                                </div>
-
-                                <!-- Stock Configuration -->
-                                <div class="price-row" style="padding-top: 8px; border-top: 1px solid #f0f0f0;">
-                                    <div class="manual-input-wrapper">
-                                        <label class="switch small-switch" title="Controlar Estoque">
-                                            <input type="checkbox" th:id="'stock-enabled-' + ${item.id}"
-                                                th:checked="${item.stockQuantity != null}"
-                                                th:onchange="'toggleStockTracking(' + ${item.id} + ', this.checked)'">
-                                            <span class="slider"></span>
-                                        </label>
-                                        <span class="price-label">Estoque:</span>
-                                    </div>
-                                    <input type="number" th:id="'stock-qty-' + ${item.id}" step="1"
-                                        th:value="${item.stockQuantity != null ? item.stockQuantity : 0}"
-                                        class="manual-price-input" th:disabled="${item.stockQuantity == null}"
-                                        th:onchange="'updateStock(' + ${item.id} + ')'" placeholder="∞">
-                                </div>
                             </div>
 
                         </div> <!-- End Item Card -->
@@ -270,55 +254,6 @@
                     console.error('Error:', error);
                     alert('Erro de conexão.');
                     location.reload();
-                });
-        }
-
-        function toggleStockTracking(id, isEnabled) {
-            const stockInput = document.getElementById('stock-qty-' + id);
-            stockInput.disabled = !isEnabled;
-
-            // If enabling, set to current input value or 0. If disabling, set to null (implied by backend logic if we send null or separate flag? 
-            // The backend updateStock expects "stockQuantity". Let's decide: 
-            // - If disabled, we should ideally send stockQuantity: null.
-            // - If enabled, we send the value.
-
-            let payload = {};
-            if (isEnabled) {
-                payload.stockQuantity = parseInt(stockInput.value) || 0;
-            } else {
-                payload.stockQuantity = null; // Backend must handle this
-            }
-            // Note: Sending null in JSON might need backend adjustment to accept null. 
-            // My Controller expects `Map<String, Integer>`, Jackson might complain about null if it tries to unbox to int. 
-            // But Map<String, Integer> allows null values. 
-            // However, `menuItem.setStockQuantity()` takes Integer, which allows null.
-
-            updateStockBackend(id, payload);
-        }
-
-        function updateStock(id) {
-            const stockInput = document.getElementById('stock-qty-' + id);
-            const value = parseInt(stockInput.value);
-            updateStockBackend(id, { stockQuantity: value });
-        }
-
-        function updateStockBackend(id, payload) {
-            fetch('/api/menu/' + id + '/stock', {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        alert('Erro ao atualizar estoque.');
-                        location.reload();
-                    }
-                })
-                .catch(error => {
-                    console.error('Error updating stock:', error);
-                    alert('Erro de conexão.');
                 });
         }
     </script>

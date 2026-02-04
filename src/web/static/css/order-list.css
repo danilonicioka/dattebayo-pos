@@ -46,15 +46,13 @@
 }
 
 /* Order Card Actions Normalization */
-.edit-order-btn,
-.mark-paid-btn,
-.finalize-order-btn {
+/* Order Card Actions Normalization */
+.action-btn {
     width: 100%;
-    padding: 12px;
+    padding: 10px;
     border-radius: 8px;
     font-weight: bold;
-    font-size: 1em;
-    margin-top: 10px;
+    font-size: 0.9em;
     text-decoration: none;
     display: flex;
     justify-content: center;
@@ -65,37 +63,35 @@
     transition: all 0.3s;
     font-family: inherit;
     box-sizing: border-box;
-    appearance: none;
-    -webkit-appearance: none;
     outline: none;
-    text-transform: none;
+    color: white;
+    height: 48px;
+    /* Fixed height for alignment */
 }
 
+/* Specific Colors */
 .edit-order-btn {
     background: #ee8b1b;
-    color: white;
 }
 
 .edit-order-btn:hover {
     background: #d67a1a;
 }
 
+.cancel-order-btn {
+    background: #dc3545;
+}
+
+.cancel-order-btn:hover {
+    background: #c82333;
+}
+
 .mark-paid-btn {
     background: #223c0e;
-    color: white;
 }
 
 .mark-paid-btn:hover {
     background: #1a2f0a;
-}
-
-.finalize-order-btn {
-    background: #4a5d1f;
-    color: white;
-}
-
-.finalize-order-btn:hover {
-    background: #394818;
 }
 
 .active-order-card form {
@@ -105,13 +101,8 @@
 }
 
 /* Active Orders Grid */
-.active-orders-section {
-    background: #fefdfa;
-    border-radius: 10px;
-    padding: 20px;
-    border: 2px solid #e0e0e0;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
+/* Active Orders Grid */
+/* .active-orders-section transparent wrapper removed */
 
 .active-orders-header {
     display: flex;

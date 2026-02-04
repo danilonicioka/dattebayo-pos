@@ -307,16 +307,28 @@
 
                         // Checkbox vs Radio HTML structure handled by input type and name
 
+                        // Determine stock status
+                        let stockHtml = '';
+                        let isDisabled = false;
+                        if (variation.stockQuantity !== null) {
+                            if (variation.stockQuantity <= 0) {
+                                stockHtml = ' <span class="stock-badge out" style="font-size: 0.7em; margin-left: 5px;">Sem Estoque</span>';
+                                isDisabled = true;
+                            } else {
+                                stockHtml = ` <span class="stock-badge ${variation.stockQuantity < 5 ? 'low' : ''}" style="font-size: 0.7em; margin-left: 5px;">Estoque: ${variation.stockQuantity}</span>`;
+                            }
+                        }
+
                         if (isQuantityVariation) {
                             optionDiv.innerHTML = `
                                 <div style="display: flex; align-items: center; width: 100%;">
                                     <input type="${inputType}" id="${inputId}" name="${inputName}"
                                            onchange="toggleVariation(${variation.id}, '${type}', this.checked)"
-                                           style="margin-right: 15px;">
-                                    <label for="${inputId}" style="flex:1;">${variation.name}</label>
+                                           style="margin-right: 15px;" ${isDisabled ? 'disabled' : ''}>
+                                    <label for="${inputId}" style="flex:1; ${isDisabled ? 'color: #aaa;' : ''}">${variation.name}${stockHtml}</label>
                                     
                                     <div id="qty-container-${variation.id}" style="display: none; align-items: center; margin-left: 10px;">
-                                        <input type="number" id="qty-${variation.id}" value="1" min="1" 
+                                        <input type="number" id="qty-${variation.id}" value="1" min="1" max="${variation.stockQuantity !== null ? variation.stockQuantity : ''}"
                                                style="width: 50px; padding: 5px; border-radius: 5px; border: 1px solid #ccc;"
                                                onclick="event.stopPropagation()"
                                                onchange="updateVariationQuantity(${variation.id}, this.value)">
@@ -328,8 +340,8 @@
                         } else {
                             optionDiv.innerHTML = `
                                 <input type="${inputType}" id="${inputId}" name="${inputName}"
-                                       onchange="toggleVariation(${variation.id}, '${type}', this.checked)">
-                                <label for="${inputId}">${variation.name}</label>
+                                       onchange="toggleVariation(${variation.id}, '${type}', this.checked)" ${isDisabled ? 'disabled' : ''}>
+                                <label for="${inputId}" style="${isDisabled ? 'color: #aaa;' : ''}">${variation.name}${stockHtml}</label>
                                 ${displayPrice ? `<span class="variation-price">${displayPrice}</span>` : ''}
                             `;
                         }
@@ -391,8 +403,20 @@
         }
 
         function updateVariationQuantity(variationId, quantity) {
+            let qty = parseInt(quantity) || 1;
+
+            // Validate max stock
+            if (selectedMenuItem && selectedMenuItem.variations) {
+                const variation = selectedMenuItem.variations.find(v => v.id === variationId);
+                if (variation && variation.stockQuantity !== null && qty > variation.stockQuantity) {
+                    alert(`A quantidade máxima disponível para ${variation.name} é ${variation.stockQuantity}.`);
+                    qty = variation.stockQuantity;
+                    document.getElementById(`qty-${variationId}`).value = qty;
+                }
+            }
+
             if (selectedVariations[variationId]) {
-                selectedVariations[variationId].quantity = parseInt(quantity) || 1;
+                selectedVariations[variationId].quantity = qty;
                 updateModalPrice();
             }
         }
@@ -413,8 +437,31 @@
                 if (shrimpVariation) {
                     finalPrice += 2.00; // Add $2 for shrimp
                 }
+            } else if (selectedMenuItem.name === 'Camarão Milanesa' && selectedMenuItem.variations) {
+                // Camarão Milanesa Smart Pricing Logic
+                selectedVariationIds.forEach(id => {
+                    const variationData = selectedMenuItem.variations.find(v => v.id === id);
+                    if (variationData) {
+                        const qty = selectedVariations[id].quantity || 1;
+
+                        // Smart discount for "Unidade" if quantity >= 5
+                        if (variationData.name === 'Unidade' && qty >= 5) {
+                            const porcaoVar = selectedMenuItem.variations.find(v => v.name === 'Porção com 5 unidades');
+                            if (porcaoVar) {
+                                const portions = Math.floor(qty / 5);
+                                const remainder = qty % 5;
+                                finalPrice += (portions * porcaoVar.additionalPrice) + (remainder * variationData.additionalPrice);
+                            } else {
+                                // Fallback if portion var not found
+                                finalPrice += (variationData.additionalPrice * qty);
+                            }
+                        } else {
+                            finalPrice += (variationData.additionalPrice * qty);
+                        }
+                    }
+                });
             } else {
-                // Default logic for items with variations
+                // Default logic for other items
                 selectedVariationIds.forEach(id => {
                     const variationData = selectedMenuItem.variations.find(v => v.id === id);
                     if (variationData) {

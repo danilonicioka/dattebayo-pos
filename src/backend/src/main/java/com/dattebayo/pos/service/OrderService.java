@@ -46,10 +46,28 @@ public class OrderService {
 
             // Check and update stock
             if (menuItem.getStockQuantity() != null) {
-                if (menuItem.getStockQuantity() < itemRequest.getQuantity()) {
+                int quantityToDeduct = itemRequest.getQuantity();
+
+                // Custom logic for "Camarão Milanesa"
+                if ("Camarão Milanesa".equals(menuItem.getName()) && itemRequest.getVariations() != null) {
+                    for (var variationRequest : itemRequest.getVariations()) {
+                        if (variationRequest.getSelected()) {
+                            // Fetch variation name to check type
+                            MenuItemVariation variation = menuItemVariationRepository.findById(variationRequest.getMenuItemVariationId())
+                                .orElse(null);
+                            
+                            if (variation != null && "Porção com 5 unidades".equals(variation.getName())) {
+                                quantityToDeduct = itemRequest.getQuantity() * 5;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (menuItem.getStockQuantity() < quantityToDeduct) {
                     throw new RuntimeException("Estoque insuficiente para: " + menuItem.getName() + " (Restante: " + menuItem.getStockQuantity() + ")");
                 }
-                menuItem.setStockQuantity(menuItem.getStockQuantity() - itemRequest.getQuantity());
+                menuItem.setStockQuantity(menuItem.getStockQuantity() - quantityToDeduct);
                 menuItemRepository.save(menuItem);
             }
 
@@ -99,6 +117,17 @@ public class OrderService {
                 .collect(Collectors.toList());
     }
 
+    public List<OrderDTO> getHistoryOrders() {
+        // Return both COMPLETED and CANCELLED orders for history
+        List<Order.OrderStatus> historyStatuses = List.of(
+                Order.OrderStatus.COMPLETED,
+                Order.OrderStatus.CANCELLED);
+        return orderRepository.findByStatusInOrderByCreatedAtDesc(historyStatuses).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+    
+    // Maintain getCompletedOrders for Sales Summary (revenue calculation)
     public List<OrderDTO> getCompletedOrders() {
         return orderRepository.findByStatusOrderByCreatedAtDesc(Order.OrderStatus.COMPLETED).stream()
                 .map(this::convertToDTO)
@@ -107,6 +136,7 @@ public class OrderService {
 
     public void clearOrderHistory() {
         orderRepository.deleteByStatus(Order.OrderStatus.COMPLETED);
+        orderRepository.deleteByStatus(Order.OrderStatus.CANCELLED);
     }
 
     public OrderDTO updateOrderStatus(Long orderId, Order.OrderStatus newStatus) {
@@ -114,6 +144,63 @@ public class OrderService {
                 .orElseThrow(() -> new RuntimeException("Order not found: " + orderId));
 
         order.setStatus(newStatus);
+        order.setUpdatedAt(LocalDateTime.now());
+        order = orderRepository.save(order);
+
+        return convertToDTO(order);
+    }
+    
+    public OrderDTO cancelOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found: " + orderId));
+
+        if (order.getStatus() == Order.OrderStatus.COMPLETED || order.getStatus() == Order.OrderStatus.CANCELLED) {
+            throw new RuntimeException("Cannot cancel an order that is already completed or cancelled");
+        }
+
+        // Restore Stock
+        for (OrderItem item : order.getItems()) {
+            // Restore MenuItem Stock
+            if (item.getMenuItem().getStockQuantity() != null) {
+                // If it's Camarão Milanesa, we need to check variations for custom deduction logic restoration
+                 if ("Camarão Milanesa".equals(item.getMenuItem().getName()) && item.getVariations() != null) {
+                    boolean handledCustom = false;
+                    for (OrderItemVariation itemVariation : item.getVariations()) {
+                         if (itemVariation.getSelected()) {
+                             MenuItemVariation variation = itemVariation.getMenuItemVariation();
+                             if ("Porção com 5 unidades".equals(variation.getName())) {
+                                 // It deducted 5 per item quantity, so restore 5 * item quantity
+                                 item.getMenuItem().setStockQuantity(item.getMenuItem().getStockQuantity() + (item.getQuantity() * 5));
+                                 menuItemRepository.save(item.getMenuItem());
+                                 handledCustom = true;
+                                 break;
+                             }
+                         }
+                    }
+                    if (!handledCustom) {
+                        // Standard unit deduction
+                        item.getMenuItem().setStockQuantity(item.getMenuItem().getStockQuantity() + item.getQuantity());
+                        menuItemRepository.save(item.getMenuItem());
+                    }
+                } else {
+                    // Standard Logic
+                    item.getMenuItem().setStockQuantity(item.getMenuItem().getStockQuantity() + item.getQuantity());
+                     menuItemRepository.save(item.getMenuItem());
+                }
+            }
+
+            // Restore Variation Stock
+            for (OrderItemVariation itemVariation : item.getVariations()) {
+                MenuItemVariation variation = itemVariation.getMenuItemVariation();
+                if (variation.getStockQuantity() != null) {
+                    int qtyToRestore = item.getQuantity() * itemVariation.getQuantity();
+                    variation.setStockQuantity(variation.getStockQuantity() + qtyToRestore);
+                    menuItemVariationRepository.save(variation);
+                }
+            }
+        }
+
+        order.setStatus(Order.OrderStatus.CANCELLED);
         order.setUpdatedAt(LocalDateTime.now());
         order = orderRepository.save(order);
 
@@ -230,6 +317,17 @@ public class OrderService {
                 item.getMenuItem().setStockQuantity(item.getMenuItem().getStockQuantity() + item.getQuantity());
                 menuItemRepository.save(item.getMenuItem());
             }
+
+            // Revert stock for removed variations
+            for (OrderItemVariation itemVariation : item.getVariations()) {
+                MenuItemVariation variation = itemVariation.getMenuItemVariation();
+                if (variation.getStockQuantity() != null) {
+                    int qtyToRevert = item.getQuantity() * itemVariation.getQuantity();
+                    variation.setStockQuantity(variation.getStockQuantity() + qtyToRevert);
+                    menuItemVariationRepository.save(variation);
+                }
+            }
+            
             orderItemVariationRepository.deleteAll(item.getVariations());
         }
         order.getItems().clear();
@@ -245,11 +343,29 @@ public class OrderService {
 
             // Check and update stock (for updated order)
             if (menuItem.getStockQuantity() != null) {
-                if (menuItem.getStockQuantity() < itemRequest.getQuantity()) {
+                int quantityToDeduct = itemRequest.getQuantity();
+                
+                // Custom logic for "Camarão Milanesa"
+                if ("Camarão Milanesa".equals(menuItem.getName()) && itemRequest.getVariations() != null) {
+                    for (var variationRequest : itemRequest.getVariations()) {
+                        if (variationRequest.getSelected()) {
+                            // Fetch variation name to check type
+                            MenuItemVariation variation = menuItemVariationRepository.findById(variationRequest.getMenuItemVariationId())
+                                .orElse(null);
+                            
+                            if (variation != null && "Porção com 5 unidades".equals(variation.getName())) {
+                                quantityToDeduct = itemRequest.getQuantity() * 5;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (menuItem.getStockQuantity() < quantityToDeduct) {
                     // Start transaction rollback by runtime exception
                     throw new RuntimeException("Estoque insuficiente para: " + menuItem.getName() + " (Restante: " + menuItem.getStockQuantity() + ")");
                 }
-                menuItem.setStockQuantity(menuItem.getStockQuantity() - itemRequest.getQuantity());
+                menuItem.setStockQuantity(menuItem.getStockQuantity() - quantityToDeduct);
                 menuItemRepository.save(menuItem);
             }
 
@@ -296,21 +412,56 @@ public class OrderService {
         orderItemVariation.setSelected(variationRequest.getSelected());
 
         // Handle quantity
-        int qty = variationRequest.getQuantity() != null && variationRequest.getQuantity() > 0
+        int variationQty = variationRequest.getQuantity() != null && variationRequest.getQuantity() > 0
                 ? variationRequest.getQuantity()
                 : 1;
-        orderItemVariation.setQuantity(qty);
+        orderItemVariation.setQuantity(variationQty);
 
         orderItem.getVariations().add(orderItemVariation);
 
         // Add additional price if variation is selected, multiplying by quantity
         if (variationRequest.getSelected()) {
+            // Check and update stock for variation
+            if (variation.getStockQuantity() != null) {
+                int totalRequired = orderItem.getQuantity() * variationQty;
+                if (variation.getStockQuantity() < totalRequired) {
+                    throw new RuntimeException("Estoque insuficiente para variação: " + variation.getName() + 
+                            " (Item: " + variation.getMenuItem().getName() + ") - Restante: " + variation.getStockQuantity());
+                }
+                variation.setStockQuantity(variation.getStockQuantity() - totalRequired);
+                menuItemVariationRepository.save(variation);
+            }
+
             Double additionalPrice = variation.getAdditionalPrice();
+            
+            // Smart Pricing for Camarão Milanesa Units
+            if ("Camarão Milanesa".equals(orderItem.getMenuItem().getName()) && "Unidade".equals(variation.getName()) && variationQty >= 5) {
+                 Optional<MenuItemVariation> portionVar = orderItem.getMenuItem().getVariations().stream()
+                     .filter(v -> "Porção com 5 unidades".equals(v.getName()))
+                     .findFirst();
+                 
+                 if (portionVar.isPresent()) {
+                     int portions = variationQty / 5;
+                     int remainder = variationQty % 5;
+                     
+                     Double portionPrice = portionVar.get().getAdditionalPrice();
+                     Double effectivePrice = (portions * portionPrice) + (remainder * additionalPrice);
+                     
+                     // Apply markup if needed to the *calculated* total variation price
+                     Double processedEffective = orderItem.getMenuItem().getApplyMarkup()
+                         ? configurationService.applyMarkup(effectivePrice)
+                         : Math.round(effectivePrice);
+                         
+                     orderItem.setPrice(orderItem.getPrice() + processedEffective);
+                     return; // Early return as we utilized custom logic
+                 }
+            }
+
             Double processedAdditional = orderItem.getMenuItem().getApplyMarkup()
                     ? configurationService.applyMarkup(additionalPrice)
                     : Math.round(additionalPrice);
             // Multiply the additional price by the quantity of this variation
-            orderItem.setPrice(orderItem.getPrice() + (processedAdditional * qty));
+            orderItem.setPrice(orderItem.getPrice() + (processedAdditional * variationQty));
         }
     }
 }

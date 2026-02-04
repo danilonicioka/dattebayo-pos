@@ -68,12 +68,25 @@
                         </div>
                         <div class="active-order-total"
                             th:text="'Total: R$' + ${#numbers.formatDecimal(order.total, 1, 0)}"></div>
-                        <a th:href="@{'/orders/' + ${order.id} + '/edit'}" class="edit-order-btn"><i
-                                class="fas fa-edit"></i> Editar Pedido</a>
+                        <div style="display: flex; gap: 8px; margin-top: 15px;">
+                            <a th:href="@{'/orders/' + ${order.id} + '/edit'}" class="action-btn edit-order-btn"
+                                style="flex: 1;">
+                                <i class="fas fa-edit"></i> Editar
+                            </a>
 
-                        <a th:href="@{'/orders/' + ${order.id} + '/checkout'}" class="mark-paid-btn">
-                            <i class="fas fa-check"></i> Fazer a Conta
-                        </a>
+                            <form th:action="@{'/orders/' + ${order.id} + '/cancel'}" method="post"
+                                onsubmit="return confirm('Tem certeza que deseja cancelar este pedido? O estoque será reposto.');"
+                                style="flex: 1; margin: 0;">
+                                <button type="submit" class="action-btn cancel-order-btn">
+                                    <i class="fas fa-times"></i> Cancelar
+                                </button>
+                            </form>
+
+                            <a th:href="@{'/orders/' + ${order.id} + '/checkout'}" class="action-btn mark-paid-btn"
+                                style="flex: 1;">
+                                <i class="fas fa-check"></i> Pagar
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>

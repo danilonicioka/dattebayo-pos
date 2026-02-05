@@ -86,7 +86,7 @@ public class OrderController {
         // Calculate Total Items Sold
         long totalItemsSold = completedOrders.stream()
                 .flatMap(order -> order.getItems().stream())
-                .mapToLong(com.dattebayo.pos.dto.OrderItemDTO::getQuantity)
+                .mapToLong(item -> item.getQuantity() != null ? item.getQuantity() : 0)
                 .sum();
 
         // Get all menu items to map IDs to Categories
@@ -108,8 +108,11 @@ public class OrderController {
                 com.dattebayo.pos.dto.ItemSalesSummaryDTO summary = categoryItems.getOrDefault(itemName, 
                     new com.dattebayo.pos.dto.ItemSalesSummaryDTO(itemName, 0L, 0.0));
                 
-                summary.setQuantity(summary.getQuantity() + item.getQuantity());
-                summary.setTotal(summary.getTotal() + (item.getPrice() * item.getQuantity())); // Appx total per item line
+                long qty = item.getQuantity() != null ? item.getQuantity() : 0;
+                double price = item.getPrice() != null ? item.getPrice() : 0.0;
+                
+                summary.setQuantity(summary.getQuantity() + qty);
+                summary.setTotal(summary.getTotal() + (price * qty)); // Appx total per item line
                 
                 categoryItems.put(itemName, summary);
             }

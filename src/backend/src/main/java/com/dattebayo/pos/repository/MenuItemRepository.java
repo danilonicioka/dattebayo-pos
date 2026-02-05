@@ -7,8 +7,8 @@ import java.util.List;
 
 @Repository
 public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
-    List<MenuItem> findByAvailableTrue();
-    List<MenuItem> findByCategoryAndAvailableTrue(String category);
+    List<MenuItem> findByAvailableTrueOrderByIdAsc();
+    List<MenuItem> findByCategoryAndAvailableTrueOrderByIdAsc(String category);
     List<MenuItem> findByCategory(String category);
     java.util.Optional<MenuItem> findByName(String name);
 }

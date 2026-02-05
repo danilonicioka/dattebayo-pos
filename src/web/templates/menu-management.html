@@ -67,7 +67,7 @@
                     <div class="management-grid">
                         <div th:each="item : ${menuItems}" th:if="${item.category == category}" class="management-item">
 
-                            <!-- Header: Title & Status -->
+                            <!-- Status & Title Header -->
                             <div class="item-header">
                                 <div class="item-title-box">
                                     <h3 th:text="${item.name}">Item Name</h3>
@@ -83,50 +83,61 @@
                                         <span class="slider"></span>
                                     </label>
                                 </div>
-
-                                <!-- Markup Toggle -->
-                                <div class="price-row" style="justify-content: flex-end;">
-                                    <label th:class="'markup-pill ' + (${item.applyMarkup} ? 'active' : '')"
-                                        th:id="'markup-pill-' + ${item.id}">
-                                        <input type="checkbox" th:id="'apply-markup-' + ${item.id}"
-                                            th:checked="${item.applyMarkup}"
-                                            th:onchange="'toggleApplyMarkup(' + ${item.id} + ', this.checked)'">
-                                        <i class="fas fa-percent"></i> Aplicar Markup
-                                    </label>
-                                </div>
                             </div>
 
-                            <!-- Pricing Configuration Card -->
-                            <div class="pricing-config-card">
-                                <!-- Base Price (Read Only) -->
-                                <div class="price-row">
-                                    <span class="price-label"><i class="fas fa-tag"></i> Original:</span>
-                                    <span style="font-weight: 600; color: #888;"
-                                        th:text="'R$' + ${#numbers.formatDecimal(item.basePrice, 1, 0)}"></span>
-                                </div>
-                                <div class="price-row">
-                                    <span class="price-label"><i class="fas fa-coins"></i> Venda:</span>
-                                    <span style="font-weight: 700; color:var(--success-green); font-size: 1.1em;"
-                                        th:text="'R$' + ${#numbers.formatDecimal(item.price, 1, 0)}"></span>
-                                </div>
+                            <div class="pricing-container">
+                                <!-- SECTION: Auto Pricing (Standard) -->
+                                <div class="pricing-block auto-block"
+                                    th:classappend="${item.manualPriceEnabled} ? 'inactive'">
+                                    <div class="block-header">
+                                        <span class="block-label"><i class="fas fa-calculator"></i> Automático</span>
 
-                                <!-- Manual Price Override -->
-                                <div class="price-row" style="padding-top: 8px; border-top: 1px solid #f0f0f0;">
-                                    <div class="manual-input-wrapper">
-                                        <label class="switch small-switch" title="Ativar Preço Manual">
-                                            <input type="checkbox" th:id="'manual-enabled-' + ${item.id}"
-                                                th:checked="${item.manualPriceEnabled}"
-                                                th:onchange="'toggleManualPrice(' + ${item.id} + ', this.checked)'">
-                                            <span class="slider"></span>
+                                        <!-- Markup Toggle Pill -->
+                                        <label th:class="'markup-pill ' + (${item.applyMarkup} ? 'active' : '')"
+                                            th:id="'markup-pill-' + ${item.id}">
+                                            <input type="checkbox" th:id="'apply-markup-' + ${item.id}"
+                                                th:checked="${item.applyMarkup}"
+                                                th:onchange="'toggleApplyMarkup(' + ${item.id} + ', this.checked)'">
+                                            <span>Markup</span>
                                         </label>
-                                        <span class="price-label">Manual:</span>
                                     </div>
-                                    <input type="number" th:id="'manual-price-' + ${item.id}" step="1"
-                                        th:value="${item.manualPrice != null ? item.manualPrice : item.basePrice}"
-                                        class="manual-price-input"
-                                        th:onchange="'updateManualPrice(' + ${item.id} + ')'">
+
+                                    <div class="price-display-group">
+                                        <div class="price-mini-row">
+                                            <span class="label">Base:</span>
+                                            <span class="value"
+                                                th:text="'R$' + ${#numbers.formatDecimal(item.basePrice, 1, 0)}"></span>
+                                        </div>
+                                        <div class="price-main-row">
+                                            <span class="label">Final:</span>
+                                            <span class="value final-price"
+                                                th:text="'R$' + ${#numbers.formatDecimal(item.price, 1, 0)}"></span>
+                                        </div>
+                                    </div>
                                 </div>
 
+                                <!-- SECTION: Manual Pricing -->
+                                <div class="pricing-block manual-block"
+                                    th:classappend="${item.manualPriceEnabled} ? 'active-mode'">
+                                    <div class="block-header" style="justify-content: space-between;">
+                                        <div class="manual-toggle-wrapper">
+                                            <label class="switch tiny-switch" title="Ativar Preço Manual">
+                                                <input type="checkbox" th:id="'manual-enabled-' + ${item.id}"
+                                                    th:checked="${item.manualPriceEnabled}"
+                                                    th:onchange="'toggleManualPrice(' + ${item.id} + ', this.checked)'">
+                                                <span class="slider"></span>
+                                            </label>
+                                            <span class="block-label">Manual</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="manual-input-area">
+                                        <input type="number" th:id="'manual-price-' + ${item.id}" step="1"
+                                            th:value="${item.manualPrice != null ? item.manualPrice : item.basePrice}"
+                                            class="manual-price-input"
+                                            th:onchange="'updateManualPrice(' + ${item.id} + ')'">
+                                    </div>
+                                </div>
                             </div>
 
                         </div> <!-- End Item Card -->

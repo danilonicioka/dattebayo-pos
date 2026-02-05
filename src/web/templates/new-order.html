@@ -528,31 +528,33 @@
                 }
 
             } else if (menuItem.category === 'Comidas' && menuItem.name === 'Hot Sushi') {
-                // Hot Sushi logic ...
-                const selected = variations
-                    .filter(v => v.selected)
-                    .map(v => ({
-                        data: menuItem.variations.find(vd => vd.id === v.menuItemVariationId),
-                        qty: v.quantity || 1
-                    }))
-                    .filter(item => item.data);
+                // Hot Sushi logic - Robust Name Construction
+                const parts = [];
+                let additionalCost = 0;
 
-                selected.forEach(item => {
-                    finalPrice += item.data.additionalPrice * item.qty;
-                    if (item.qty > 1) {
-                        selectedVariationNames.push(`${item.qty}x ${item.data.name}`);
-                    } else {
-                        selectedVariationNames.push(item.data.name);
+                variations.forEach(v => {
+                    const vData = menuItem.variations.find(vd => vd.id === v.menuItemVariationId);
+                    if (vData && v.selected) {
+                        const qty = v.quantity || 1;
+                        additionalCost += vData.additionalPrice * qty;
+
+                        // Build name part safely
+                        if (vData.name) {
+                            if (qty > 1) {
+                                parts.push(`${qty}x ${vData.name}`);
+                            } else {
+                                parts.push(vData.name);
+                            }
+                        }
                     }
                 });
 
-                // Original logic for naming might need tweak if multiple units are allowed for hot sushi too
-                if (selectedVariationNames.length > 1) {
-                    itemName = `Hot Sushi (${selectedVariationNames.join(' + ')})`;
+                finalPrice += additionalCost;
+
+                if (parts.length > 0) {
+                    itemName = `Hot Sushi (${parts.join(' + ')})`;
                 } else {
-                    itemName = selectedVariationNames.length === 0
-                        ? menuItem.name
-                        : `Hot Sushi (${selectedVariationNames[0]})`;
+                    itemName = menuItem.name;
                 }
 
             } else if (menuItem.name === 'Camarão Milanesa' && menuItem.variations) {
@@ -561,7 +563,9 @@
                     const variationData = menuItem.variations.find(v => v.id === variation.menuItemVariationId);
                     if (variationData && variation.selected) {
                         const qty = variation.quantity || 1;
-                        const varName = variationData.name.trim();
+                        // Safe name access
+                        const varName = (variationData.name || '').trim();
+                        if (!varName) return; // Skip invalid data
 
                         // Smart discount for "Unidade" if quantity >= 5
                         if (varName.toLowerCase() === 'unidade') {
@@ -609,7 +613,7 @@
                 // Default logic for other items
                 variations.forEach(variation => {
                     const variationData = menuItem.variations.find(v => v.id === variation.menuItemVariationId);
-                    if (variationData && variation.selected) {
+                    if (variationData && variation.selected && variationData.name) {
                         const qty = variation.quantity || 1;
                         finalPrice += (variationData.additionalPrice * qty);
                         if (qty > 1) {

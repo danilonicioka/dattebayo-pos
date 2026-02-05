@@ -1,3 +1,5 @@
+/* CSS for refined Menu Management UI */
+
 :root {
     --primary-orange: #ee8b1b;
     --dark-orange: #d67a1a;
@@ -79,7 +81,7 @@
 /* Management Grid */
 .management-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 25px;
 }
 
@@ -97,7 +99,7 @@
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 20px;
     position: relative;
     overflow: hidden;
 }
@@ -113,84 +115,92 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+    padding-bottom: 15px;
+    border-bottom: 1px dashed #eee;
 }
 
 .item-title-box h3 {
-    margin: 0;
-    font-size: 1.15rem;
+    margin: 0 0 5px 0;
+    font-size: 1.1rem;
     color: var(--text-main);
+    line-height: 1.3;
 }
 
-/* Availability Toggle (The big one) */
-.availability-box {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding-top: 10px;
-    border-top: 1px dashed var(--border-color);
+/* Status Badges */
+.status-badge {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    white-space: nowrap;
 }
 
-/* Pricing Configuration Box */
-.pricing-config-card {
-    background: #fcfcfc;
-    border: 1px solid #f0f0f0;
-    border-radius: 10px;
-    padding: 12px;
+.status-available {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-unavailable {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* NEW: Pricing Container Layout */
+.pricing-container {
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
-.price-row {
+/* Common Block Styles */
+.pricing-block {
+    background: #fdfdfd;
+    border: 1px solid #f0f0f0;
+    border-radius: 10px;
+    padding: 12px;
+    transition: all 0.3s ease;
+}
+
+.block-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 8px;
 }
 
-.price-label {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    display: flex;
-    align-items: center;
-    gap: 6px;
+.block-label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+    color: #999;
 }
 
-/* Manual Price Input Styling */
-.manual-input-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+/* Auto Block */
+.auto-block {
+    position: relative;
 }
 
-.manual-price-input {
-    width: 65px;
-    padding: 4px 8px;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    font-weight: bold;
-    font-size: 0.95rem;
-    text-align: right;
+.auto-block.inactive {
+    opacity: 0.4;
+    filter: grayscale(100%);
+    pointer-events: none;
+    /* Prevent interaction when manual is on */
 }
 
-.manual-price-input:focus {
-    border-color: var(--primary-orange);
-    outline: none;
-    box-shadow: 0 0 0 2px var(--light-orange);
-}
-
-/* Markup Toggle Pill */
+/* Markup Pill */
 .markup-pill {
-    font-size: 0.75rem;
-    padding: 4px 10px;
-    border-radius: 20px;
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 12px;
     background: #eee;
     color: #777;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 5px;
-    transition: all 0.2s;
+    gap: 4px;
     border: 1px solid transparent;
+    transition: all 0.2s;
 }
 
 .markup-pill.active {
@@ -204,7 +214,78 @@
     display: none;
 }
 
-/* Toggle Switches */
+.price-display-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.price-mini-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: #888;
+}
+
+.price-main-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: 4px;
+    padding-top: 6px;
+    border-top: 1px solid #eee;
+}
+
+.final-price {
+    font-weight: 800;
+    color: var(--success-green);
+    font-size: 1.2rem;
+}
+
+/* Manual Block */
+.manual-block {
+    background: white;
+    /* distinct from autofill greyish */
+}
+
+.manual-block.active-mode {
+    border-color: var(--primary-orange);
+    box-shadow: 0 0 0 1px var(--primary-orange) inset;
+    background: #fff8f0;
+    /* very light orange tint */
+}
+
+.manual-toggle-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.manual-input-area {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.manual-price-input {
+    width: 100%;
+    max-width: 120px;
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 1rem;
+    text-align: right;
+    color: var(--text-main);
+    transition: all 0.2s;
+}
+
+.manual-price-input:focus {
+    border-color: var(--primary-orange);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(238, 139, 27, 0.2);
+}
+
+/* Switches */
 .switch {
     position: relative;
     display: inline-block;
@@ -250,39 +331,23 @@ input:checked+.slider:before {
     transform: translateX(22px);
 }
 
-.small-switch {
+/* Tiny Switch */
+.tiny-switch {
     width: 34px;
     height: 18px;
 }
 
-.small-switch .slider:before {
+.tiny-switch .slider:before {
     height: 12px;
     width: 12px;
 }
 
-.small-switch input:checked+.slider:before {
+.tiny-switch input:checked+.slider:before {
     transform: translateX(16px);
 }
 
-/* Badges */
-.status-badge {
-    font-size: 0.7rem;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-weight: bold;
-    white-space: nowrap;
-}
 
-.status-available {
-    background: #d4edda;
-    color: #155724;
-}
-
-.status-unavailable {
-    background: #f8d7da;
-    color: #721c24;
-}
-
+/* Save Button */
 .save-markup-btn {
     background: var(--primary-orange);
     color: white;
@@ -299,7 +364,6 @@ input:checked+.slider:before {
     transform: translateY(-2px);
 }
 
-/* Category Header in Grid */
 .category-group {
     margin-bottom: 50px;
 }

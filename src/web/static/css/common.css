@@ -88,11 +88,17 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.nav-link:hover,
-.nav-link.active {
+.nav-link:hover {
     background: rgba(255, 255, 255, 0.2);
     color: white;
     border-color: white;
+}
+
+.nav-link.active {
+    background: white;
+    color: var(--primary-color);
+    border-color: white;
+    font-weight: bold;
 }
 
 .nav-link i {

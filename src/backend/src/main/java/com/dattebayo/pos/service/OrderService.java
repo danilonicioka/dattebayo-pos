@@ -254,6 +254,10 @@ public class OrderService {
                     .collect(Collectors.toList());
 
             String displayName;
+            // Default quantity and price
+            int displayQuantity = item.getQuantity();
+            double displayPrice = item.getPrice();
+
             if ("Comidas".equals(item.getMenuItem().getCategory()) && "Tempurá".equals(item.getMenuItem().getName())) {
                 boolean hasShrimp = selectedVariationNames.contains("Com Camarão");
                 displayName = hasShrimp ? "Tempurá Com Camarão" : "Tempurá De Legumes";
@@ -304,27 +308,22 @@ public class OrderService {
                      displayName = item.getMenuItem().getName();
                 }
 
-                itemDTO.setMenuItemName(displayName);
-                
                 if (overrideQty != null && overrideQty > 0) {
-                    itemDTO.setQuantity(overrideQty);
+                    displayQuantity = overrideQty;
                     // Recalculate unit price based on the override quantity
                     // Logic: Total Price / Total Display Units
                     // Total Price = item.getPrice() * item.getQuantity()
-                    itemDTO.setPrice((item.getPrice() * item.getQuantity()) / overrideQty);
-                } else {
-                    itemDTO.setQuantity(item.getQuantity());
-                    itemDTO.setPrice(item.getPrice());
+                    displayPrice = (item.getPrice() * item.getQuantity()) / overrideQty;
                 }
             } else {
                 displayName = selectedVariationNames.isEmpty()
                         ? item.getMenuItem().getName()
                         : item.getMenuItem().getName() + " (" + String.join(", ", selectedVariationNames) + ")";
-                
-                itemDTO.setMenuItemName(displayName);
-                itemDTO.setQuantity(item.getQuantity());
-                itemDTO.setPrice(item.getPrice());
             }
+
+            itemDTO.setMenuItemName(displayName);
+            itemDTO.setQuantity(displayQuantity);
+            itemDTO.setPrice(displayPrice);
 
             itemDTO.setSpecialInstructions(item.getSpecialInstructions());
             // Use subtotal from original calculations to avoid floating point issues when multiplying back

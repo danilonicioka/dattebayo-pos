@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Configuration
-ENV_FILE=".env.prod"
+ENV_FILE=".env"
 # Load variables for echo/script usage
 if [ -f "$ENV_FILE" ]; then
     set -a
@@ -14,7 +14,7 @@ echo "🔄 Restarting Backend Service (PROD)..."
 echo ""
 
 # Change to project root directory
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")"
 
 # Only rebuild and restart the backend (keeps database running)
 echo "🛑 Stopping backend container..."

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Configuration
-ENV_FILE=".env.prod"
+ENV_FILE=".env"
 
 # Ensure env file exists
 if [ ! -f "$ENV_FILE" ]; then
@@ -22,7 +22,7 @@ echo "   - DB Port: $POSTGRES_PORT"
 echo ""
 
 # Change to project root directory
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")"
 
 # Check if Docker is running
 if ! docker info > /dev/null 2>&1; then

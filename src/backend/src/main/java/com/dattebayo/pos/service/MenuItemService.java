@@ -32,13 +32,13 @@ public class MenuItemService {
     }
     
     public List<MenuItemDTO> getAvailableMenuItems() {
-        return menuItemRepository.findByAvailableTrue().stream()
+        return menuItemRepository.findByAvailableTrueOrderByIdAsc().stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
     
     public List<MenuItemDTO> getMenuItemsByCategory(String category) {
-        return menuItemRepository.findByCategoryAndAvailableTrue(category).stream()
+        return menuItemRepository.findByCategoryAndAvailableTrueOrderByIdAsc(category).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }

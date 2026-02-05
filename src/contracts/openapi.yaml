@@ -330,6 +330,9 @@ components:
         additionalPrice:
           type: number
           format: double
+        stockQuantity:
+          type: integer
+          description: "Number of items in stock. Null means unlimited."
 
     Order:
       type: object

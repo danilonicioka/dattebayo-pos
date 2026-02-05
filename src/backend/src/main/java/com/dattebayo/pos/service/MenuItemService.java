@@ -20,6 +20,9 @@ public class MenuItemService {
     
     @Autowired
     private ConfigurationService configurationService;
+
+    @Autowired
+    private com.dattebayo.pos.repository.MenuItemVariationRepository menuItemVariationRepository;
     
     public List<MenuItemDTO> getAllMenuItems() {
         return menuItemRepository.findAll().stream()
@@ -60,6 +63,14 @@ public class MenuItemService {
                 .toList();
     }
 
+    public Optional<com.dattebayo.pos.model.MenuItemVariation> getVariationById(Long id) {
+        return menuItemVariationRepository.findById(id);
+    }
+
+    public com.dattebayo.pos.model.MenuItemVariation saveVariation(com.dattebayo.pos.model.MenuItemVariation variation) {
+        return menuItemVariationRepository.save(variation);
+    }
+
     private MenuItemDTO convertToDTO(MenuItem menuItem) {
         MenuItemDTO dto = new MenuItemDTO();
         dto.setId(menuItem.getId());
@@ -88,6 +99,7 @@ public class MenuItemService {
                     
                     Double additionalPrice = variation.getAdditionalPrice();
                     variationDTO.setAdditionalPrice(menuItem.getApplyMarkup() ? configurationService.applyMarkup(additionalPrice) : Math.round(additionalPrice));
+                    variationDTO.setStockQuantity(variation.getStockQuantity());
                     
                     return variationDTO;
                 })

@@ -40,6 +40,7 @@ public class Order {
         PENDING,    // Order placed, waiting to be prepared
         PREPARING,  // Kitchen is preparing the order
         READY,      // Order is ready for serving
-        COMPLETED   // Order has been served/completed
+        COMPLETED,  // Order has been served/completed
+        CANCELLED   // Order has been cancelled
     }
 }

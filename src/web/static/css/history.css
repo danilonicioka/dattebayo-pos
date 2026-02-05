@@ -2,12 +2,7 @@
 
 /* Reuse container and header styles from common.css */
 
-.history-container {
-    padding: 2rem;
-    max-width: 1200px;
-    /* Wider for table */
-    margin: 0 auto;
-}
+/* .history-container transparent wrapper removed */
 
 .history-header {
     display: flex;
@@ -85,7 +80,8 @@
 
 .history-table th,
 .history-table td {
-    padding: 1rem 1.5rem;
+    padding: 1rem 1rem;
+    /* Reduced from 1rem 1.5rem (24px) to 16px to match standard */
     text-align: left;
     border-bottom: 1px solid var(--border-color);
 }
@@ -156,9 +152,15 @@
 }
 
 .status-badge.completed {
-    background-color: rgba(76, 175, 80, 0.1);
-    color: #4CAF50;
-    border: 1px solid rgba(76, 175, 80, 0.2);
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+}
+
+.status-badge.cancelled {
+    background: #ffebee;
+    color: #c62828;
+    border: 1px solid #ffcdd2;
 }
 
 /* Responsive Table */

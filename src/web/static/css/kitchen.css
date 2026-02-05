@@ -22,8 +22,10 @@
 .order-card {
     background: white;
     border-radius: 15px;
-    padding: 20px;
-    border-left: 5px solid #ccc;
+    padding: 15px;
+    /* Reduced from 20px to match standard */
+    border-left: 4px solid #ccc;
+    /* Reduced from 5px */
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     transition: all 0.3s;
     display: flex;

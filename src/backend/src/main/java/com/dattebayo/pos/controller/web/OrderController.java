@@ -27,7 +27,7 @@ public class OrderController {
     public String orderPage(Model model) {
         // Get active orders (not completed/paid)
         List<OrderDTO> activeOrders = orderService.getAllOrders().stream()
-                .filter(order -> order.getStatus() != Order.OrderStatus.COMPLETED)
+                .filter(order -> order.getStatus() != Order.OrderStatus.COMPLETED && order.getStatus() != Order.OrderStatus.CANCELLED)
                 .toList();
         model.addAttribute("activeOrders", activeOrders);
         return "order";
@@ -60,7 +60,7 @@ public class OrderController {
 
     @GetMapping("/history")
     public String historyPage(Model model) {
-        List<OrderDTO> completedOrders = orderService.getCompletedOrders();
+        List<OrderDTO> completedOrders = orderService.getHistoryOrders();
         model.addAttribute("orders", completedOrders);
         return "history";
     }
@@ -86,7 +86,7 @@ public class OrderController {
         // Calculate Total Items Sold
         long totalItemsSold = completedOrders.stream()
                 .flatMap(order -> order.getItems().stream())
-                .mapToLong(com.dattebayo.pos.dto.OrderItemDTO::getQuantity)
+                .mapToLong(item -> item.getQuantity() != null ? item.getQuantity() : 0)
                 .sum();
 
         // Get all menu items to map IDs to Categories
@@ -108,8 +108,11 @@ public class OrderController {
                 com.dattebayo.pos.dto.ItemSalesSummaryDTO summary = categoryItems.getOrDefault(itemName, 
                     new com.dattebayo.pos.dto.ItemSalesSummaryDTO(itemName, 0L, 0.0));
                 
-                summary.setQuantity(summary.getQuantity() + item.getQuantity());
-                summary.setTotal(summary.getTotal() + (item.getPrice() * item.getQuantity())); // Appx total per item line
+                long qty = item.getQuantity() != null ? item.getQuantity() : 0;
+                double price = item.getPrice() != null ? item.getPrice() : 0.0;
+                
+                summary.setQuantity(summary.getQuantity() + qty);
+                summary.setTotal(summary.getTotal() + (price * qty)); // Appx total per item line
                 
                 categoryItems.put(itemName, summary);
             }
@@ -169,6 +172,16 @@ public class OrderController {
             // Handle error
         }
         return "redirect:/kitchen";
+    }
+    
+    @PostMapping("/orders/{id}/cancel")
+    public String cancelOrder(@PathVariable Long id) {
+        try {
+            orderService.cancelOrder(id);
+        } catch (Exception e) {
+            // Handle error
+        }
+        return "redirect:/?cancelled=true";
     }
 
     @PostMapping("/orders/{id}/mark-paid")

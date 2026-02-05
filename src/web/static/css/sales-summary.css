@@ -1,13 +1,6 @@
 /* Sales Summary Page Styles */
 
-.summary-container {
-    padding: 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
-    background-color: white;
-    border-radius: 12px;
-    box-shadow: var(--card-shadow);
-}
+/* .summary-container transparent wrapper removed */
 
 .no-data {
     text-align: center;

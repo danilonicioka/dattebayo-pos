@@ -111,6 +111,19 @@ public class MenuItemApiController {
         return ResponseEntity.notFound().build();
     }
 
+    @PatchMapping("/variations/{id}/stock")
+    public ResponseEntity<com.dattebayo.pos.model.MenuItemVariation> updateVariationStock(@PathVariable Long id, @RequestBody Map<String, Integer> payload) {
+        Optional<com.dattebayo.pos.model.MenuItemVariation> variationOpt = menuItemService.getVariationById(id);
+        if (variationOpt.isPresent()) {
+            com.dattebayo.pos.model.MenuItemVariation variation = variationOpt.get();
+            if (payload.containsKey("stockQuantity")) {
+                variation.setStockQuantity(payload.get("stockQuantity"));
+                return ResponseEntity.ok(menuItemService.saveVariation(variation));
+            }
+        }
+        return ResponseEntity.notFound().build();
+    }
+
     @GetMapping("/markup")
     public ResponseEntity<Map<String, Object>> getMarkupSettings() {
         return ResponseEntity.ok(Map.of(

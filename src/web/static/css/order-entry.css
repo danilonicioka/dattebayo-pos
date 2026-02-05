@@ -1,14 +1,8 @@
 /* New and Edit Order Page Styles */
 
 /* Menu Items */
-.menu-section {
-    background: #fefdfa;
-    border-radius: 10px;
-    padding: 20px;
-    border: 2px solid #e0e0e0;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    min-width: 0;
-}
+/* Menu Items */
+/* .menu-section transparent wrapper removed */
 
 .category-tabs {
     display: flex;
@@ -86,13 +80,11 @@
 
 /* Order Section & Form */
 .order-section {
-    background: #fefdfa;
-    border-radius: 10px;
-    padding: 20px;
+    /* Transparent wrapper */
     display: flex;
     flex-direction: column;
-    border: 2px solid #e0e0e0;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 30px;
+    /* Added spacing */
 }
 
 .order-form {

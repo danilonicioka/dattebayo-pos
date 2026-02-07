@@ -8,8 +8,7 @@ COPY pom.xml ./pom.xml
 COPY backend/pom.xml ./backend/pom.xml
 COPY backend/src ./backend/src
 
-# Copy web module (needed for symlinks in backend/src/main/resources)
-COPY web ./web
+# Copy web module (merged into backend)
 
 # Build the backend module
 RUN mvn -f backend/pom.xml clean package -DskipTests

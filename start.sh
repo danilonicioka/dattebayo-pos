@@ -14,7 +14,7 @@ set -a
 source "$ENV_FILE"
 set +a
 
-echo "🍽️  Starting Restaurant POS System (PROD)..."
+echo "🍽️  Starting Restaurant POS System..."
 echo "   - Project: $COMPOSE_PROJECT_NAME"
 echo "   - Config:  $ENV_FILE"
 echo "   - App Port: $APP_PORT"
@@ -52,7 +52,7 @@ for i in {1..30}; do
         echo ""
         echo "📊 View logs: docker compose -f docker/compose.yml logs -f"
         echo "🛑 Stop system: docker compose -f docker/compose.yml down"
-        echo "🔄 Restart backend: ./scripts/restart-prod.sh"
+        echo "🔄 Restart backend: ./restart.sh"
         exit 0
     fi
     echo -n "."

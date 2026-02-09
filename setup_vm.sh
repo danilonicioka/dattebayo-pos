@@ -59,7 +59,7 @@ fi
 # 4. Configure Environment
 ENV_FILE=".env"
 if [ ! -f "$ENV_FILE" ]; then
-    echo "⚙️  Creating default production .env file..."
+    echo "⚙️  Creating default .env file..."
     cat > "$ENV_FILE" <<EOL
 COMPOSE_PROJECT_NAME=restaurant-pos
 POSTGRES_USER=pos_user

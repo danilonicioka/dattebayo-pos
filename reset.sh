@@ -10,7 +10,7 @@ if [ -f "$ENV_FILE" ]; then
 fi
 APP_PORT="${APP_PORT:-80}"
 
-echo "🔄 Resetting Backend Service & Data (PROD)..."
+echo "🔄 Resetting Backend Service & Data..."
 echo "⚠️  This will delete all database data!"
 echo ""
 

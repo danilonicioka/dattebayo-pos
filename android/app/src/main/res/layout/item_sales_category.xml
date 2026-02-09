@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <TextView
+        android:id="@+id/tvCategoryName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Burgers"
+        android:textStyle="bold"
+        android:textColor="@color/colorPrimary"
+        android:layout_marginBottom="4dp"/>
+
+    <TextView
+        android:id="@+id/tvCategoryStats"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="15 Items | $150.00"
+        android:textColor="@color/colorTextSecondary"
+        android:textSize="12sp"/>
+        
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#EEE"
+        android:layout_marginTop="8dp"/>
+
+</LinearLayout>

@@ -22,32 +22,32 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="12dp">
-            
+            android:layout_marginBottom="8dp">
+
             <TextView
                 android:id="@+id/tvTableNumber"
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:text="Table 1"
-                android:textSize="18sp"
+                android:textSize="16sp"
                 android:textStyle="bold"
                 android:textColor="@color/colorTextPrimary"/>
 
             <TextView
-                android:id="@+id/tvStatus"
+                android:id="@+id/tvDate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Pending"
+                android:text="12/12/2023 12:30"
                 android:textSize="12sp"
-                android:textStyle="bold"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
-                android:paddingTop="4dp"
-                android:paddingBottom="4dp"
-                android:background="@drawable/bg_category_tab"
-                android:textColor="@color/colorPrimary"/>
+                android:textColor="@color/colorTextSecondary"/>
         </LinearLayout>
+        
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#EEE"
+            android:layout_marginBottom="8dp"/>
 
         <TextView
             android:id="@+id/tvOrderItems"
@@ -55,17 +55,41 @@
             android:layout_height="wrap_content"
             android:text="1x Burger\n2x Coke"
             android:textColor="@color/colorTextSecondary"
+            android:textSize="14sp"
             android:lineSpacingExtra="4dp"
             android:layout_marginBottom="12dp"/>
-
-        <Button
-            android:id="@+id/btnMarkReady"
+            
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Mark Ready"
-            android:backgroundTint="@color/colorSuccessText"
-            android:textColor="@color/white"
-            android:textStyle="bold"/>
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/tvTotal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Total: $25.00"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/colorTextPrimary"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"/>
+
+            <TextView
+                android:id="@+id/tvStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="COMPLETED"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:background="@drawable/bg_category_tab"
+                android:textColor="@color/colorSecondary"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"/>
+        </RelativeLayout>
 
     </LinearLayout>
 

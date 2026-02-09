@@ -12,6 +12,7 @@ import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
+import retrofit2.http.DELETE;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 
@@ -27,6 +28,15 @@ public interface ApiService {
     @GET("api/menu/{id}")
     Call<MenuItem> getMenuItem(@Path("id") Long id);
 
+    @POST("api/menu")
+    Call<MenuItem> createMenuItem(@Body MenuItem menuItem);
+
+    @PUT("api/menu/{id}")
+    Call<MenuItem> updateMenuItem(@Path("id") Long id, @Body MenuItem menuItem);
+
+    @DELETE("api/menu/{id}")
+    Call<Void> deleteMenuItem(@Path("id") Long id);
+
     // Order Endpoints
     @POST("api/orders")
     Call<Order> createOrder(@Body CreateOrderRequest request);
@@ -36,6 +46,9 @@ public interface ApiService {
 
     @GET("api/orders/kitchen")
     Call<List<Order>> getKitchenOrders();
+
+    @GET("api/orders/status/COMPLETED")
+    Call<List<Order>> getCompletedOrders();
 
     @GET("api/orders/{id}")
     Call<Order> getOrder(@Path("id") Long id);

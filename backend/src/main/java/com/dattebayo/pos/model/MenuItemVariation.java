@@ -27,6 +27,7 @@ public class MenuItemVariation {
     @Column(name = "stock_quantity")
     private Integer stockQuantity; // null means unlimited
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "menu_item_id", nullable = false)
     private MenuItem menuItem;

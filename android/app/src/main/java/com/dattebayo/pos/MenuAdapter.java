@@ -12,9 +12,15 @@ import java.util.List;
 public class MenuAdapter extends RecyclerView.Adapter<MenuAdapter.MenuViewHolder> {
 
     private List<MenuItem> menuItems;
+    private OnItemClickListener listener;
 
-    public MenuAdapter(List<MenuItem> menuItems) {
+    public interface OnItemClickListener {
+        void onItemClick(MenuItem item);
+    }
+
+    public MenuAdapter(List<MenuItem> menuItems, OnItemClickListener listener) {
         this.menuItems = menuItems;
+        this.listener = listener;
     }
 
     public void updateData(List<MenuItem> newItems) {
@@ -35,6 +41,11 @@ public class MenuAdapter extends RecyclerView.Adapter<MenuAdapter.MenuViewHolder
         holder.tvName.setText(item.getName());
         holder.tvDescription.setText(item.getDescription());
         holder.tvPrice.setText("$" + String.format("%.2f", item.getPrice()));
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onItemClick(item);
+            }
+        });
     }
 
     @Override

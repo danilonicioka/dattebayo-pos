@@ -29,7 +29,7 @@ your-project/
 │       ├── settings.gradle
 │       └── app/
 └── docker/
-    └── compose.dev.yml
+    └── compose.yml
 ```
 
 ## Getting Started
@@ -46,10 +46,13 @@ All development is done via Docker Compose. **No local Maven or Java installatio
 
 ```bash
 # Start the backend + database
-docker compose -f docker/compose.dev.yml up --build
+./start.sh
+# OR
+docker compose -f docker/compose.yml --env-file .env up --build
 
 # Access the application
-open http://localhost:80
+# Web Interface: http://localhost:80
+# Database: localhost:5432
 ```
 
 The Docker build will:
@@ -89,7 +92,7 @@ cd apps/android
 
 ## Environment Variables
 
-The backend uses Spring profiles. Environment variables are defined in `docker/compose.dev.yml`:
+The backend uses Spring profiles. Environment variables are defined in `.env` and `docker/compose.yml`:
 
 - `DB_HOST`: Database hostname
 - `DB_PORT`: Database port
@@ -109,3 +112,136 @@ The backend uses Spring profiles. Environment variables are defined in `docker/c
 ## License
 
 See [LICENSE](LICENSE) file.
+
+
+## Deployment
+
+### Create VM on Google Cloud
+
+#### CLI
+
+```bash
+gcloud compute instances create dattebayo-pos \
+    --project=project-a18a3986-421a-4272-87a \
+    --zone=southamerica-east1-a \
+    --machine-type=e2-small \
+    --network-interface=network-tier=PREMIUM,stack-type=IPV4_ONLY,subnet=default \
+    --maintenance-policy=MIGRATE \
+    --provisioning-model=STANDARD \
+    --service-account=314446990476-compute@developer.gserviceaccount.com \
+    --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/trace.append \
+    --tags=https-server,http-server \
+    --create-disk=auto-delete=yes,boot=yes,device-name=dattebayo-pos,disk-resource-policy=projects/project-a18a3986-421a-4272-87a/regions/southamerica-east1/resourcePolicies/default-schedule-1,image=projects/debian-cloud/global/images/debian-13-trixie-v20260114,mode=rw,size=20,type=pd-balanced \
+    --no-shielded-secure-boot \
+    --shielded-vtpm \
+    --shielded-integrity-monitoring \
+    --labels=goog-ec-src=vm_add-gcloud
+```
+
+#### REST
+
+```json
+POST https://compute.googleapis.com/compute/v1/projects/project-a18a3986-421a-4272-87a/zones/southamerica-east1-a/instances
+
+{
+  "name": "dattebayo-pos",
+  "machineType": "zones/southamerica-east1-a/machineTypes/e2-small",
+  "disks": [
+    {
+      "boot": true,
+      "autoDelete": true,
+      "initializeParams": {
+        "sourceImage": "projects/debian-cloud/global/images/debian-13-trixie-v20260114",
+        "diskSizeGb": "20"
+      }
+    }
+  ],
+  "networkInterfaces": [
+    {
+      "network": "global/networks/default",
+      "accessConfigs": [
+        {
+          "type": "ONE_TO_ONE_NAT",
+          "name": "External NAT"
+        }
+      ]
+    }
+  ],
+  "serviceAccounts": [
+    {
+      "email": "314446990476-compute@developer.gserviceaccount.com",
+      "scopes": [
+        "https://www.googleapis.com/auth/devstorage.read_only",
+        "https://www.googleapis.com/auth/logging.write",
+        "https://www.googleapis.com/auth/monitoring.write",
+        "https://www.googleapis.com/auth/service.management.readonly",
+        "https://www.googleapis.com/auth/servicecontrol",
+        "https://www.googleapis.com/auth/trace.append"
+      ]
+    }
+  ],
+  "tags": {
+    "items": [
+      "https-server",
+      "http-server"
+    ]
+  },
+  "shieldedInstanceConfig": {
+    "enableSecureBoot": false,
+    "enableVtpm": true,
+    "enableIntegrityMonitoring": true
+  },
+  "labels": {
+    "goog-ec-src": "vm_add-gcloud"
+  }
+}
+```
+
+#### Terraform
+
+```hcl
+resource "google_compute_instance" "dattebayo-pos" {
+  project      = "project-a18a3986-421a-4272-87a"
+  name         = "dattebayo-pos"
+  zone         = "southamerica-east1-a"
+  machine_type = "e2-small"
+
+  boot_disk {
+    initialize_params {
+      image = "projects/debian-cloud/global/images/debian-13-trixie-v20260114"
+      size  = 20
+    }
+  }
+
+  network_interface {
+    network = "global/networks/default"
+    access_config {
+      # Ephemeral IP
+    }
+  }
+
+  service_account {
+    email  = "314446990476-compute@developer.gserviceaccount.com"
+    scopes = [
+      "https://www.googleapis.com/auth/devstorage.read_only",
+      "https://www.googleapis.com/auth/logging.write",
+      "https://www.googleapis.com/auth/monitoring.write",
+      "https://www.googleapis.com/auth/service.management.readonly",
+      "https://www.googleapis.com/auth/servicecontrol",
+      "https://www.googleapis.com/auth/trace.append"
+    ]
+  }
+
+  tags = ["https-server", "http-server"]
+
+  shielded_instance_config {
+    enable_secure_boot          = false
+    enable_vtpm                 = true
+    enable_integrity_monitoring = true
+  }
+
+  labels = {
+    "goog-ec-src" = "vm_add-gcloud"
+  }
+}
+```

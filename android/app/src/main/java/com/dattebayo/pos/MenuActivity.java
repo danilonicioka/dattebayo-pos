@@ -32,11 +32,23 @@ public class MenuActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerView);
         progressBar = findViewById(R.id.progressBar);
         tvError = findViewById(R.id.tvError);
+        
+        findViewById(R.id.fabAdd).setOnClickListener(v -> {
+            startActivity(new android.content.Intent(MenuActivity.this, AddEditMenuActivity.class));
+        });
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new MenuAdapter(new ArrayList<>());
+        adapter = new MenuAdapter(new ArrayList<>(), item -> {
+            android.content.Intent intent = new android.content.Intent(MenuActivity.this, AddEditMenuActivity.class);
+            intent.putExtra(AddEditMenuActivity.EXTRA_MENU_ITEM_ID, item.getId());
+            startActivity(intent);
+        });
         recyclerView.setAdapter(adapter);
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
         loadMenu();
     }
 

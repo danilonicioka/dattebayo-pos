@@ -3,7 +3,6 @@ package com.dattebayo.pos;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
@@ -13,29 +12,34 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Button btnMenu = findViewById(R.id.btnMenu);
-        Button btnNewOrder = findViewById(R.id.btnNewOrder);
-        Button btnKitchen = findViewById(R.id.btnKitchen);
-
-        btnMenu.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this, MenuActivity.class));
-            }
+        // New Order
+        findViewById(R.id.btnNewOrder).setOnClickListener(v -> {
+            startActivity(new Intent(MainActivity.this, OrderActivity.class));
         });
 
-        btnNewOrder.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this, OrderActivity.class));
-            }
+        // Active Orders
+        findViewById(R.id.btnActiveOrders).setOnClickListener(v -> {
+            startActivity(new Intent(MainActivity.this, ActiveOrdersActivity.class));
         });
 
-        btnKitchen.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this, KitchenActivity.class));
-            }
+        // Menu
+        findViewById(R.id.btnMenu).setOnClickListener(v -> {
+            startActivity(new Intent(MainActivity.this, MenuActivity.class));
+        });
+
+        // Kitchen
+        findViewById(R.id.btnKitchen).setOnClickListener(v -> {
+            startActivity(new Intent(MainActivity.this, KitchenActivity.class));
+        });
+
+        // History
+        findViewById(R.id.btnHistory).setOnClickListener(v -> {
+            startActivity(new Intent(MainActivity.this, OrderHistoryActivity.class));
+        });
+
+        // Sales Summary
+        findViewById(R.id.btnSalesSummary).setOnClickListener(v -> {
+            startActivity(new Intent(MainActivity.this, SalesSummaryActivity.class));
         });
     }
 }

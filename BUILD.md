@@ -8,7 +8,9 @@ This project is designed to run entirely via Docker Compose. No local JDK or Mav
 
 ### Start Everything
 ```bash
-docker compose -f docker/compose.dev.yml up --build
+./start.sh
+# OR
+docker compose -f docker/compose.yml --env-file .env up --build
 ```
 
 This command will:
@@ -24,12 +26,16 @@ This command will:
 
 ### Stop Everything
 ```bash
-docker compose -f docker/compose.dev.yml down
+./restart.sh # To restart backend only
+# OR
+docker compose -f docker/compose.yml --env-file .env down
 ```
 
 ### Clean Everything (including volumes)
 ```bash
-docker compose -f docker/compose.dev.yml down -v
+./reset.sh
+# OR
+docker compose -f docker/compose.yml --env-file .env down -v
 ```
 
 ## Client Generation
@@ -88,8 +94,8 @@ The app can consume the generated client via `mavenLocal()` repository.
 
 ### Database Connection Issues
 - Ensure PostgreSQL healthcheck passes
-- Check environment variables in `docker/compose.dev.yml`
-- View logs: `docker compose -f docker/compose.dev.yml logs postgres`
+- Check environment variables in `.env` and `docker/compose.yml`
+- View logs: `docker compose -f docker/compose.yml --env-file .env logs postgres`
 
 ### Client Generation Fails
 - Validate `contracts/openapi.yaml` syntax at https://editor.swagger.io

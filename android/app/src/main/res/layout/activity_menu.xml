@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:padding="16dp">
 
     <TextView
+        android:id="@+id/tvTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/title_menu"
@@ -17,8 +17,8 @@
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:visibility="visible"/>
+        android:layout_centerInParent="true"
+        android:visibility="gone"/>
 
     <TextView
         android:id="@+id/tvError"
@@ -27,11 +27,24 @@
         android:text="@string/error_loading"
         android:textColor="#FF0000"
         android:visibility="gone"
-        android:layout_gravity="center"/>
+        android:layout_centerInParent="true"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
-        
-</LinearLayout>
+        android:layout_height="match_parent"
+        android:layout_below="@id/tvTitle"/>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAdd"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="16dp"
+        android:src="@drawable/ic_launcher_foreground"
+        android:backgroundTint="#FF6200EE"
+        android:contentDescription="Add Menu Item" />
+
+</RelativeLayout>

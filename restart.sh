@@ -10,7 +10,7 @@ if [ -f "$ENV_FILE" ]; then
 fi
 APP_PORT="${APP_PORT:-80}"
 
-echo "🔄 Restarting Backend Service (PROD)..."
+echo "🔄 Restarting Backend Service..."
 echo ""
 
 # Change to project root directory

@@ -258,8 +258,13 @@ public class OrderService {
             int displayQuantity = item.getQuantity();
             double displayPrice = item.getPrice();
 
-            if ("Comidas".equals(item.getMenuItem().getCategory()) && "Tempurá".equals(item.getMenuItem().getName())) {
-                boolean hasShrimp = selectedVariationNames.contains("Com Camarão");
+            if ("Comidas".equals(item.getMenuItem().getCategory()) && "Tempurá".equalsIgnoreCase(item.getMenuItem().getName())) {
+                boolean hasShrimp = item.getVariations().stream()
+                    .filter(OrderItemVariation::getSelected)
+                    .anyMatch(v -> {
+                         String vName = v.getMenuItemVariation().getName();
+                         return vName != null && "Com Camarão".equalsIgnoreCase(vName.trim());
+                    });
                 displayName = hasShrimp ? "Tempurá Com Camarão" : "Tempurá De Legumes";
             } else if ("Comidas".equals(item.getMenuItem().getCategory())
                     && item.getMenuItem().getName().equals("Yakisoba")) {

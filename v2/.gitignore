@@ -1,0 +1,23 @@
+node_modules/
+.expo/
+dist/
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+.pnp.*
+.vscode/
+
+# NEXT.JS (se for criado no futuro)
+.next/
+out/
+build/
+*.tsbuildinfo
+
+# OS EXAMPLES
+.DS_Store
+*.pem
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local

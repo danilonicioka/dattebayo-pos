@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  # O Backend da aplicação construído no NestJS
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: dattebayo_api
+    restart: unless-stopped
+    ports:
+      # Expõe a porta 3000 do Nest para o hospedeiro local
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      # O banco de dados do Prisma rodará num volume bind-mount
+      - DATABASE_URL=file:./dev.db
+    volumes:
+      # Criamos um volume para que o Dev.DB do SQLite do hospedeiro
+      # não seja perdido caso a imagem ou container seja recriada.
+      - ./apps/api/prisma:/usr/src/app/apps/api/prisma
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge

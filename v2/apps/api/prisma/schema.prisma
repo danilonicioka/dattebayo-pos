@@ -1,0 +1,69 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x", "debian-openssl-1.1.x"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model MenuItem {
+  id                 Int      @id @default(autoincrement())
+  name               String
+  description        String?
+  price              Float
+  category           String
+  available          Boolean  @default(true)
+  manualPrice        Float?
+  manualPriceEnabled Boolean  @default(false)
+  applyMarkup        Boolean  @default(true)
+  stockQuantity      Int?     
+  variations         MenuItemVariation[]
+  orderItems         OrderItem[]
+}
+
+model MenuItemVariation {
+  id              Int      @id @default(autoincrement())
+  name            String
+  type            String   // "MULTIPLE" or "SINGLE"
+  additionalPrice Float    @default(0.0)
+  stockQuantity   Int?
+  menuItem        MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  menuItemId      Int
+}
+
+model Order {
+  id          Int      @id @default(autoincrement())
+  tableNumber String?
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  notes       String?
+  items       OrderItem[]
+}
+
+model OrderItem {
+  id                  Int      @id @default(autoincrement())
+  order               Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId             Int
+  menuItem            MenuItem? @relation(fields: [menuItemId], references: [id], onDelete: SetNull)
+  menuItemId          Int?
+  name                String
+  quantity            Int
+  price               Float    // Price recorded at time of order
+  specialInstructions String?
+  variations          OrderItemVariation[]
+}
+
+model OrderItemVariation {
+  id                  Int      @id @default(autoincrement())
+  orderItem           OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  orderItemId         Int
+  menuItemVariationId Int
+  name                String
+  additionalPrice     Float
+}

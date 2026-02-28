@@ -14,14 +14,27 @@ export class MenuService {
         price: createMenuDto.price,
         category: createMenuDto.category,
         description: createMenuDto.description,
-        available: createMenuDto.available,
+        available: createMenuDto.available ?? true,
         stockQuantity: createMenuDto.stockQuantity,
+        manualPrice: createMenuDto.manualPrice,
+        manualPriceEnabled: createMenuDto.manualPriceEnabled ?? false,
+        applyMarkup: createMenuDto.applyMarkup ?? true,
+        variations: createMenuDto.variations?.length ? {
+          create: createMenuDto.variations.map((v: any) => ({
+            name: v.name,
+            type: v.type,
+            additionalPrice: v.additionalPrice,
+            stockQuantity: v.stockQuantity,
+          }))
+        } : undefined,
       }
     });
   }
 
   findAll() {
-    return this.prisma.menuItem.findMany();
+    return this.prisma.menuItem.findMany({
+      include: { variations: true }
+    });
   }
 
   findOne(id: number) {
@@ -31,10 +44,30 @@ export class MenuService {
     });
   }
 
-  update(id: number, updateMenuDto: UpdateMenuDto) {
+  async update(id: number, updateMenuDto: UpdateMenuDto) {
+    const { variations, id: _id, ...data } = updateMenuDto as any;
+
+    const updateData: any = {
+      ...data
+    };
+
+    if (variations) {
+      await this.prisma.menuItemVariation.deleteMany({
+        where: { menuItemId: id }
+      });
+      updateData.variations = {
+        create: variations.map((v: any) => ({
+          name: v.name,
+          type: v.type,
+          additionalPrice: v.additionalPrice,
+          stockQuantity: v.stockQuantity,
+        })),
+      };
+    }
+
     return this.prisma.menuItem.update({
       where: { id },
-      data: updateMenuDto as any
+      data: updateData
     });
   }
 

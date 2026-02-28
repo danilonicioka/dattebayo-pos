@@ -3,7 +3,7 @@ import { OrderItem, MenuItem } from '@dattebayo/core';
 
 interface CartState {
     items: OrderItem[];
-    addOrderItem: (menuItem: MenuItem, quantity?: number) => void;
+    addOrderItem: (menuItem: MenuItem, quantity?: number, variations?: any[]) => void;
     removeOrderItem: (index: number) => void;
     clearCart: () => void;
 }
@@ -11,10 +11,11 @@ interface CartState {
 export const useCartStore = create<CartState>((set) => ({
     items: [],
 
-    addOrderItem: (menuItem, quantity = 1) => {
+    addOrderItem: (menuItem, quantity = 1, variations = []) => {
         set((state) => {
+            const varsStr = JSON.stringify(variations);
             const existingItemIndex = state.items.findIndex(
-                (item) => item.menuItem.id === menuItem.id && item.variations.length === 0
+                (item) => item.menuItem.id === menuItem.id && JSON.stringify(item.variations) === varsStr
             );
 
             if (existingItemIndex >= 0) {
@@ -27,7 +28,7 @@ export const useCartStore = create<CartState>((set) => ({
                 menuItem: menuItem,
                 quantity: quantity,
                 price: menuItem.price,
-                variations: [],
+                variations: variations,
             };
 
             return { items: [...state.items, newItem] };

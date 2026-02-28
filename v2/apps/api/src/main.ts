@@ -11,7 +11,12 @@ async function bootstrap() {
     new FastifyAdapter(),
   );
 
-  app.enableCors(); // Required for mobile/web to access API
+  app.enableCors({
+    origin: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
+    allowedHeaders: 'Content-Type, Authorization, Accept',
+  });
 
   await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
 }

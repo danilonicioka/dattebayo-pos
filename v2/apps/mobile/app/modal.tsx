@@ -84,8 +84,19 @@ export default function ModalScreen() {
           <View style={styles.card}>
             <View style={styles.cardInfo}>
               <Text style={styles.itemName}>{item.menuItem.name}</Text>
+
+              {item.variations && item.variations.length > 0 && (
+                <View style={{ marginBottom: 4 }}>
+                  {item.variations.map((v, idx) => (
+                    <Text key={idx} style={styles.variationText}>
+                      + {v.name} {v.additionalPrice > 0 ? `(R$ ${v.additionalPrice.toFixed(2).replace('.', ',')})` : ''}
+                    </Text>
+                  ))}
+                </View>
+              )}
+
               <Text style={styles.price}>
-                R$ {(item.price * item.quantity).toFixed(2).replace('.', ',')}
+                R$ {((item.price + item.variations.reduce((acc, v) => acc + v.additionalPrice, 0)) * item.quantity).toFixed(2).replace('.', ',')}
               </Text>
             </View>
 
@@ -191,9 +202,16 @@ const styles = StyleSheet.create({
     color: '#1A1A1A',
     marginBottom: 4,
   },
+  variationText: {
+    fontSize: 12,
+    color: '#666',
+    fontStyle: 'italic',
+  },
   price: {
     fontSize: 14,
     color: '#666',
+    fontWeight: 'bold',
+    marginTop: 4,
   },
   actions: {
     flexDirection: 'row',

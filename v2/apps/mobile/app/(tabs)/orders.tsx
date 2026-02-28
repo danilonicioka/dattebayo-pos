@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
+import { useEffect, useState, useMemo } from 'react';
+import { StyleSheet, View, Text, FlatList, ActivityIndicator, RefreshControl, TouchableOpacity } from 'react-native';
 import { api } from '@/services/api';
 
 // Interface básica baseada no Core simplificado para o frontend
@@ -12,6 +12,7 @@ interface OrderResponse {
         quantity: number;
         price: number;
         name: string;
+        variations?: { name: string, additionalPrice: number }[];
     }[];
 }
 
@@ -19,6 +20,7 @@ export default function OrdersScreen() {
     const [orders, setOrders] = useState<OrderResponse[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [filter, setFilter] = useState<'ACTIVE' | 'HISTORY'>('ACTIVE');
 
     const fetchOrders = async () => {
         try {
@@ -42,7 +44,9 @@ export default function OrdersScreen() {
     };
 
     const calculateTotal = (items: OrderResponse['items']) => {
-        return items.reduce((total, item) => total + (item.price * item.quantity), 0);
+        return items.reduce((total, item) =>
+            total + ((item.price + (item.variations?.reduce((acc, v) => acc + v.additionalPrice, 0) || 0)) * item.quantity)
+            , 0);
     };
 
     const renderStatus = (status: string) => {
@@ -55,12 +59,23 @@ export default function OrdersScreen() {
                 return <View style={[styles.statusBadge, { backgroundColor: '#81C784' }]}><Text style={styles.statusText}>Pronto</Text></View>;
             case 'COMPLETED':
                 return <View style={[styles.statusBadge, { backgroundColor: '#E0E0E0' }]}><Text style={[styles.statusText, { color: '#666' }]}>Finalizado</Text></View>;
+            case 'DELIVERED':
+                return <View style={[styles.statusBadge, { backgroundColor: '#E0E0E0' }]}><Text style={[styles.statusText, { color: '#666' }]}>Entregue</Text></View>;
             case 'CANCELLED':
                 return <View style={[styles.statusBadge, { backgroundColor: '#E57373' }]}><Text style={styles.statusText}>Cancelado</Text></View>;
             default:
                 return <View style={[styles.statusBadge, { backgroundColor: '#E0E0E0' }]}><Text style={[styles.statusText, { color: '#666' }]}>{status}</Text></View>;
         }
     };
+
+    const filteredOrders = useMemo(() => {
+        return orders.filter(order => {
+            if (filter === 'ACTIVE') {
+                return ['PENDING', 'PREPARING', 'READY'].includes(order.status);
+            }
+            return ['COMPLETED', 'DELIVERED', 'CANCELLED'].includes(order.status);
+        });
+    }, [orders, filter]);
 
     if (isLoading && !refreshing) {
         return (
@@ -76,8 +91,23 @@ export default function OrdersScreen() {
                 <Text style={styles.title}>Meus Pedidos</Text>
             </View>
 
+            <View style={styles.filterContainer}>
+                <TouchableOpacity
+                    style={[styles.filterButton, filter === 'ACTIVE' && styles.filterButtonActive]}
+                    onPress={() => setFilter('ACTIVE')}
+                >
+                    <Text style={[styles.filterText, filter === 'ACTIVE' && styles.filterTextActive]}>Em Andamento</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={[styles.filterButton, filter === 'HISTORY' && styles.filterButtonActive]}
+                    onPress={() => setFilter('HISTORY')}
+                >
+                    <Text style={[styles.filterText, filter === 'HISTORY' && styles.filterTextActive]}>Histórico</Text>
+                </TouchableOpacity>
+            </View>
+
             <FlatList
-                data={orders}
+                data={filteredOrders}
                 keyExtractor={(item) => item.id.toString()}
                 contentContainerStyle={styles.listContainer}
                 showsVerticalScrollIndicator={false}
@@ -100,10 +130,17 @@ export default function OrdersScreen() {
                         <View style={styles.divider} />
 
                         {item.items.map((orderItem, idx) => (
-                            <View key={idx} style={styles.itemRow}>
-                                <Text style={styles.itemQty}>{orderItem.quantity}x</Text>
-                                <Text style={styles.itemName} numberOfLines={1}>{orderItem.name}</Text>
-                                <Text style={styles.itemPrice}>R$ {(orderItem.price * orderItem.quantity).toFixed(2).replace('.', ',')}</Text>
+                            <View key={idx} style={{ marginBottom: 8 }}>
+                                <View style={styles.itemRow}>
+                                    <Text style={styles.itemQty}>{orderItem.quantity}x</Text>
+                                    <Text style={styles.itemName} numberOfLines={1}>{orderItem.name}</Text>
+                                    <Text style={styles.itemPrice}>
+                                        R$ {((orderItem.price + (orderItem.variations?.reduce((acc, v) => acc + v.additionalPrice, 0) || 0)) * orderItem.quantity).toFixed(2).replace('.', ',')}
+                                    </Text>
+                                </View>
+                                {orderItem.variations?.map((v, vIdx) => (
+                                    <Text key={`var-${vIdx}`} style={styles.itemExtra}>+ {v.name}</Text>
+                                ))}
                             </View>
                         ))}
 
@@ -143,6 +180,32 @@ const styles = StyleSheet.create({
         fontSize: 28,
         fontWeight: 'bold',
         color: '#1A1A1A',
+    },
+    filterContainer: {
+        flexDirection: 'row',
+        paddingHorizontal: 24,
+        paddingBottom: 16,
+        backgroundColor: '#fff',
+        borderBottomWidth: 1,
+        borderBottomColor: '#F0F0F0',
+    },
+    filterButton: {
+        flex: 1,
+        paddingVertical: 8,
+        alignItems: 'center',
+        borderBottomWidth: 2,
+        borderBottomColor: 'transparent',
+    },
+    filterButtonActive: {
+        borderBottomColor: '#D32F2F',
+    },
+    filterText: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#888',
+    },
+    filterTextActive: {
+        color: '#D32F2F',
     },
     listContainer: {
         padding: 24,
@@ -214,6 +277,13 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#1A1A1A',
         paddingRight: 8,
+    },
+    itemExtra: {
+        fontSize: 12,
+        color: '#6B7280',
+        paddingLeft: 24,
+        marginTop: -4,
+        fontStyle: 'italic',
     },
     itemPrice: {
         fontSize: 14,

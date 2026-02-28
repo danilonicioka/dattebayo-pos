@@ -36,6 +36,15 @@ export const MenuItemSchema = z.object({
 });
 export type MenuItem = z.infer<typeof MenuItemSchema>;
 
+// DTOs para HTTP Controller POST/PATCH no NestJS
+export const CreateMenuItemDTOSchema = MenuItemSchema.omit({ id: true });
+export type CreateMenuItemDTO = z.infer<typeof CreateMenuItemDTOSchema>;
+
+export const UpdateMenuItemDTOSchema = MenuItemSchema.partial().extend({
+    id: z.number(), // ID mandatório na rota de Update
+});
+export type UpdateMenuItemDTO = z.infer<typeof UpdateMenuItemDTOSchema>;
+
 // Order Item Variation (The specific choice made by the customer)
 export const OrderItemVariationSchema = z.object({
     id: z.number().optional(),

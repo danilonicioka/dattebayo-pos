@@ -3,83 +3,170 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-    console.log('Seeding Database...');
+    console.log('Iniciando o Seed do Banco de Dados com os itens Originais V1...');
 
-    // 1
-    await prisma.menuItem.upsert({
-        where: { id: 1 },
-        update: {},
-        create: {
-            id: 1,
-            name: 'Temaki de Salmão Completo',
-            description: 'Arroz, salmão fresco em cubos, cream cheese e cebolinha, envolto em alga nori crocante.',
-            price: 35.90,
-            category: 'Temakis',
-            available: true,
-            applyMarkup: true,
-            manualPriceEnabled: false,
-            variations: {
-                create: [
-                    { id: 1, name: 'Sem Cebolinha', type: 'SINGLE', additionalPrice: 0 }
-                ]
-            }
-        }
-    });
+    // Limpa os itens de menu e variações antes de popular para evitar duplicação (opicional)
+    // Mas como a V2 ainda não está em prod, vamos apagar tudo e recriar.
+    await prisma.menuItemVariation.deleteMany();
+    await prisma.menuItem.deleteMany();
 
-    // 2
-    await prisma.menuItem.upsert({
-        where: { id: 2 },
-        update: {},
-        create: {
-            id: 2,
-            name: 'Combinado Osaka (20 peças)',
-            description: '5 Sashimi Salmão, 5 Uramaki Filadélfia, 5 Niguiri Salmão, 5 Hossomaki.',
-            price: 89.90,
-            category: 'Combinados',
-            available: true,
-            applyMarkup: true,
-            manualPriceEnabled: false,
-        }
-    });
+    // Helper para criar item com variações
+    async function createItemWithVariations(
+        name: string,
+        description: string,
+        price: number,
+        category: string,
+        variations: { name: string; type: string; additionalPrice: number }[]
+    ) {
+        const createdItem = await prisma.menuItem.create({
+            data: {
+                name,
+                description,
+                price,
+                category,
+                available: true,
+                variations: {
+                    create: variations,
+                },
+            },
+        });
+        console.log(`Criado: ${createdItem.name} com ${variations.length} variações.`);
+        return createdItem;
+    }
 
-    // 3
-    await prisma.menuItem.upsert({
-        where: { id: 3 },
-        update: {},
-        create: {
-            id: 3,
-            name: 'Yakisoba Misto',
-            description: 'Macarrão tradicional com carne, frango, legumes selecionados e molho especial da casa.',
-            price: 45.00,
-            category: 'Pratos Quentes',
-            available: true,
-            applyMarkup: true,
-            manualPriceEnabled: false,
-        }
-    });
+    // 1. Tempurá
+    await createItemWithVariations(
+        'Tempurá',
+        'Tempura de legumes com ou sem camarão',
+        10.0,
+        'Comidas',
+        [{ name: 'Com Camarão', type: 'SINGLE', additionalPrice: 2.0 }]
+    );
 
-    // 4
-    await prisma.menuItem.upsert({
-        where: { id: 4 },
-        update: {},
-        create: {
-            id: 4,
-            name: 'Refrigerante Lata 350ml',
-            price: 6.50,
-            category: 'Bebidas',
-            available: true,
-            applyMarkup: false,
-            manualPriceEnabled: false,
-            variations: {
-                create: [
-                    { id: 2, name: 'Coca-Cola Zero', type: 'SINGLE', additionalPrice: 0 },
-                    { id: 3, name: 'Guaraná Antarctica', type: 'SINGLE', additionalPrice: 0 }
-                ]
-            }
-        }
-    });
+    // 2. Takoyaki
+    await createItemWithVariations(
+        'Takoyaki',
+        'Bolinho de com recheio de polvo',
+        23.0,
+        'Comidas',
+        []
+    );
 
-    console.log('Seed completed successfully!');
+    // 3. Temaki
+    await createItemWithVariations(
+        'Temaki',
+        'Temaki de salmão ou camarão',
+        20.0,
+        'Comidas',
+        [
+            { name: 'De Salmão', type: 'SINGLE', additionalPrice: 0.0 },
+            { name: 'De Camarão', type: 'SINGLE', additionalPrice: 0.0 },
+        ]
+    );
+
+    // 4. Gyoza
+    await createItemWithVariations('Gyoza', 'Gyoza de carne bovina com legumes', 17.0, 'Comidas', []);
+
+    // 5. Hot Ball
+    await createItemWithVariations(
+        'Hot Ball',
+        'Bolinho de sushi (salmão ou camarão) com queijo empanado e frito',
+        12.0,
+        'Comidas',
+        [
+            { name: 'De Salmão', type: 'SINGLE', additionalPrice: 0.0 },
+            { name: 'De Camarão', type: 'SINGLE', additionalPrice: 0.0 },
+        ]
+    );
+
+    // 6. Hot Coreano
+    await createItemWithVariations(
+        'Hot Coreano',
+        'Espeto de salmão ou camarão com queijo empanado com massa estilo coreano',
+        20.0,
+        'Comidas',
+        [
+            { name: 'De Salmão', type: 'SINGLE', additionalPrice: 0.0 },
+            { name: 'De Camarão', type: 'SINGLE', additionalPrice: 0.0 },
+        ]
+    );
+
+    // 7. Yakisoba
+    await createItemWithVariations(
+        'Yakisoba',
+        'Yakisoba de carne e frango com ou sem camarão',
+        22.0,
+        'Comidas',
+        [{ name: 'Com Camarão', type: 'SINGLE', additionalPrice: 5.0 }]
+    );
+
+    // 8. Hot Sushi
+    await createItemWithVariations(
+        'Hot Sushi',
+        'Hot Sushi de salmão ou camarão',
+        35.0,
+        'Comidas',
+        [
+            { name: 'De Salmão', type: 'MULTIPLE', additionalPrice: 0.0 },
+            { name: 'De Camarão', type: 'MULTIPLE', additionalPrice: 0.0 },
+        ]
+    );
+
+    // 9. Pastel
+    await createItemWithVariations(
+        'Pastel',
+        'Pastel de vento com diferentes recheios',
+        6.0,
+        'Comidas',
+        [
+            { name: 'Queijo', type: 'MULTIPLE', additionalPrice: 2.0 },
+            { name: 'Frango', type: 'MULTIPLE', additionalPrice: 2.0 },
+            { name: 'Carne', type: 'MULTIPLE', additionalPrice: 2.0 },
+            { name: 'Calabresa', type: 'MULTIPLE', additionalPrice: 2.0 },
+            { name: 'Catupiry', type: 'MULTIPLE', additionalPrice: 2.0 },
+        ]
+    );
+
+    // 10. Pastel Paraense
+    await createItemWithVariations(
+        'Pastel Paraense',
+        'Pastel com camarão, jambu, queijo e catupiry',
+        15.0,
+        'Comidas',
+        []
+    );
+
+    // 11. Camarão Milanesa
+    await createItemWithVariations(
+        'Camarão Milanesa',
+        'Camarão rosa empanado e frito',
+        0.0,
+        'Comidas',
+        [
+            { name: 'Unidade', type: 'SINGLE', additionalPrice: 6.0 },
+            { name: 'Porção com 5 unidades', type: 'SINGLE', additionalPrice: 25.0 },
+        ]
+    );
+
+    // 12. Polvo no Espeto
+    await createItemWithVariations(
+        'Polvo no Espeto',
+        'Polvo no espeto frito na chapa acompanhado de arroz',
+        20.0,
+        'Comidas',
+        []
+    );
+
+    // 13. Bubble
+    await createItemWithVariations(
+        'Bubble',
+        'Suco com bolinhas saborizadas (300 ml)',
+        15.0,
+        'Bebidas',
+        []
+    );
+
+    console.log('Seed do banco de dados concluído com sucesso!');
 }
 
 main()

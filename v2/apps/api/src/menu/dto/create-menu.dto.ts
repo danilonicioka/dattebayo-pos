@@ -5,4 +5,8 @@ export class CreateMenuDto {
     description?: string;
     available?: boolean;
     stockQuantity?: number;
+    manualPriceEnabled?: boolean;
+    manualPrice?: number | null;
+    applyMarkup?: boolean;
+    variations?: any[];
 }

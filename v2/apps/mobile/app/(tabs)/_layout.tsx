@@ -30,6 +30,19 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="clock.fill" color={color} />,
         }}
       />
+      <Tabs.Screen
+        name="kitchen"
+        options={{
+          title: 'Cozinha',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="list.bullet" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="explore"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }

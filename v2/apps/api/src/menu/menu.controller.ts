@@ -5,7 +5,7 @@ import { UpdateMenuDto } from './dto/update-menu.dto';
 
 @Controller('menu')
 export class MenuController {
-  constructor(private readonly menuService: MenuService) {}
+  constructor(private readonly menuService: MenuService) { }
 
   @Post()
   create(@Body() createMenuDto: CreateMenuDto) {
@@ -24,6 +24,7 @@ export class MenuController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateMenuDto: UpdateMenuDto) {
+    console.log(`[UPDATE MENU] ID: ${id} Payload: `, updateMenuDto);
     return this.menuService.update(+id, updateMenuDto);
   }
 

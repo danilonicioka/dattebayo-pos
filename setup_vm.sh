@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Setup Script for Restaurant POS on Ubuntu VM
+# Setup Script for Restaurant POS on Debian 13 VM
 # Usage: ./setup_vm.sh
 
 set -e
@@ -13,19 +13,24 @@ sudo apt-get update && sudo apt-get upgrade -y
 
 # 2. Install Docker & Docker Compose
 if ! command -v docker &> /dev/null; then
-    echo "🐳 Installing Docker..."
-    sudo apt-get install -y ca-certificates curl gnupg
+    # Add Docker's official GPG key:
+    sudo apt update
+    sudo apt install -y ca-certificates curl
     sudo install -m 0755 -d /etc/apt/keyrings
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-    sudo chmod a+r /etc/apt/keyrings/docker.gpg
+    sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+    sudo chmod a+r /etc/apt/keyrings/docker.asc
 
-    echo \
-      "deb [arch=\"$(dpkg --print-architecture)\" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-      $(. /etc/os-release && echo \"$VERSION_CODENAME\") stable" | \
-      sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-    
-    sudo apt-get update
-    sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+    # Add the repository to Apt sources:
+    sudo tee /etc/apt/sources.list.d/docker.sources <<EOF
+    Types: deb
+    URIs: https://download.docker.com/linux/debian
+    Suites: $(. /etc/os-release && echo "$VERSION_CODENAME")
+    Components: stable
+    Signed-By: /etc/apt/keyrings/docker.asc
+    EOF
+
+    sudo apt update
+    sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
     
     # Add current user to docker group
     sudo usermod -aG docker $USER
@@ -34,27 +39,7 @@ else
     echo "✅ Docker is already installed."
 fi
 
-# 3. Setup Project
-# Ensure git is installed
-if ! command -v git &> /dev/null; then
-    sudo apt-get install -y git
-fi
 
-# Clone or Pull
-REPO_DIR="dattebayo-pos"
-REPO_URL="https://github.com/danilonicioka/dattebayo-pos.git" # REPLACE WITH YOUR ACTUAL REPO URL
-
-if [ -d "$REPO_DIR" ]; then
-    echo "🔄 Updating existing repository..."
-    cd "$REPO_DIR"
-    git pull
-else
-    echo "📥 Cloning repository..."
-    # If the repo URL is private, you might need to use an SSH key or token.
-    # For now, assuming public or user will handle auth.
-    git clone "$REPO_URL" "$REPO_DIR"
-    cd "$REPO_DIR"
-fi
 
 # 4. Configure Environment
 ENV_FILE=".env"

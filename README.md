@@ -32,6 +32,26 @@ your-project/
     └── compose.dev.yml
 ```
 
+## Installation (Production VM)
+
+To deploy this project to a fresh Debian/Ubuntu VM, follow these steps:
+
+1. **Clone the repository:**
+   ```bash
+   git clone git@github.com:danilonicioka/dattebayo-pos.git
+   cd dattebayo-pos
+   ```
+
+2. **Run the setup script:**
+   The `setup_vm.sh` script installs Docker (if missing), generates a default `.env` file, and starts the Docker Compose services in the background.
+   ```bash
+   chmod +x setup_vm.sh
+   ./setup_vm.sh
+   ```
+
+3. **Verify Deployment:**
+   Wait a moment for the images to build and services to start. Your app should then be accessible on port 80 (or the port defined in your `.env`).
+
 ## Getting Started
 
 ### Prerequisites

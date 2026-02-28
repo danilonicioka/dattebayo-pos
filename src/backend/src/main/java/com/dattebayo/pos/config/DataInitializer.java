@@ -64,7 +64,7 @@ public class DataInitializer implements CommandLineRunner {
                 MenuItem temaki = new MenuItem();
                 temaki.setName("Temaki");
                 temaki.setDescription("Temaki de salmão ou camarão");
-                temaki.setPrice(20.00);
+                temaki.setPrice(22.00);
                 temaki.setCategory("Comidas");
                 temaki.setAvailable(true);
                 temaki.getVariations().add(new MenuItemVariation(null, "De Salmão", "SINGLE", 0.00, null, temaki));
@@ -75,7 +75,7 @@ public class DataInitializer implements CommandLineRunner {
                 MenuItem gyoza = new MenuItem();
                 gyoza.setName("Gyoza");
                 gyoza.setDescription("Gyoza de carne bovina com legumes");
-                gyoza.setPrice(17.00);
+                gyoza.setPrice(18.00);
                 gyoza.setCategory("Comidas");
                 gyoza.setAvailable(true);
                 menuItemRepository.save(gyoza);

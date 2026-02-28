@@ -40,16 +40,10 @@ async function main() {
         'Tempura de legumes com ou sem camarão',
         10.0,
         'Comidas',
-        [{ name: 'Com Camarão', type: 'SINGLE', additionalPrice: 2.0 }]
-    );
-
-    // 2. Takoyaki
-    await createItemWithVariations(
-        'Takoyaki',
-        'Bolinho de com recheio de polvo',
-        23.0,
-        'Comidas',
-        []
+        [
+            { name: 'Tradicional (Sem Camarão)', type: 'SINGLE', additionalPrice: 0.0 },
+            { name: 'Com Camarão', type: 'SINGLE', additionalPrice: 2.0 }
+        ]
     );
 
     // 3. Temaki
@@ -63,9 +57,6 @@ async function main() {
             { name: 'De Camarão', type: 'SINGLE', additionalPrice: 0.0 },
         ]
     );
-
-    // 4. Gyoza
-    await createItemWithVariations('Gyoza', 'Gyoza de carne bovina com legumes', 17.0, 'Comidas', []);
 
     // 5. Hot Ball
     await createItemWithVariations(
@@ -97,7 +88,10 @@ async function main() {
         'Yakisoba de carne e frango com ou sem camarão',
         22.0,
         'Comidas',
-        [{ name: 'Com Camarão', type: 'SINGLE', additionalPrice: 5.0 }]
+        [
+            { name: 'Tradicional (Sem Camarão)', type: 'SINGLE', additionalPrice: 0.0 },
+            { name: 'Com Camarão', type: 'SINGLE', additionalPrice: 5.0 }
+        ]
     );
 
     // 8. Hot Sushi
@@ -107,8 +101,8 @@ async function main() {
         35.0,
         'Comidas',
         [
-            { name: 'De Salmão', type: 'MULTIPLE', additionalPrice: 0.0 },
-            { name: 'De Camarão', type: 'MULTIPLE', additionalPrice: 0.0 },
+            { name: 'De Salmão', type: 'SINGLE', additionalPrice: 0.0 },
+            { name: 'De Camarão', type: 'SINGLE', additionalPrice: 0.0 },
         ]
     );
 
@@ -119,51 +113,12 @@ async function main() {
         6.0,
         'Comidas',
         [
-            { name: 'Queijo', type: 'MULTIPLE', additionalPrice: 2.0 },
-            { name: 'Frango', type: 'MULTIPLE', additionalPrice: 2.0 },
-            { name: 'Carne', type: 'MULTIPLE', additionalPrice: 2.0 },
-            { name: 'Calabresa', type: 'MULTIPLE', additionalPrice: 2.0 },
-            { name: 'Catupiry', type: 'MULTIPLE', additionalPrice: 2.0 },
+            { name: 'Queijo', type: 'SINGLE', additionalPrice: 2.0 },
+            { name: 'Frango', type: 'SINGLE', additionalPrice: 2.0 },
+            { name: 'Carne', type: 'SINGLE', additionalPrice: 2.0 },
+            { name: 'Calabresa', type: 'SINGLE', additionalPrice: 2.0 },
+            { name: 'Catupiry', type: 'SINGLE', additionalPrice: 2.0 },
         ]
-    );
-
-    // 10. Pastel Paraense
-    await createItemWithVariations(
-        'Pastel Paraense',
-        'Pastel com camarão, jambu, queijo e catupiry',
-        15.0,
-        'Comidas',
-        []
-    );
-
-    // 11. Camarão Milanesa
-    await createItemWithVariations(
-        'Camarão Milanesa',
-        'Camarão rosa empanado e frito',
-        0.0,
-        'Comidas',
-        [
-            { name: 'Unidade', type: 'SINGLE', additionalPrice: 6.0 },
-            { name: 'Porção com 5 unidades', type: 'SINGLE', additionalPrice: 25.0 },
-        ]
-    );
-
-    // 12. Polvo no Espeto
-    await createItemWithVariations(
-        'Polvo no Espeto',
-        'Polvo no espeto frito na chapa acompanhado de arroz',
-        20.0,
-        'Comidas',
-        []
-    );
-
-    // 13. Bubble
-    await createItemWithVariations(
-        'Bubble',
-        'Suco com bolinhas saborizadas (300 ml)',
-        15.0,
-        'Bebidas',
-        []
     );
 
     console.log('Seed do banco de dados concluído com sucesso!');

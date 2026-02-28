@@ -67,3 +67,4 @@ docker compose -f docker/compose.yml --env-file .env up -d --build
 echo ""
 echo "✅ Deployment complete!"
 echo "🌍 App should be available at http://$(curl -s ifconfig.me)"
+

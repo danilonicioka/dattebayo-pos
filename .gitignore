@@ -37,3 +37,6 @@ captures/
 # Environment variables
 *.env
 .env*
+
+# Node modules
+node_modules/

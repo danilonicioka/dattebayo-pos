@@ -101,8 +101,8 @@ async function main() {
         35.0,
         'Comidas',
         [
-            { name: 'De Salmão', type: 'SINGLE', additionalPrice: 0.0 },
-            { name: 'De Camarão', type: 'SINGLE', additionalPrice: 0.0 },
+            { name: 'De Salmão', type: 'MULTIPLE', additionalPrice: 0.0 },
+            { name: 'De Camarão', type: 'MULTIPLE', additionalPrice: 0.0 },
         ]
     );
 
@@ -113,11 +113,11 @@ async function main() {
         6.0,
         'Comidas',
         [
-            { name: 'Queijo', type: 'SINGLE', additionalPrice: 2.0 },
-            { name: 'Frango', type: 'SINGLE', additionalPrice: 2.0 },
-            { name: 'Carne', type: 'SINGLE', additionalPrice: 2.0 },
-            { name: 'Calabresa', type: 'SINGLE', additionalPrice: 2.0 },
-            { name: 'Catupiry', type: 'SINGLE', additionalPrice: 2.0 },
+            { name: 'Queijo', type: 'MULTIPLE', additionalPrice: 2.0 },
+            { name: 'Frango', type: 'MULTIPLE', additionalPrice: 2.0 },
+            { name: 'Carne', type: 'MULTIPLE', additionalPrice: 2.0 },
+            { name: 'Calabresa', type: 'MULTIPLE', additionalPrice: 2.0 },
+            { name: 'Catupiry', type: 'MULTIPLE', additionalPrice: 2.0 },
         ]
     );
 

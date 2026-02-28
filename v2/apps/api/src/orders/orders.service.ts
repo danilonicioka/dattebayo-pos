@@ -1,11 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class OrdersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async create(createOrderDto: CreateOrderDto) {
     // 1. Mapear itens para o formato do Prisma
@@ -56,11 +60,19 @@ export class OrdersService {
 
         if (!menuItem) continue;
 
-        const hasVariations = item.variations && item.variations.length > 0;
+        const hasVariationsInDb = menuItem.variations.length > 0;
+        const hasVariationsInOrder = item.variations && item.variations.length > 0;
 
-        let deductBaseStock = true;
+        if (hasVariationsInDb && !hasVariationsInOrder) {
+          throw new BadRequestException(
+            `O item ${menuItem.name} requer pelo menos uma variação.`,
+          );
+        }
 
-        // Baixar estoque das variações se houver
+        // Se tem variações no DB, o estoque do produto pai NÃO é gerenciado/deduzido
+        let deductBaseStock = !hasVariationsInDb;
+
+        // Baixar estoque das variações se houver no pedido
         if (item.variations && item.variations.length > 0) {
           for (const vSelected of item.variations) {
             const menuVariation = await tx.menuItemVariation.findUnique({
@@ -76,11 +88,6 @@ export class OrdersService {
                 where: { id: menuVariation.id },
                 data: { stockQuantity: newVStock },
               });
-
-              // Se tem variações, não subtrai estoque do produto base
-              if (hasVariations) {
-                deductBaseStock = false;
-              }
             }
           }
         }
@@ -204,11 +211,13 @@ export class OrdersService {
 
             if (!menuItem) continue;
 
-            const hasVariations = item.variations && item.variations.length > 0;
+            const hasVariationsInDb = menuItem.variations.length > 0;
+            const hasVariationsInOrder = item.variations && item.variations.length > 0;
 
-            let deductBaseStock = true;
+            // Se tem variações no DB, o estoque do produto pai NÃO é estornado
+            let deductBaseStock = !hasVariationsInDb;
 
-            // Retornar estoque das variações
+            // Retornar estoque das variações se houver no pedido
             if (item.variations && item.variations.length > 0) {
               for (const vSelected of item.variations) {
                 const menuVariation = await tx.menuItemVariation.findUnique({
@@ -221,11 +230,6 @@ export class OrdersService {
                     where: { id: menuVariation.id },
                     data: { stockQuantity: newVStock },
                   });
-
-                  // Se a variação tem controle próprio, item base não computa estoque
-                  if (hasVariations) {
-                    deductBaseStock = false;
-                  }
                 }
               }
             }

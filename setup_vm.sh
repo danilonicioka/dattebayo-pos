@@ -57,14 +57,7 @@ EOL
 fi
 
 # 5. Start Application
-echo "🚀 Starting application with Docker Compose..."
-# We use the docker/compose.yml but run from root context (handled by the compose file paths)
-# Actually, the compose file expects context ../src, so running from project root using -f docker/compose.yml works if the context is relative to the compose file.
-# Let's check compose.yml again.
-# context: ../src (relative to docker/compose.yml) -> dattebayo-pos/src. Correct.
-docker compose -f docker/compose.yml --env-file .env up -d --build
-
-echo ""
-echo "✅ Deployment complete!"
-echo "🌍 App should be available at http://$(curl -s ifconfig.me)"
+echo "🚀 Starting application..."
+chmod +x start.sh
+./start.sh
 

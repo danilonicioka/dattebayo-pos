@@ -6,20 +6,21 @@ import { CheckCircle2, ChefHat, Clock, Utensils } from 'lucide-react-native';
 interface KitchenOrderCardProps {
     order: OrderResponseDTO;
     onUpdateStatus: (orderId: number, nextStatus: OrderStatus) => void;
+    isOldest?: boolean;
 }
 
-export function KitchenOrderCard({ order, onUpdateStatus }: KitchenOrderCardProps) {
+export function KitchenOrderCard({ order, onUpdateStatus, isOldest = false }: KitchenOrderCardProps) {
 
     const handleStatusAdvance = () => {
-        if (order.status === 'PENDING') onUpdateStatus(order.id, 'PREPARING');
-        else if (order.status === 'PREPARING') onUpdateStatus(order.id, 'READY');
-        else if (order.status === 'READY') onUpdateStatus(order.id, 'DELIVERED');
+        if (order.status === 'PENDING' || order.status === 'PREPARING') {
+            onUpdateStatus(order.id, 'READY');
+        }
     };
 
     const getStatusColor = () => {
         switch (order.status) {
-            case 'PENDING': return '#F59E0B';    // Laranja
-            case 'PREPARING': return '#3B82F6';  // Azul
+            case 'PENDING':
+            case 'PREPARING': return '#F59E0B';  // Laranja
             case 'READY': return '#10B981';      // Verde
             default: return '#6B7280';           // Cinza
         }
@@ -27,16 +28,15 @@ export function KitchenOrderCard({ order, onUpdateStatus }: KitchenOrderCardProp
 
     const getActionLabel = () => {
         switch (order.status) {
-            case 'PENDING': return 'Aceitar Pedido';
+            case 'PENDING':
             case 'PREPARING': return 'Marcar como Pronto';
-            case 'READY': return 'Entregar ao Cliente';
-            default: return 'Finalizado';
+            default: return '';
         }
     };
 
     const getIcon = () => {
         switch (order.status) {
-            case 'PENDING': return <Clock color="#fff" size={18} />;
+            case 'PENDING':
             case 'PREPARING': return <ChefHat color="#fff" size={18} />;
             case 'READY': return <CheckCircle2 color="#fff" size={18} />;
             default: return <Utensils color="#fff" size={18} />;
@@ -44,12 +44,23 @@ export function KitchenOrderCard({ order, onUpdateStatus }: KitchenOrderCardProp
     }
 
     return (
-        <View style={[styles.card, { borderTopColor: getStatusColor() }]}>
+        <View style={[
+            styles.card,
+            { borderTopColor: getStatusColor() },
+            isOldest && styles.oldestCard
+        ]}>
 
             {/* Cabeçalho do Ticket */}
             <View style={styles.header}>
                 <Text style={styles.tableText}>{order.tableNumber}</Text>
-                <Text style={styles.idText}>#{order.id}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    {isOldest && (
+                        <View style={styles.urgentBadge}>
+                            <Text style={styles.urgentText}>Próximo</Text>
+                        </View>
+                    )}
+                    <Text style={styles.idText}>#{order.id}</Text>
+                </View>
             </View>
             <Text style={styles.timeText}>
                 {new Date(order.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
@@ -141,6 +152,29 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         padding: 12,
         marginBottom: 12,
+    },
+    oldestCard: {
+        borderWidth: 2,
+        borderColor: '#EF4444',
+        shadowColor: '#EF4444',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 6,
+    },
+    urgentBadge: {
+        backgroundColor: '#FEE2E2',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 4,
+        borderWidth: 1,
+        borderColor: '#FCA5A5'
+    },
+    urgentText: {
+        color: '#B91C1C',
+        fontSize: 10,
+        fontWeight: 'bold',
+        textTransform: 'uppercase'
     },
     itemRow: {
         flexDirection: 'row',

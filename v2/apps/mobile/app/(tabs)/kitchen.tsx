@@ -13,9 +13,9 @@ export default function KitchenScreen() {
         return () => clearInterval(interval);
     }, []);
 
-    const pendingOrders = orders.filter((o) => o.status === 'PENDING');
-    const preparingOrders = orders.filter((o) => o.status === 'PREPARING');
-    const readyOrders = orders.filter((o) => o.status === 'READY');
+    const activeOrders = orders
+        .filter((o) => o.status === 'PENDING' || o.status === 'PREPARING')
+        .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
     return (
         <View style={styles.container}>
@@ -32,47 +32,22 @@ export default function KitchenScreen() {
 
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.board}>
 
-                {/* Coluna PENDENTE (Novos) */}
+                {/* Coluna PENDENTE / PREPARANDO (A Fazer / Na Chapa) */}
                 <View style={styles.column}>
                     <View style={[styles.columnHeader, { backgroundColor: '#F59E0B' }]}>
-                        <Text style={styles.columnTitle}>Novos ({pendingOrders.length})</Text>
+                        <Text style={styles.columnTitle}>A Fazer ({activeOrders.length})</Text>
                     </View>
                     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.columnContent}>
-                        {pendingOrders.map((order) => (
-                            <KitchenOrderCard key={`pending-${order.id}`} order={order} onUpdateStatus={updateOrderStatus} />
+                        {activeOrders.map((order, index) => (
+                            <KitchenOrderCard
+                                key={`active-${order.id}`}
+                                order={order}
+                                onUpdateStatus={updateOrderStatus}
+                                isOldest={index === 0}
+                            />
                         ))}
-                        {pendingOrders.length === 0 && (
-                            <Text style={styles.emptyText}>Nenhum novo pedido</Text>
-                        )}
-                    </ScrollView>
-                </View>
-
-                {/* Coluna PREPARANDO */}
-                <View style={styles.column}>
-                    <View style={[styles.columnHeader, { backgroundColor: '#3B82F6' }]}>
-                        <Text style={styles.columnTitle}>Na Chapa ({preparingOrders.length})</Text>
-                    </View>
-                    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.columnContent}>
-                        {preparingOrders.map((order) => (
-                            <KitchenOrderCard key={`preparing-${order.id}`} order={order} onUpdateStatus={updateOrderStatus} />
-                        ))}
-                        {preparingOrders.length === 0 && (
+                        {activeOrders.length === 0 && (
                             <Text style={styles.emptyText}>Cozinha livre</Text>
-                        )}
-                    </ScrollView>
-                </View>
-
-                {/* Coluna PRONTO */}
-                <View style={styles.column}>
-                    <View style={[styles.columnHeader, { backgroundColor: '#10B981' }]}>
-                        <Text style={styles.columnTitle}>Pronto p/ Entrega ({readyOrders.length})</Text>
-                    </View>
-                    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.columnContent}>
-                        {readyOrders.map((order) => (
-                            <KitchenOrderCard key={`ready-${order.id}`} order={order} onUpdateStatus={updateOrderStatus} />
-                        ))}
-                        {readyOrders.length === 0 && (
-                            <Text style={styles.emptyText}>Nenhum pedido aguardando</Text>
                         )}
                     </ScrollView>
                 </View>

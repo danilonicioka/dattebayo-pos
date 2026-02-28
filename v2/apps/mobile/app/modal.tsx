@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, View, Text, FlatList, TouchableOpacity, Alert, ActivityIndicator, Platform } from 'react-native';
+import { StyleSheet, View, Text, FlatList, TouchableOpacity, Alert, ActivityIndicator, Platform, TextInput } from 'react-native';
 import { useCartStore, getCartTotal } from '@/store/cartStore';
 import { Minus, Plus, Trash2, ShoppingCart } from 'lucide-react-native';
 import { api } from '@/services/api';
@@ -9,6 +9,9 @@ export default function ModalScreen() {
   const { items, addOrderItem, removeOrderItem, clearCart } = useCartStore();
   const cartTotal = getCartTotal(items);
   const [isLoading, setIsLoading] = useState(false);
+  const [amountReceived, setAmountReceived] = useState('');
+
+  const change = amountReceived ? parseFloat(amountReceived) - cartTotal : 0;
 
   const handleCheckout = async () => {
     try {
@@ -22,7 +25,7 @@ export default function ModalScreen() {
           quantity: item.quantity,
           price: item.price,
           specialInstructions: item.specialInstructions || '',
-          variations: item.variations.map(v => ({
+          variations: item.variations.map((v: any) => ({
             menuItemVariationId: v.menuItemVariationId || v.id,
             name: v.name,
             additionalPrice: v.additionalPrice,
@@ -87,7 +90,7 @@ export default function ModalScreen() {
 
               {item.variations && item.variations.length > 0 && (
                 <View style={{ marginBottom: 4 }}>
-                  {item.variations.map((v, idx) => (
+                  {item.variations.map((v: any, idx: number) => (
                     <Text key={idx} style={styles.variationText}>
                       + {v.name} {v.additionalPrice > 0 ? `(R$ ${v.additionalPrice.toFixed(2).replace('.', ',')})` : ''}
                     </Text>
@@ -96,7 +99,7 @@ export default function ModalScreen() {
               )}
 
               <Text style={styles.price}>
-                R$ {((item.price + item.variations.reduce((acc, v) => acc + v.additionalPrice, 0)) * item.quantity).toFixed(2).replace('.', ',')}
+                R$ {((item.price + item.variations.reduce((acc: number, v: any) => acc + v.additionalPrice, 0)) * item.quantity).toFixed(2).replace('.', ',')}
               </Text>
             </View>
 
@@ -128,6 +131,29 @@ export default function ModalScreen() {
           <Text style={styles.totalLabel}>Total</Text>
           <Text style={styles.totalValue}>R$ {cartTotal.toFixed(2).replace('.', ',')}</Text>
         </View>
+
+        <View style={styles.paymentSection}>
+          <View style={styles.inputRow}>
+            <Text style={styles.inputLabel}>Valor Recebido</Text>
+            <TextInput
+              style={styles.textInput}
+              placeholder="0,00"
+              keyboardType="numeric"
+              value={amountReceived}
+              onChangeText={(text) => setAmountReceived(text.replace(',', '.'))}
+            />
+          </View>
+
+          {amountReceived !== '' && (
+            <View style={styles.changeRow}>
+              <Text style={styles.changeLabel}>Troco</Text>
+              <Text style={[styles.changeValue, change < 0 && styles.changeNegative]}>
+                R$ {change.toFixed(2).replace('.', ',')}
+              </Text>
+            </View>
+          )}
+        </View>
+
         <TouchableOpacity
           style={[styles.checkoutBtn, isLoading && styles.checkoutBtnDisabled]}
           onPress={handleCheckout}
@@ -273,5 +299,58 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  paymentSection: {
+    marginBottom: 20,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  inputRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  inputLabel: {
+    fontSize: 16,
+    color: '#4B5563',
+    fontWeight: '500',
+  },
+  textInput: {
+    backgroundColor: '#FFF',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    width: 100,
+    textAlign: 'right',
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1A1A1A',
+  },
+  changeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+  },
+  changeLabel: {
+    fontSize: 16,
+    color: '#4B5563',
+    fontWeight: 'bold',
+  },
+  changeValue: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#059669',
+  },
+  changeNegative: {
+    color: '#D32F2F',
   }
 });

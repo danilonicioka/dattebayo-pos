@@ -5,23 +5,24 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class OrdersService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async create(createOrderDto: CreateOrderDto) {
     // 1. Mapear itens para o formato do Prisma
-    const mapped = createOrderDto.items.map(item => ({
+    const mapped = createOrderDto.items.map((item) => ({
       menuItemId: item.menuItemId,
       name: item.name,
       quantity: item.quantity,
       price: item.price,
       specialInstructions: item.specialInstructions,
       variations: {
-        create: item.variations?.map(variation => ({
-          menuItemVariationId: variation.menuItemVariationId,
-          name: variation.name,
-          additionalPrice: variation.additionalPrice
-        })) || []
-      }
+        create:
+          item.variations?.map((variation) => ({
+            menuItemVariationId: variation.menuItemVariationId,
+            name: variation.name,
+            additionalPrice: variation.additionalPrice,
+          })) || [],
+      },
     }));
 
     // 2. Executar criação e baixa de estoque em uma transação
@@ -33,31 +34,29 @@ export class OrdersService {
           notes: createOrderDto.notes,
           status: 'PENDING',
           items: {
-            create: mapped
-          }
+            create: mapped,
+          },
         },
         include: {
           items: {
             include: {
               variations: true,
-              menuItem: true
-            }
-          }
-        }
+              menuItem: true,
+            },
+          },
+        },
       });
 
       // Baixar estoque dos itens e variações
       for (const item of createOrderDto.items) {
         const menuItem = await tx.menuItem.findUnique({
           where: { id: item.menuItemId },
-          include: { variations: true }
+          include: { variations: true },
         });
 
         if (!menuItem) continue;
 
-        const isMandatoryRadio = menuItem.variations.length > 1 && menuItem.variations[0].type === 'SINGLE';
-        const isMandatoryMulti = menuItem.variations.length > 0 && menuItem.variations[0].type === 'MULTIPLE';
-        const hasMandatoryVariations = isMandatoryRadio || isMandatoryMulti;
+        const hasVariations = item.variations && item.variations.length > 0;
 
         let deductBaseStock = true;
 
@@ -65,32 +64,34 @@ export class OrdersService {
         if (item.variations && item.variations.length > 0) {
           for (const vSelected of item.variations) {
             const menuVariation = await tx.menuItemVariation.findUnique({
-              where: { id: vSelected.menuItemVariationId }
+              where: { id: vSelected.menuItemVariationId },
             });
 
             if (menuVariation && menuVariation.stockQuantity !== null) {
-              const newVStock = Math.max(0, menuVariation.stockQuantity - item.quantity);
+              const newVStock = Math.max(
+                0,
+                menuVariation.stockQuantity - item.quantity,
+              );
               await tx.menuItemVariation.update({
                 where: { id: menuVariation.id },
-                data: { stockQuantity: newVStock }
+                data: { stockQuantity: newVStock },
               });
 
-              // Se a variação tem controle próprio e é obrigatória, 
-              // consideramos que ela "é" o produto físico principal neste contexto.
-              if (hasMandatoryVariations) {
+              // Se tem variações, não subtrai estoque do produto base
+              if (hasVariations) {
                 deductBaseStock = false;
               }
             }
           }
         }
 
-        // Baixar estoque do item principal, a menos que ele tenha delegado 
+        // Baixar estoque do item principal, a menos que ele tenha delegado
         // o controle para a variação obrigatória.
         if (deductBaseStock && menuItem.stockQuantity !== null) {
           const newStock = Math.max(0, menuItem.stockQuantity - item.quantity);
           await tx.menuItem.update({
             where: { id: menuItem.id },
-            data: { stockQuantity: newStock }
+            data: { stockQuantity: newStock },
           });
         }
       }
@@ -102,7 +103,7 @@ export class OrdersService {
   findAll() {
     return this.prisma.order.findMany({
       include: { items: { include: { variations: true } } },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -118,17 +119,17 @@ export class OrdersService {
         status: 'DELIVERED',
         createdAt: {
           gte: startOfDay,
-          lte: endOfDay
-        }
+          lte: endOfDay,
+        },
       },
       include: {
         items: {
           include: {
-            variations: true
-          }
-        }
+            variations: true,
+          },
+        },
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
 
     let totalRevenue = 0;
@@ -140,53 +141,122 @@ export class OrdersService {
         for (const v of item.variations) {
           itemTotal += v.additionalPrice;
         }
-        orderTotal += (itemTotal * item.quantity);
+        orderTotal += itemTotal * item.quantity;
       }
       totalRevenue += orderTotal;
     }
 
-    const recentOrders = orders.slice(0, 10).map(order => {
+    const recentOrders = orders.slice(0, 10).map((order) => {
       let total = 0;
       for (const item of order.items) {
         let itemTotal = item.price;
         for (const v of item.variations) {
           itemTotal += v.additionalPrice;
         }
-        total += (itemTotal * item.quantity);
+        total += itemTotal * item.quantity;
       }
       return {
         id: order.id,
         tableNumber: order.tableNumber,
         total,
         createdAt: order.createdAt,
-        itemsCount: order.items.reduce((acc, curr) => acc + curr.quantity, 0)
-      }
+        itemsCount: order.items.reduce((acc, curr) => acc + curr.quantity, 0),
+      };
     });
 
     return {
       totalRevenue,
       totalOrders: orders.length,
-      recentOrders
+      recentOrders,
     };
   }
 
   findOne(id: number) {
     return this.prisma.order.findUnique({
       where: { id },
-      include: { items: { include: { variations: true, menuItem: true } } }
+      include: { items: { include: { variations: true, menuItem: true } } },
     });
   }
 
-  update(id: number, updateOrderDto: UpdateOrderDto) {
+  async update(id: number, updateOrderDto: UpdateOrderDto) {
+    if (updateOrderDto.status === 'CANCELLED') {
+      return this.prisma.$transaction(async (tx) => {
+        const order = await tx.order.findUnique({
+          where: { id },
+          include: {
+            items: {
+              include: { variations: true },
+            },
+          },
+        });
+
+        if (!order) throw new Error('Order not found');
+
+        if (order.status !== 'CANCELLED') {
+          // Devolver estoque
+          for (const item of order.items) {
+            if (!item.menuItemId) continue;
+
+            const menuItem = await tx.menuItem.findUnique({
+              where: { id: item.menuItemId },
+              include: { variations: true },
+            });
+
+            if (!menuItem) continue;
+
+            const hasVariations = item.variations && item.variations.length > 0;
+
+            let deductBaseStock = true;
+
+            // Retornar estoque das variações
+            if (item.variations && item.variations.length > 0) {
+              for (const vSelected of item.variations) {
+                const menuVariation = await tx.menuItemVariation.findUnique({
+                  where: { id: vSelected.menuItemVariationId },
+                });
+
+                if (menuVariation && menuVariation.stockQuantity !== null) {
+                  const newVStock = menuVariation.stockQuantity + item.quantity;
+                  await tx.menuItemVariation.update({
+                    where: { id: menuVariation.id },
+                    data: { stockQuantity: newVStock },
+                  });
+
+                  // Se a variação tem controle próprio, item base não computa estoque
+                  if (hasVariations) {
+                    deductBaseStock = false;
+                  }
+                }
+              }
+            }
+
+            // Retornar estoque do item principal, a menos que controle seja da variação
+            if (deductBaseStock && menuItem.stockQuantity !== null) {
+              const newStock = menuItem.stockQuantity + item.quantity;
+              await tx.menuItem.update({
+                where: { id: menuItem.id },
+                data: { stockQuantity: newStock },
+              });
+            }
+          }
+        }
+
+        return tx.order.update({
+          where: { id },
+          data: updateOrderDto as any,
+        });
+      });
+    }
+
     return this.prisma.order.update({
       where: { id },
-      data: updateOrderDto as any
+      data: updateOrderDto as any,
     });
   }
 
   remove(id: number) {
     return this.prisma.order.delete({
-      where: { id }
+      where: { id },
     });
   }
 }

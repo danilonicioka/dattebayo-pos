@@ -24,6 +24,8 @@ export default function EditItemScreen() {
     const [stockQuantity, setStockQuantity] = useState('');
     const [variations, setVariations] = useState<MenuItemVariation[]>([]);
 
+    const hasVariations = variations.length > 0;
+
     useEffect(() => {
         if (isEditing) {
             loadItemContext(Number(id));
@@ -195,16 +197,18 @@ export default function EditItemScreen() {
                 </View>
 
 
-                <View style={[styles.formGroup, { flex: 1 }]}>
-                    <Text style={styles.label}>Estoque (Qtd)</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Ilimitado"
-                        keyboardType="number-pad"
-                        value={stockQuantity}
-                        onChangeText={setStockQuantity}
-                    />
-                </View>
+                {!hasVariations && (
+                    <View style={[styles.formGroup, { flex: 1 }]}>
+                        <Text style={styles.label}>Estoque Principal</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Ilimitado"
+                            keyboardType="number-pad"
+                            value={stockQuantity}
+                            onChangeText={setStockQuantity}
+                        />
+                    </View>
+                )}
             </View>
 
             <View style={styles.formGroup}>
@@ -289,6 +293,7 @@ export default function EditItemScreen() {
                                         setVariations(newVars);
                                     }}
                                 />
+
                                 <View style={{ flexDirection: 'row', gap: 10 }}>
                                     <View style={{ flex: 1 }}>
                                         <Text style={styles.miniLabel}>Preço Adicional (R$)</Text>

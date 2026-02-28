@@ -110,7 +110,7 @@ export default function GerenciarScreen() {
                                         </View>
                                     )}
 
-                                    {item.stockQuantity !== undefined && (
+                                    {item.stockQuantity !== undefined && (!item.variations || item.variations.length === 0) && (
                                         <View style={styles.stockInfo}>
                                             <IconSymbol name="package.fill" size={12} color={item.stockQuantity === 0 ? '#EF4444' : '#6B7280'} />
                                             <Text style={[

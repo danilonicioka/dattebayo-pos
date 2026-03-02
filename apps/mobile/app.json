@@ -17,7 +17,8 @@
         "foregroundImage": "./assets/images/dattebayo_logo.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.anonymous.mobile"
     },
     "web": {
       "favicon": "./assets/images/dattebayo_logo.png"

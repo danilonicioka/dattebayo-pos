@@ -5,6 +5,9 @@
 
 set -e # Interrompe o script se ocorrer algum erro
 
+# Define o caminho do Android SDK padrão do Linux (necessário para o Gradle)
+export ANDROID_HOME=$HOME/Android/Sdk
+
 echo "🚀 Iniciando build local do aplicativo Android..."
 
 # 1. Navegar para a pasta correta

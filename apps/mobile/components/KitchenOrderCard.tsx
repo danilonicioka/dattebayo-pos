@@ -57,7 +57,7 @@ export function KitchenOrderCard({ order, onUpdateStatus, isOldest = false }: Ki
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                     {isOldest && <Flame size={20} color="#EF4444" fill="#EF4444" />}
                     <Text style={styles.tableText}>
-                        Mesa {order.tableNumber.toString().padStart(2, '0')}
+                        {order.tableNumber ? `${order.tableNumber}` : `Pedido`}
                     </Text>
                 </View>
                 <Text style={styles.idText}>#{order.id}</Text>

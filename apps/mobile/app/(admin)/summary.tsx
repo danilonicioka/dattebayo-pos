@@ -5,6 +5,7 @@ import { api } from '@/services/api';
 import { router } from 'expo-router';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { TouchableOpacity, Alert, Platform } from 'react-native';
+import { scale, fontScale, verticalScale } from '@/utils/responsive';
 
 interface SalesSummary {
     totalRevenue: number;
@@ -84,9 +85,9 @@ export default function SummaryScreen() {
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale(12) }}>
                     <TouchableOpacity onPress={() => router.replace('/')}>
-                        <IconSymbol name="chevron.left" color="#ffffff" size={28} />
+                        <IconSymbol name="chevron.left" color="#ffffff" size={scale(28)} />
                     </TouchableOpacity>
                     <View>
                         <Text style={styles.greeting}>Administração</Text>
@@ -94,8 +95,7 @@ export default function SummaryScreen() {
                     </View>
                 </View>
                 <TouchableOpacity onPress={handleClear} style={styles.clearButton}>
-                    <IconSymbol name="trash.fill" color="#ffffff" size={20} />
-                    <Text style={styles.clearButtonText}>Limpar</Text>
+                    <IconSymbol name="trash.fill" color="#ffffff" size={scale(20)} />
                 </TouchableOpacity>
             </View>
 
@@ -107,7 +107,7 @@ export default function SummaryScreen() {
                     {/* Faturamento */}
                     <View style={[styles.metricCard, { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' }]}>
                         <View style={styles.metricHeader}>
-                            <IconSymbol name="trending.up" color="#16A34A" size={24} />
+                            <IconSymbol name="trending.up" color="#16A34A" size={scale(24)} />
                             <Text style={styles.metricTitle}>Faturamento</Text>
                         </View>
                         <Text style={[styles.metricValue, { color: '#16A34A' }]}>
@@ -119,7 +119,7 @@ export default function SummaryScreen() {
                     {/* Volume de Pedidos */}
                     <View style={[styles.metricCard, { backgroundColor: '#EFF6FF', borderColor: '#BFDBFE' }]}>
                         <View style={styles.metricHeader}>
-                            <IconSymbol name="package.fill" color="#2563EB" size={24} />
+                            <IconSymbol name="package.fill" color="#2563EB" size={scale(24)} />
                             <Text style={styles.metricTitle}>Volume</Text>
                         </View>
                         <Text style={[styles.metricValue, { color: '#2563EB' }]}>
@@ -138,7 +138,7 @@ export default function SummaryScreen() {
                             <View key={`product-${idx}`} style={styles.categoryRow}>
                                 <View style={styles.categoryInfo}>
                                     <View style={styles.categoryIconBox}>
-                                        <IconSymbol name="tag.fill" color="#6366F1" size={20} />
+                                        <IconSymbol name="tag.fill" color="#6366F1" size={scale(20)} />
                                     </View>
                                     <View>
                                         <Text style={styles.categoryName}>{stat.name}</Text>
@@ -174,95 +174,89 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 24,
-        paddingTop: 60,
-        paddingBottom: 20,
+        paddingHorizontal: scale(24),
+        paddingTop: verticalScale(60),
+        paddingBottom: verticalScale(20),
         backgroundColor: '#223c0e',
         borderBottomWidth: 0,
-        marginBottom: 16,
+        marginBottom: verticalScale(16),
     },
     greeting: {
-        fontSize: 14,
+        fontSize: fontScale(14),
         color: '#d4edda',
         fontWeight: '500',
     },
     title: {
-        fontSize: 28,
+        fontSize: fontScale(28),
         fontWeight: 'bold',
         color: '#ffffff',
-        marginTop: 4,
+        marginTop: verticalScale(4),
     },
     clearButton: {
-        flexDirection: 'row',
+        width: scale(40),
+        height: scale(40),
+        justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#DC2626',
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        borderRadius: 8,
-        gap: 6,
-    },
-    clearButtonText: {
-        color: '#ffffff',
-        fontWeight: 'bold',
-        fontSize: 14,
+        borderRadius: scale(8),
     },
     content: {
-        padding: 24,
-        paddingBottom: 100,
+        padding: scale(24),
+        paddingBottom: verticalScale(100),
     },
     metricsGrid: {
         flexDirection: 'column',
-        gap: 16,
-        marginBottom: 32,
+        gap: scale(16),
+        marginBottom: verticalScale(32),
     },
     metricCard: {
-        padding: 20,
-        borderRadius: 16,
+        padding: scale(20),
+        borderRadius: scale(16),
         borderWidth: 1,
     },
     metricHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
-        marginBottom: 16,
+        gap: scale(12),
+        marginBottom: verticalScale(16),
     },
     metricTitle: {
-        fontSize: 16,
+        fontSize: fontScale(16),
         fontWeight: '600',
         color: '#4B5563',
     },
     metricValue: {
-        fontSize: 36,
+        fontSize: fontScale(36),
         fontWeight: '900',
-        marginBottom: 4,
+        marginBottom: verticalScale(4),
     },
     metricSubtitle: {
-        fontSize: 13,
+        fontSize: fontScale(13),
         color: '#6B7280',
     },
     sectionTitle: {
-        fontSize: 20,
+        fontSize: fontScale(20),
         fontWeight: 'bold',
         color: '#111827',
-        marginBottom: 16,
+        marginBottom: verticalScale(16),
     },
     emptyState: {
-        padding: 24,
+        padding: scale(24),
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: '#fff',
-        borderRadius: 12,
-        marginBottom: 24,
+        borderRadius: scale(12),
+        marginBottom: verticalScale(24),
     },
     emptyStateText: {
-        fontSize: 16,
+        fontSize: fontScale(16),
         color: '#6B7280',
     },
     categoryList: {
         backgroundColor: '#fff',
-        borderRadius: 12,
-        padding: 16,
-        marginBottom: 24,
+        borderRadius: scale(12),
+        padding: scale(16),
+        marginBottom: verticalScale(24),
         borderWidth: 1,
         borderColor: '#F3F4F6',
     },
@@ -270,35 +264,35 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingVertical: 12,
+        paddingVertical: verticalScale(12),
         borderBottomWidth: 1,
         borderBottomColor: '#F3F4F6',
     },
     categoryInfo: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
+        gap: scale(12),
     },
     categoryIconBox: {
-        width: 40,
-        height: 40,
-        borderRadius: 8,
+        width: scale(40),
+        height: scale(40),
+        borderRadius: scale(8),
         backgroundColor: '#EEF2FF',
         justifyContent: 'center',
         alignItems: 'center',
     },
     categoryName: {
-        fontSize: 16,
+        fontSize: fontScale(16),
         fontWeight: 'bold',
         color: '#1F2937',
     },
     categoryVolume: {
-        fontSize: 14,
+        fontSize: fontScale(14),
         color: '#6B7280',
-        marginTop: 2,
+        marginTop: verticalScale(2),
     },
     categoryRevenue: {
-        fontSize: 16,
+        fontSize: fontScale(16),
         fontWeight: 'bold',
         color: '#10B981',
     }

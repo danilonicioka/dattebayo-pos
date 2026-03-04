@@ -5,12 +5,14 @@ import { Minus, Plus, Trash2, ShoppingCart } from 'lucide-react-native';
 import { api } from '@/services/api';
 import { router } from 'expo-router';
 import { formatProductNameWithVariations } from '@/utils/formatters';
+import { scale, fontScale, verticalScale } from '@/utils/responsive';
 
 export default function ModalScreen() {
   const { items, addOrderItem, removeOrderItem, clearCart } = useCartStore();
   const cartTotal = getCartTotal(items);
   const [isLoading, setIsLoading] = useState(false);
   const [amountReceived, setAmountReceived] = useState('');
+  const [customerName, setCustomerName] = useState('');
 
   const change = amountReceived ? parseFloat(amountReceived) - cartTotal : 0;
 
@@ -18,7 +20,7 @@ export default function ModalScreen() {
     try {
       setIsLoading(true);
       const orderDto = {
-        tableNumber: 'Mesa 1', // Mockado por enquanto
+        tableNumber: customerName || null,
         notes: 'Pedido via App',
         items: items.map(item => ({
           menuItemId: item.menuItem.id,
@@ -41,6 +43,7 @@ export default function ModalScreen() {
       if (Platform.OS === 'web') {
         window.alert('Pedido Realizado! 🎉\n\nSeu pedido já foi enviado para a lanchonete.');
         clearCart();
+        setCustomerName('');
         router.back();
       } else {
         Alert.alert(
@@ -51,6 +54,7 @@ export default function ModalScreen() {
               text: 'OK',
               onPress: () => {
                 clearCart();
+                setCustomerName('');
                 router.back();
               }
             }
@@ -68,7 +72,7 @@ export default function ModalScreen() {
   if (items.length === 0) {
     return (
       <View style={[styles.container, styles.emptyContainer]}>
-        <ShoppingCart color="#CCC" size={48} />
+        <ShoppingCart color="#CCC" size={scale(48)} />
         <Text style={styles.emptyTitle}>Seu carrinho está vazio</Text>
         <Text style={styles.emptySubtitle}>Adicione itens do cardápio para fazer um pedido.</Text>
       </View>
@@ -101,7 +105,7 @@ export default function ModalScreen() {
                 style={styles.actionBtn}
                 onPress={() => removeOrderItem(index)}
               >
-                <Trash2 color="#D32F2F" size={18} />
+                <Trash2 color="#D32F2F" size={scale(18)} />
               </TouchableOpacity>
 
               <View style={styles.qtyBox}>
@@ -112,7 +116,7 @@ export default function ModalScreen() {
                 style={styles.actionBtn}
                 onPress={() => addOrderItem(item.menuItem, 1)}
               >
-                <Plus color="#ee8b1b" size={18} />
+                <Plus color="#ee8b1b" size={scale(18)} />
               </TouchableOpacity>
             </View>
           </View>
@@ -127,6 +131,16 @@ export default function ModalScreen() {
 
         <View style={styles.paymentSection}>
           <View style={styles.inputRow}>
+            <Text style={styles.inputLabel}>Nome do Cliente</Text>
+            <TextInput
+              style={[styles.textInput, { width: scale(140), textAlign: 'left' }]}
+              placeholder="Opcional"
+              value={customerName}
+              onChangeText={setCustomerName}
+            />
+          </View>
+
+          <View style={[styles.inputRow, { marginTop: verticalScale(12) }]}>
             <Text style={styles.inputLabel}>Valor Recebido</Text>
             <TextInput
               style={styles.textInput}
@@ -171,118 +185,118 @@ const styles = StyleSheet.create({
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 24,
+    padding: scale(24),
   },
   emptyTitle: {
-    marginTop: 16,
-    fontSize: 20,
+    marginTop: verticalScale(16),
+    fontSize: fontScale(20),
     fontWeight: 'bold',
     color: '#1A1A1A',
   },
   emptySubtitle: {
-    marginTop: 8,
-    fontSize: 14,
+    marginTop: verticalScale(8),
+    fontSize: fontScale(14),
     color: '#666',
     textAlign: 'center',
   },
   title: {
-    fontSize: 24,
+    fontSize: fontScale(24),
     fontWeight: 'bold',
     color: '#1A1A1A',
-    marginHorizontal: 24,
-    marginTop: 24,
-    marginBottom: 16,
+    marginHorizontal: scale(24),
+    marginTop: verticalScale(24),
+    marginBottom: verticalScale(16),
   },
   listContainer: {
-    paddingHorizontal: 24,
-    paddingBottom: 24,
+    paddingHorizontal: scale(24),
+    paddingBottom: verticalScale(24),
   },
   card: {
     backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: scale(12),
+    padding: scale(16),
+    marginBottom: verticalScale(12),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: verticalScale(2) },
     shadowOpacity: 0.05,
-    shadowRadius: 8,
+    shadowRadius: scale(8),
     elevation: 2,
   },
   cardInfo: {
     flex: 1,
-    paddingRight: 16,
+    paddingRight: scale(16),
   },
   itemName: {
-    fontSize: 16,
+    fontSize: fontScale(16),
     fontWeight: '600',
     color: '#1A1A1A',
-    marginBottom: 4,
+    marginBottom: verticalScale(4),
   },
   variationText: {
-    fontSize: 12,
+    fontSize: fontScale(12),
     color: '#666',
     fontStyle: 'italic',
   },
   price: {
-    fontSize: 14,
+    fontSize: fontScale(14),
     color: '#666',
     fontWeight: 'bold',
-    marginTop: 4,
+    marginTop: verticalScale(4),
   },
   actions: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F0F0F0',
-    borderRadius: 8,
-    padding: 4,
+    borderRadius: scale(8),
+    padding: scale(4),
   },
   actionBtn: {
-    width: 32,
-    height: 32,
+    width: scale(32),
+    height: scale(32),
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#FFF',
-    borderRadius: 6,
+    borderRadius: scale(6),
   },
   qtyBox: {
-    width: 32,
+    width: scale(32),
     alignItems: 'center',
     justifyContent: 'center',
   },
   qtyText: {
-    fontSize: 14,
+    fontSize: fontScale(14),
     fontWeight: 'bold',
     color: '#1A1A1A',
   },
   footer: {
-    padding: 24,
+    padding: scale(24),
     backgroundColor: '#fff',
     borderTopWidth: 1,
     borderTopColor: '#F0F0F0',
-    paddingBottom: 40,
+    paddingBottom: verticalScale(40),
   },
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: verticalScale(16),
   },
   totalLabel: {
-    fontSize: 18,
+    fontSize: fontScale(18),
     color: '#666',
   },
   totalValue: {
-    fontSize: 24,
+    fontSize: fontScale(24),
     fontWeight: 'bold',
     color: '#1A1A1A',
   },
   checkoutBtn: {
     backgroundColor: '#ee8b1b', // Dattebayo Orange
-    borderRadius: 12,
-    paddingVertical: 16,
+    borderRadius: scale(12),
+    paddingVertical: verticalScale(16),
     alignItems: 'center',
   },
   checkoutBtnDisabled: {
@@ -290,14 +304,14 @@ const styles = StyleSheet.create({
   },
   checkoutBtnText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: fontScale(16),
     fontWeight: 'bold',
   },
   paymentSection: {
-    marginBottom: 20,
+    marginBottom: verticalScale(20),
     backgroundColor: '#F9FAFB',
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: scale(12),
+    padding: scale(16),
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
@@ -305,10 +319,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: verticalScale(12),
   },
   inputLabel: {
-    fontSize: 16,
+    fontSize: fontScale(16),
     color: '#4B5563',
     fontWeight: '500',
   },
@@ -316,12 +330,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
     borderWidth: 1,
     borderColor: '#D1D5DB',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    width: 100,
+    borderRadius: scale(8),
+    paddingHorizontal: scale(12),
+    paddingVertical: verticalScale(8),
+    width: scale(100),
     textAlign: 'right',
-    fontSize: 16,
+    fontSize: fontScale(16),
     fontWeight: 'bold',
     color: '#1A1A1A',
   },
@@ -329,17 +343,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 12,
+    paddingTop: verticalScale(12),
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
   },
   changeLabel: {
-    fontSize: 16,
+    fontSize: fontScale(16),
     color: '#4B5563',
     fontWeight: 'bold',
   },
   changeValue: {
-    fontSize: 20,
+    fontSize: fontScale(20),
     fontWeight: 'bold',
     color: '#059669',
   },

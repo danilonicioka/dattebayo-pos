@@ -13,7 +13,7 @@ import { UpdateMenuDto } from './dto/update-menu.dto';
 
 @Controller('menu')
 export class MenuController {
-  constructor(private readonly menuService: MenuService) {}
+  constructor(private readonly menuService: MenuService) { }
 
   @Post()
   create(@Body() createMenuDto: CreateMenuDto) {
@@ -23,6 +23,11 @@ export class MenuController {
   @Get()
   findAll() {
     return this.menuService.findAll();
+  }
+
+  @Get('public')
+  findPublic() {
+    return this.menuService.findPublic();
   }
 
   @Get(':id')

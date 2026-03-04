@@ -1,0 +1,333 @@
+.edit-container {
+    padding: 0;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    background-color: #f8f9fa;
+    padding-bottom: 100px;
+}
+
+/* Header */
+.edit-header {
+    background-color: #223c0e;
+    padding: 60px 24px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.header-left {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+}
+
+.title-1 {
+    font-size: 28px;
+    font-weight: bold;
+    color: #ffffff;
+    font-family: 'Outfit', sans-serif;
+    margin: 0;
+}
+
+.greeting-text {
+    font-size: 14px;
+    color: #d4edda;
+    font-weight: 500;
+    margin-bottom: 2px;
+}
+
+.back-btn {
+    background: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.new-item-btn {
+    justify-content: center;
+    align-items: center;
+    background-color: #ee8b1b;
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: flex;
+}
+
+/* List Area */
+.scroll-area {
+    padding: 0 24px;
+    flex: 1;
+}
+
+.category-section {
+    margin-bottom: 24px;
+}
+
+.category-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #374151;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #E5E7EB;
+    padding-bottom: 8px;
+    font-family: 'Outfit', sans-serif;
+}
+
+.item-card {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    border: 1px solid #F3F4F6;
+}
+
+.item-card.disabled {
+    background-color: #F9FAFB;
+    opacity: 0.7;
+}
+
+.item-info {
+    flex: 1;
+}
+
+.item-name {
+    font-size: 16px;
+    font-weight: bold;
+    color: #111827;
+    margin: 0;
+}
+
+.item-price {
+    font-size: 15px;
+    color: #10B981;
+    font-weight: 600;
+    margin-top: 4px;
+}
+
+.item-price.manual {
+    color: #6366F1;
+}
+
+.item-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.switch-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.switch-label {
+    font-size: 10px;
+    color: #111827;
+    font-weight: 500;
+}
+
+.edit-button {
+    padding: 8px;
+    background-color: #F3F4F6;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    color: #4B5563;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Switch Styling (Simple CSS Toggle) */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 20px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #D1D5DB;
+    transition: .4s;
+    border-radius: 20px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked+.slider {
+    background-color: #10B981;
+}
+
+input:checked+.slider:before {
+    transform: translateX(20px);
+}
+
+/* Form Overlay/Modal */
+.form-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: flex-end;
+    z-index: 1000;
+}
+
+.form-panel {
+    background-color: #fff;
+    width: 100%;
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+    padding: 24px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.form-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #1A1A1A;
+    margin: 0 0 24px;
+    font-family: 'Outfit', sans-serif;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #6B7280;
+    margin-bottom: 8px;
+}
+
+.form-input,
+.form-textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    font-size: 16px;
+    background-color: #fff;
+    box-sizing: border-box;
+}
+
+.form-textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+.checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 32px;
+}
+
+.btn-cancel {
+    flex: 1;
+    padding: 16px;
+    border-radius: 12px;
+    background-color: #F3F4F6;
+    border: none;
+    font-weight: bold;
+    color: #4B5563;
+    cursor: pointer;
+}
+
+.btn-save {
+    flex: 2;
+    padding: 16px;
+    border-radius: 12px;
+    background-color: #ee8b1b;
+    border: none;
+    font-weight: bold;
+    color: #fff;
+    cursor: pointer;
+}
+
+.btn-delete {
+    width: 100%;
+    padding: 12px;
+    margin-top: 16px;
+    background: transparent;
+    border: 1px solid #EF4444;
+    color: #EF4444;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.empty-state {
+    text-align: center;
+    color: #6B7280;
+    margin-top: 48px;
+    font-style: italic;
+}
+
+@media (min-width: 769px) {
+    .scroll-area {
+        max-width: 800px;
+        margin: 0 auto;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .form-overlay {
+        justify-content: center;
+        align-items: center;
+    }
+
+    .form-panel {
+        max-width: 500px;
+        border-radius: 24px;
+        margin: 24px;
+    }
+}

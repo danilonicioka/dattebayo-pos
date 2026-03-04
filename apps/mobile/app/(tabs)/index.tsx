@@ -7,6 +7,7 @@ import { api } from '@/services/api';
 import { Link, useFocusEffect, router } from 'expo-router';
 import { useCallback } from 'react';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { scale, fontScale, verticalScale } from '@/utils/responsive';
 
 export default function HomeScreen() {
   const [items, setItems] = useState<MenuItem[]>([]);
@@ -87,12 +88,12 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale(12) }}>
           <TouchableOpacity
             onPress={() => router.push('/(admin)/products')}
             style={styles.managementButton}
           >
-            <IconSymbol name="gearshape.fill" size={22} color="#ffffff" />
+            <IconSymbol name="gearshape.fill" size={scale(22)} color="#ffffff" />
           </TouchableOpacity>
           <View>
             <Text style={styles.greeting}>Olá, Atendente</Text>
@@ -102,7 +103,7 @@ export default function HomeScreen() {
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Link href="/modal" asChild>
             <TouchableOpacity style={styles.cartButton}>
-              <ShoppingCart color="#fff" size={24} />
+              <ShoppingCart color="#fff" size={scale(24)} />
               {itemCount > 0 && (
                 <View style={styles.badge}>
                   <Text style={styles.badgeText}>{itemCount}</Text>
@@ -144,7 +145,7 @@ export default function HomeScreen() {
                     style={styles.addButton}
                     onPress={() => handleAddItem(item)}
                   >
-                    <Plus color="#fff" size={20} />
+                    <Plus color="#fff" size={scale(20)} />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -278,56 +279,56 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingTop: 60,
-    paddingBottom: 20,
+    paddingHorizontal: scale(24),
+    paddingTop: verticalScale(60),
+    paddingBottom: verticalScale(20),
     backgroundColor: '#223c0e',
     borderBottomWidth: 0,
   },
   greeting: {
-    fontSize: 14,
+    fontSize: fontScale(14),
     color: '#d4edda',
     fontWeight: '500',
   },
   title: {
-    fontSize: 28,
+    fontSize: fontScale(28),
     fontWeight: 'bold',
     color: '#ffffff',
-    marginTop: 4,
+    marginTop: verticalScale(4),
   },
   cartButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: scale(48),
+    height: scale(48),
+    borderRadius: scale(24),
     backgroundColor: '#ee8b1b', // Dattebayo Orange
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#ee8b1b',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: verticalScale(4) },
     shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowRadius: scale(8),
     elevation: 5,
   },
   badge: {
     position: 'absolute',
-    top: -4,
-    right: -4,
+    top: scale(-4),
+    right: scale(-4),
     backgroundColor: '#1A1A1A',
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: scale(20),
+    height: scale(20),
+    borderRadius: scale(10),
     justifyContent: 'center',
     alignItems: 'center',
   },
   badgeText: {
     color: '#fff',
-    fontSize: 12,
+    fontSize: fontScale(12),
     fontWeight: 'bold',
   },
   managementButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
+    width: scale(44),
+    height: scale(44),
+    borderRadius: scale(12),
     backgroundColor: '#ffffff20',
     justifyContent: 'center',
     alignItems: 'center',
@@ -335,18 +336,18 @@ const styles = StyleSheet.create({
     borderColor: '#ffffff30',
   },
   listContainer: {
-    padding: 24,
-    paddingBottom: 100,
+    padding: scale(24),
+    paddingBottom: verticalScale(100),
   },
   card: {
     backgroundColor: '#fff',
-    borderRadius: 16,
-    marginBottom: 16,
-    padding: 16,
+    borderRadius: scale(16),
+    marginBottom: verticalScale(16),
+    padding: scale(16),
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: verticalScale(2) },
     shadowOpacity: 0.05,
-    shadowRadius: 8,
+    shadowRadius: scale(8),
     elevation: 2,
     flexDirection: 'row',
   },
@@ -354,16 +355,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   itemName: {
-    fontSize: 18,
+    fontSize: fontScale(18),
     fontWeight: 'bold',
     color: '#1A1A1A',
-    marginBottom: 6,
+    marginBottom: verticalScale(6),
   },
   itemDesc: {
-    fontSize: 14,
+    fontSize: fontScale(14),
     color: '#666',
-    lineHeight: 20,
-    marginBottom: 16,
+    lineHeight: fontScale(20),
+    marginBottom: verticalScale(16),
   },
   priceContainer: {
     flexDirection: 'row',
@@ -372,16 +373,16 @@ const styles = StyleSheet.create({
     marginTop: 'auto',
   },
   price: {
-    fontSize: 18,
+    fontSize: fontScale(18),
     fontWeight: '800',
     color: '#1A1A1A',
   },
 
   addButton: {
     backgroundColor: '#ee8b1b',
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: scale(36),
+    height: scale(36),
+    borderRadius: scale(18),
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -392,42 +393,42 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: '#fff',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
+    borderTopLeftRadius: scale(24),
+    borderTopRightRadius: scale(24),
+    padding: scale(24),
     maxHeight: '80%',
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: fontScale(20),
     fontWeight: 'bold',
     color: '#1A1A1A',
-    marginBottom: 16,
+    marginBottom: verticalScale(16),
   },
   variationsList: {
-    marginBottom: 24,
+    marginBottom: verticalScale(24),
   },
   variationOption: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: verticalScale(12),
     borderBottomWidth: 1,
     borderBottomColor: '#F0F0F0',
   },
   variationName: {
-    fontSize: 16,
+    fontSize: fontScale(16),
     color: '#1A1A1A',
     fontWeight: '500',
   },
   variationPrice: {
-    fontSize: 14,
+    fontSize: fontScale(14),
     color: '#666',
-    marginTop: 4,
+    marginTop: verticalScale(4),
   },
   checkbox: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: scale(24),
+    height: scale(24),
+    borderRadius: scale(12),
     borderWidth: 2,
     borderColor: '#D1D5DB',
     justifyContent: 'center',
@@ -439,36 +440,36 @@ const styles = StyleSheet.create({
   },
   checkboxTick: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: fontScale(14),
     fontWeight: 'bold',
   },
   modalActions: {
     flexDirection: 'row',
-    gap: 12,
+    gap: scale(12),
   },
   cancelBtn: {
     flex: 1,
-    padding: 16,
-    borderRadius: 12,
+    padding: scale(16),
+    borderRadius: scale(12),
     backgroundColor: '#F3F4F6',
     alignItems: 'center',
   },
   cancelBtnText: {
     color: '#4B5563',
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: fontScale(16),
   },
   confirmBtn: {
     flex: 1,
-    padding: 16,
-    borderRadius: 12,
+    padding: scale(16),
+    borderRadius: scale(12),
     backgroundColor: '#ee8b1b',
     alignItems: 'center',
   },
   confirmBtnText: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: fontScale(16),
   },
   variationDisabled: {
     backgroundColor: '#F9FAFB',

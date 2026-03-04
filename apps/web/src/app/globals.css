@@ -1,0 +1,225 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Outfit:wght@100..900&display=swap');
+
+:root {
+  /* Core Palette - Dattebayo Mobile Theme */
+  --primary-green-hsl: 92, 63%, 15%;
+  --primary-green: hsl(var(--primary-green-hsl));
+  --primary-green-hover: hsl(92, 63%, 12%);
+  --primary-green-light: hsla(92, 63%, 15%, 0.1);
+
+  --primary-orange-hsl: 32, 85%, 52%;
+  --primary-orange: hsl(var(--primary-orange-hsl));
+  --primary-orange-hover: hsl(32, 85%, 45%);
+  --primary-orange-light: hsla(32, 85%, 52%, 0.1);
+
+  --secondary-green: #059669;
+  --secondary-green-hover: #047857;
+  --secondary-green-light: #d1fae5;
+
+  /* Surfaces */
+  --bg-page: #f8f9fa;
+  --bg-card: #ffffff;
+  --bg-card-glass: rgba(255, 255, 255, 0.9);
+  --bg-sidebar: var(--primary-green);
+
+  /* Text */
+  --text-primary: #1A1A1A;
+  --text-secondary: #475569;
+  --text-muted: #94A3B8;
+  --text-inverse: #ffffff;
+  --text-green-light: #d4edda;
+
+  /* Borders & Shadows */
+  --border-light: #F1F5F9;
+  /* Slate-100 */
+  --border-strong: #E2E8F0;
+  /* Slate-200 */
+
+  /* Premium Layered Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-premium: 0 20px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05);
+  --shadow-glow: 0 0 20px -5px hsla(32, 85%, 52%, 0.3);
+
+  /* Spacing & Transitions */
+  --spacing-unit: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  --transition-base: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+input,
+textarea {
+  font-family: inherit;
+}
+
+/* Base utility classes for typography */
+.title-1 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.title-2 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.title-3 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.text-body {
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.text-caption {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+/* Glassmorphism Utility */
+.glass {
+  background: var(--bg-card-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Animations */
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.98) translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-in {
+  animation: fadeInScale 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.stagger-1 {
+  animation-delay: 0.05s;
+}
+
+.stagger-2 {
+  animation-delay: 0.1s;
+}
+
+.stagger-3 {
+  animation-delay: 0.15s;
+}
+
+.stagger-4 {
+  animation-delay: 0.2s;
+}
+
+/* Application Layout Structure */
+.app-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  margin-left: 260px;
+  /* Width of persistent sidebar */
+  background-color: var(--bg-page);
+  min-height: 100vh;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 80px;
+  }
+
+  .sidebar .brand-subtitle,
+  .sidebar .nav-link span,
+  .sidebar .user-info {
+    display: none;
+  }
+
+  .sidebar-header {
+    padding: 24px 16px;
+    text-align: center;
+  }
+
+  .sidebar-nav {
+    padding: 16px 8px;
+  }
+
+  .main-content {
+    margin-left: 80px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
+  }
+
+  .main-content {
+    margin-left: 0;
+    padding-bottom: 80px;
+    /* Space for bottom mobile nav */
+  }
+
+  .title-1 {
+    font-size: 1.75rem;
+  }
+
+  .title-2 {
+    font-size: 1.25rem;
+  }
+
+  .title-3 {
+    font-size: 1.25rem;
+  }
+}

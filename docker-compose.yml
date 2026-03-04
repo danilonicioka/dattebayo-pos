@@ -22,6 +22,24 @@ services:
     networks:
       - app_network
 
+  # Front-end da Aplicação Web em Next.js
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: dattebayo_web
+    restart: unless-stopped
+    ports:
+      # Expõe a porta 80 para acesso no navegador
+      - "80:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://localhost:3000
+    depends_on:
+      - api
+    networks:
+      - app_network
+
 networks:
   app_network:
     driver: bridge

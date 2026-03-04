@@ -4,6 +4,7 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { MenuItem, CreateMenuItemDTO, UpdateMenuItemDTO, MenuItemVariation } from '@dattebayo/core';
 import { api } from '@/services/api';
 import { Trash2, Plus } from 'lucide-react-native';
+import { scale, fontScale, verticalScale } from '@/utils/responsive';
 
 export default function EditItemScreen() {
     const { id } = useLocalSearchParams();
@@ -175,7 +176,7 @@ export default function EditItemScreen() {
             </View>
 
             <View style={styles.row}>
-                <View style={[styles.formGroup, { flex: 1, marginRight: 12 }]}>
+                <View style={[styles.formGroup, { flex: 1, marginRight: scale(12) }]}>
                     <Text style={[styles.label, manualPriceEnabled && { color: '#9CA3AF' }]}>Preço Fixo (R$) <Text style={styles.asterisk}>*</Text></Text>
                     <TextInput
                         style={[styles.input, manualPriceEnabled && { backgroundColor: '#F3F4F6' }]}
@@ -238,7 +239,7 @@ export default function EditItemScreen() {
                 </View>
 
                 {manualPriceEnabled && (
-                    <View style={{ marginTop: 12 }}>
+                    <View style={{ marginTop: verticalScale(12) }}>
                         <Text style={styles.label}>Preço com Desconto/Manual (R$)</Text>
                         <TextInput
                             style={styles.input}
@@ -273,7 +274,7 @@ export default function EditItemScreen() {
                     style={styles.addVariationBtn}
                     onPress={() => setVariations([...variations, { name: '', additionalPrice: 0, type: 'SINGLE', stockQuantity: null }])}
                 >
-                    <Plus size={16} color="#ee8b1b" />
+                    <Plus size={scale(16)} color="#ee8b1b" />
                     <Text style={styles.addVariationText}>Adicionar</Text>
                 </TouchableOpacity>
             </View>
@@ -282,7 +283,7 @@ export default function EditItemScreen() {
                 <View style={styles.variationList}>
                     {variations.map((v, index) => (
                         <View key={index} style={styles.variationCard}>
-                            <View style={{ flex: 1, gap: 10 }}>
+                            <View style={{ flex: 1, gap: scale(10) }}>
                                 <TextInput
                                     style={styles.variationInput}
                                     placeholder="Nome da Variação (ex: Lata 350ml)"
@@ -294,7 +295,7 @@ export default function EditItemScreen() {
                                     }}
                                 />
 
-                                <View style={{ flexDirection: 'row', gap: 10 }}>
+                                <View style={{ flexDirection: 'row', gap: scale(10) }}>
                                     <View style={{ flex: 1 }}>
                                         <Text style={styles.miniLabel}>Preço Adicional (R$)</Text>
                                         <TextInput
@@ -329,7 +330,7 @@ export default function EditItemScreen() {
                                 style={styles.removeVarBtn}
                                 onPress={() => setVariations(variations.filter((_, i) => i !== index))}
                             >
-                                <Trash2 size={18} color="#EF4444" />
+                                <Trash2 size={scale(18)} color="#EF4444" />
                             </TouchableOpacity>
                         </View>
                     ))}
@@ -357,7 +358,7 @@ export default function EditItemScreen() {
             )}
 
             {/* Spacer para não grudar no teclado no iOS */}
-            <View style={{ height: 60 }} />
+            <View style={{ height: verticalScale(60) }} />
         </ScrollView>
     );
 }
@@ -368,8 +369,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#f8f9fa',
     },
     content: {
-        padding: 20,
-        paddingTop: 40,
+        padding: scale(20),
+        paddingTop: verticalScale(40),
     },
     center: {
         flex: 1,
@@ -377,27 +378,27 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     pageTitle: {
-        fontSize: 28,
+        fontSize: fontScale(28),
         fontWeight: '900',
         color: '#111827',
-        marginBottom: 4,
+        marginBottom: verticalScale(4),
     },
     hint: {
-        fontSize: 14,
+        fontSize: fontScale(14),
         color: '#6B7280',
-        marginBottom: 24,
+        marginBottom: verticalScale(24),
     },
     formGroup: {
-        marginBottom: 16,
+        marginBottom: verticalScale(16),
     },
     row: {
         flexDirection: 'row',
     },
     label: {
-        fontSize: 14,
+        fontSize: fontScale(14),
         fontWeight: '600',
         color: '#374151',
-        marginBottom: 8,
+        marginBottom: verticalScale(8),
     },
     asterisk: {
         color: '#E11D48',
@@ -406,14 +407,14 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         borderWidth: 1,
         borderColor: '#E5E7EB',
-        borderRadius: 8,
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        fontSize: 16,
+        borderRadius: scale(8),
+        paddingHorizontal: scale(16),
+        paddingVertical: verticalScale(12),
+        fontSize: fontScale(16),
         color: '#111827',
     },
     textArea: {
-        height: 100,
+        height: verticalScale(100),
         textAlignVertical: 'top',
     },
     inputDisabled: {
@@ -425,27 +426,27 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         backgroundColor: '#fff',
-        padding: 16,
-        borderRadius: 8,
+        padding: scale(16),
+        borderRadius: scale(8),
         borderWidth: 1,
         borderColor: '#E5E7EB',
-        marginBottom: 32,
+        marginBottom: verticalScale(32),
     },
     switchTextContainer: {
         flex: 1,
-        paddingRight: 16,
+        paddingRight: scale(16),
     },
     hintText: {
-        fontSize: 12,
+        fontSize: fontScale(12),
         color: '#6B7280',
-        marginTop: 2,
+        marginTop: verticalScale(2),
     },
     saveButton: {
         backgroundColor: '#ee8b1b', // Laranja do botão V1
-        padding: 16,
-        borderRadius: 8,
+        padding: scale(16),
+        borderRadius: scale(8),
         alignItems: 'center',
-        marginBottom: 16,
+        marginBottom: verticalScale(16),
     },
     saveButtonDisabled: {
         opacity: 0.7,
@@ -453,11 +454,11 @@ const styles = StyleSheet.create({
     saveText: {
         color: '#fff',
         fontWeight: 'bold',
-        fontSize: 16,
+        fontSize: fontScale(16),
     },
     deleteButton: {
-        padding: 16,
-        borderRadius: 8,
+        padding: scale(16),
+        borderRadius: scale(8),
         alignItems: 'center',
         borderWidth: 1,
         borderColor: '#FCA5A5',
@@ -466,60 +467,60 @@ const styles = StyleSheet.create({
     deleteText: {
         color: '#DC2626',
         fontWeight: 'bold',
-        fontSize: 16,
+        fontSize: fontScale(16),
     },
     // Variações Styles
     variationHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 12,
-        marginTop: 8,
+        marginBottom: verticalScale(12),
+        marginTop: verticalScale(8),
     },
     addVariationBtn: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 4,
-        padding: 6,
+        gap: scale(4),
+        padding: scale(6),
         backgroundColor: '#EEF2FF',
-        borderRadius: 6,
+        borderRadius: scale(6),
     },
     addVariationText: {
         color: '#ee8b1b',
-        fontSize: 12,
+        fontSize: fontScale(12),
         fontWeight: 'bold',
     },
     variationList: {
-        gap: 12,
-        marginBottom: 24,
+        gap: scale(12),
+        marginBottom: verticalScale(24),
     },
     variationCard: {
         backgroundColor: '#fff',
         borderWidth: 1,
         borderColor: '#E5E7EB',
-        borderRadius: 10,
-        padding: 12,
+        borderRadius: scale(10),
+        padding: scale(12),
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
+        gap: scale(12),
     },
     variationInput: {
         backgroundColor: '#FEFCE8', // Amarelo bem claro para destacar campos de item
         borderWidth: 1,
         borderColor: '#FEF08A',
-        borderRadius: 6,
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        fontSize: 14,
+        borderRadius: scale(6),
+        paddingHorizontal: scale(12),
+        paddingVertical: verticalScale(8),
+        fontSize: fontScale(14),
         color: '#111827',
     },
     miniLabel: {
-        fontSize: 10,
+        fontSize: fontScale(10),
         fontWeight: '600',
         color: '#6B7280',
-        marginBottom: 4,
+        marginBottom: verticalScale(4),
     },
     removeVarBtn: {
-        padding: 8,
+        padding: scale(8),
     }
 });

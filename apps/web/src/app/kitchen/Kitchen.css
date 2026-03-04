@@ -1,0 +1,245 @@
+.kitchen-container {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    background-color: #f8f9fa;
+    overflow: hidden;
+    touch-action: pan-x pan-y;
+    /* Crucial for allowing both horizontal swipe and vertical list scroll */
+}
+
+/* Header */
+.kitchen-header {
+    background-color: #223c0e;
+    padding: 40px 24px 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+.header-left {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+}
+
+.title-1 {
+    font-size: 28px;
+    font-weight: bold;
+    color: #ffffff;
+    font-family: 'Outfit', sans-serif;
+    margin: 0;
+}
+
+.greeting-text {
+    font-size: 14px;
+    color: #d4edda;
+    font-weight: 500;
+    margin-bottom: 2px;
+}
+
+.management-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 12px;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+/* Board Layout */
+.boards-wrapper {
+    display: flex;
+    flex-direction: row;
+    padding: 16px 16px 100px;
+    gap: 16px;
+    flex: 1;
+    overflow-x: scroll;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+}
+
+.board-column {
+    flex: 0 0 88vw;
+    scroll-snap-align: start;
+    background-color: #ffffff;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.board-header {
+    padding: 16px;
+    color: #fff;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.board-header.pending {
+    background-color: #ee8b1b;
+}
+
+.board-header.preparing {
+    background-color: #223c0e;
+}
+
+.order-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Ticket-style Card */
+.order-card {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 16px;
+    border-top: 4px solid transparent;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.order-card.PENDING {
+    border-top-color: #F59E0B;
+}
+
+.order-card.PREPARING {
+    border-top-color: #3B82F6;
+}
+
+.order-card.READY {
+    border-top-color: #10B981;
+}
+
+.card-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.order-number {
+    font-size: 18px;
+    font-weight: bold;
+    color: #111827;
+}
+
+.order-id {
+    font-size: 14px;
+    color: #6B7280;
+    font-weight: 500;
+}
+
+.order-time {
+    font-size: 12px;
+    color: #9CA3AF;
+    margin-bottom: 12px;
+}
+
+.items-list-box {
+    background-color: #F3F4F6;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
+.order-item-row {
+    flex-direction: row;
+    display: flex;
+    margin-bottom: 8px;
+}
+
+.item-qty {
+    width: 24px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #111827;
+}
+
+.item-name {
+    flex: 1;
+    font-size: 16px;
+    font-weight: bold;
+    color: #1F2937;
+}
+
+.item-notes {
+    font-size: 12px;
+    font-style: italic;
+    color: #D97706;
+    padding-left: 4px;
+}
+
+.general-notes {
+    border-top: 1px solid #E5E7EB;
+    padding-top: 8px;
+    margin-bottom: 12px;
+}
+
+.general-notes-text {
+    font-size: 13px;
+    color: #4B5563;
+    font-style: italic;
+}
+
+.action-btn {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding: 12px 0;
+    border-radius: 8px;
+    gap: 8px;
+    border: none;
+    color: #fff;
+    font-weight: bold;
+    font-size: 14px;
+    transition: opacity 0.2s;
+}
+
+.action-btn:active {
+    opacity: 0.8;
+}
+
+.action-btn.PENDING {
+    background-color: #F59E0B;
+}
+
+.action-btn.PREPARING {
+    background-color: #3B82F6;
+}
+
+.action-btn.READY {
+    background-color: #10B981;
+}
+
+.icon-white {
+    color: white;
+}
+
+/* Column scroll indicator */
+.boards-wrapper::-webkit-scrollbar {
+    height: 4px;
+}
+
+.boards-wrapper::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+
+@media (min-width: 769px) {
+    .board-column {
+        flex: 1;
+        min-width: 320px;
+        max-width: 400px;
+    }
+}

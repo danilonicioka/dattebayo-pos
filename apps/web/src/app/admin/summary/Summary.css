@@ -1,0 +1,219 @@
+.summary-container {
+    padding: 0;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    background-color: #f8f9fa;
+    padding-bottom: 100px;
+    /* Safe space for bottom nav */
+}
+
+/* Header */
+.summary-header {
+    background-color: #223c0e;
+    padding: 60px 24px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.header-left {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+}
+
+.title-1 {
+    font-size: 28px;
+    font-weight: bold;
+    color: #ffffff;
+    font-family: 'Outfit', sans-serif;
+    margin: 0;
+}
+
+.greeting-text {
+    font-size: 14px;
+    color: #d4edda;
+    font-weight: 500;
+    margin-bottom: 2px;
+}
+
+.back-btn {
+    background: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.clear-btn {
+    width: 40px;
+    height: 40px;
+    background-color: #DC2626;
+    border-radius: 8px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.clear-btn:active {
+    opacity: 0.8;
+}
+
+/* Metrics */
+.metrics-section {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+}
+
+.metrics-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.metric-card {
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid transparent;
+    display: flex;
+    flex-direction: column;
+}
+
+.metric-card.revenue {
+    background-color: #F0FDF4;
+    border-color: #BBF7D0;
+}
+
+.metric-card.volume {
+    background-color: #EFF6FF;
+    border-color: #BFDBFE;
+}
+
+.metric-header {
+    flex-direction: row;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.metric-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #4B5563;
+}
+
+.metric-value {
+    font-family: 'Outfit', sans-serif;
+    font-size: 36px;
+    font-weight: 900;
+    margin-bottom: 4px;
+}
+
+.metric-value.green {
+    color: #16A34A;
+}
+
+.metric-value.blue {
+    color: #2563EB;
+}
+
+.metric-subtitle {
+    font-size: 13px;
+    color: #6B7280;
+}
+
+/* Products List */
+.section-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #111827;
+    margin: 0 0 16px;
+}
+
+.category-list {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 0 16px;
+    /* Padding for rows internally */
+    margin: 0 0 24px;
+    border: 1px solid #F3F4F6;
+}
+
+.category-row {
+    flex-direction: row;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #F3F4F6;
+}
+
+.category-row:last-child {
+    border-bottom: none;
+}
+
+.category-info {
+    flex-direction: row;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.category-icon-box {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background-color: #EEF2FF;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.category-name {
+    font-size: 16px;
+    font-weight: bold;
+    color: #1F2937;
+}
+
+.category-volume {
+    font-size: 14px;
+    color: #6B7280;
+    margin-top: 2px;
+}
+
+.category-revenue {
+    font-size: 16px;
+    font-weight: bold;
+    color: #10B981;
+}
+
+.empty-state {
+    padding: 24px;
+    text-align: center;
+    background-color: #fff;
+    border-radius: 12px;
+    margin: 0;
+    color: #6B7280;
+}
+
+@media (min-width: 769px) {
+    .metrics-grid {
+        flex-direction: row;
+    }
+
+    .metric-card {
+        flex: 1;
+    }
+}

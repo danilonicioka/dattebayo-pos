@@ -115,13 +115,8 @@ export class OrdersService {
   }
 
   async getSummary() {
-    // Calculando inicio e fim do dia atual local
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date();
-    endOfDay.setHours(23, 59, 59, 999);
-
-    const orders = await this.prisma.order.findMany({
+    // Buscar TODOS os pedidos entregues para faturamento e ticket médio (Sem filtro de data)
+    const deliveredOrders = await this.prisma.order.findMany({
       where: {
         status: 'DELIVERED',
       },
@@ -133,24 +128,32 @@ export class OrdersService {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+    });
+
+    // Buscar contagem de pedidos em aberto (PENDING, PREPARING, READY)
+    const openOrdersCount = await this.prisma.order.count({
+      where: {
+        status: {
+          in: ['PENDING', 'PREPARING', 'READY'],
+        },
+      },
     });
 
     let totalRevenue = 0;
     const productStatsMap = new Map<string, { itemsSold: number; revenue: number }>();
 
-    for (const order of orders) {
+    for (const order of deliveredOrders) {
       let orderTotal = 0;
       for (const item of order.items) {
-        let itemTotal = item.price;
+        let itemUnitPrice = item.price;
         for (const v of item.variations) {
-          itemTotal += v.additionalPrice;
+          itemUnitPrice += v.additionalPrice;
         }
 
-        const itemLineTotal = itemTotal * item.quantity;
+        const itemLineTotal = itemUnitPrice * item.quantity;
         orderTotal += itemLineTotal;
 
-        // Populate Product Stats
+        // Stats por Produto (Agrupando pelo nome para pegar variações se houver)
         const productName = item.name;
         const currentStats = productStatsMap.get(productName) || { itemsSold: 0, revenue: 0 };
         currentStats.itemsSold += item.quantity;
@@ -160,9 +163,15 @@ export class OrdersService {
       totalRevenue += orderTotal;
     }
 
+    const completedOrdersCount = deliveredOrders.length;
+    const averageOrderValue = completedOrdersCount > 0 ? totalRevenue / completedOrdersCount : 0;
+
     return {
       totalRevenue,
-      totalOrders: orders.length,
+      openOrdersCount,
+      completedOrdersCount,
+      totalOrders: completedOrdersCount, // Alias para compatibilidade com App Mobile
+      averageOrderValue,
       productStats: Array.from(productStatsMap.entries()).map(([name, stats]) => ({
         name,
         itemsSold: stats.itemsSold,

@@ -6,6 +6,7 @@ import { useOrdersStore } from '@/store/ordersStore';
 import { OrderStatus } from '@dattebayo/core';
 import { Flame } from 'lucide-react-native';
 import { formatProductNameWithVariations } from '@/utils/formatters';
+import { scale, fontScale, verticalScale } from '@/utils/responsive';
 
 // Interface básica baseada no Core simplificado para o frontend
 interface OrderResponse {
@@ -136,12 +137,14 @@ export default function OrdersScreen() {
                     return (
                         <View style={[styles.card, isNextInLine && styles.cardHighlight]}>
                             <View style={styles.cardHeader}>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale(6) }}>
                                     {isNextInLine && (
-                                        <Flame size={20} color="#EF4444" fill="#EF4444" />
+                                        <Flame size={scale(20)} color="#EF4444" fill="#EF4444" />
                                     )}
                                     <View>
-                                        <Text style={styles.orderId}>Pedido #{item.id}</Text>
+                                        <Text style={styles.orderId}>
+                                            {item.tableNumber ? `${item.tableNumber} #${item.id}` : `Pedido #${item.id}`}
+                                        </Text>
                                         <Text style={styles.timeText}>{new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
                                     </View>
                                 </View>
@@ -214,37 +217,37 @@ const styles = StyleSheet.create({
         backgroundColor: '#F7F9FC',
     },
     header: {
-        paddingHorizontal: 24,
-        paddingTop: 60,
-        paddingBottom: 20,
+        paddingHorizontal: scale(24),
+        paddingTop: verticalScale(60),
+        paddingBottom: verticalScale(20),
         backgroundColor: '#223c0e',
         borderBottomWidth: 0,
     },
     title: {
-        fontSize: 28,
+        fontSize: fontScale(28),
         fontWeight: 'bold',
         color: '#ffffff',
     },
     filterContainer: {
         flexDirection: 'row',
-        paddingHorizontal: 24,
-        paddingBottom: 16,
+        paddingHorizontal: scale(24),
+        paddingBottom: verticalScale(16),
         backgroundColor: '#fff',
         borderBottomWidth: 1,
         borderBottomColor: '#F0F0F0',
     },
     filterButton: {
         flex: 1,
-        paddingVertical: 8,
+        paddingVertical: verticalScale(8),
         alignItems: 'center',
-        borderBottomWidth: 2,
+        borderBottomWidth: scale(2),
         borderBottomColor: 'transparent',
     },
     filterButtonActive: {
         borderBottomColor: '#ee8b1b',
     },
     filterText: {
-        fontSize: 15,
+        fontSize: fontScale(15),
         fontWeight: '600',
         color: '#888',
     },
@@ -252,36 +255,36 @@ const styles = StyleSheet.create({
         color: '#ee8b1b',
     },
     listContainer: {
-        padding: 24,
-        paddingBottom: 100,
+        padding: scale(24),
+        paddingBottom: verticalScale(100),
     },
     emptyContainer: {
         alignItems: 'center',
         justifyContent: 'center',
-        paddingTop: 40,
+        paddingTop: verticalScale(40),
     },
     emptyText: {
-        fontSize: 16,
+        fontSize: fontScale(16),
         color: '#666',
     },
     card: {
         backgroundColor: '#fff',
-        borderRadius: 16,
-        padding: 16,
-        marginBottom: 16,
+        borderRadius: scale(16),
+        padding: scale(16),
+        marginBottom: verticalScale(16),
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: { width: 0, height: verticalScale(2) },
         shadowOpacity: 0.05,
-        shadowRadius: 8,
+        shadowRadius: scale(8),
         elevation: 2,
     },
     cardHighlight: {
-        borderWidth: 3,
+        borderWidth: scale(3),
         borderColor: '#EF4444',
         shadowColor: '#EF4444',
-        shadowOffset: { width: 0, height: 4 },
+        shadowOffset: { width: 0, height: verticalScale(4) },
         shadowOpacity: 0.3,
-        shadowRadius: 8,
+        shadowRadius: scale(8),
         elevation: 6,
     },
     cardHeader: {
@@ -290,56 +293,56 @@ const styles = StyleSheet.create({
         alignItems: 'flex-start',
     },
     orderId: {
-        fontSize: 18,
+        fontSize: fontScale(18),
         fontWeight: 'bold',
         color: '#1A1A1A',
     },
     timeText: {
-        fontSize: 14,
+        fontSize: fontScale(14),
         color: '#888',
-        marginTop: 2,
+        marginTop: verticalScale(2),
     },
     statusBadge: {
-        paddingHorizontal: 12,
-        paddingVertical: 4,
-        borderRadius: 8,
+        paddingHorizontal: scale(12),
+        paddingVertical: verticalScale(4),
+        borderRadius: scale(8),
     },
     statusText: {
         color: '#fff',
-        fontSize: 12,
+        fontSize: fontScale(12),
         fontWeight: 'bold',
     },
     divider: {
-        height: 1,
+        height: verticalScale(1),
         backgroundColor: '#F0F0F0',
-        marginVertical: 12,
+        marginVertical: verticalScale(12),
     },
     itemRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 8,
+        marginBottom: verticalScale(8),
     },
     itemQty: {
-        width: 24,
-        fontSize: 14,
+        width: scale(24),
+        fontSize: fontScale(14),
         fontWeight: 'bold',
         color: '#666',
     },
     itemName: {
         flex: 1,
-        fontSize: 14,
+        fontSize: fontScale(14),
         color: '#1A1A1A',
-        paddingRight: 8,
+        paddingRight: scale(8),
     },
     itemExtra: {
-        fontSize: 12,
+        fontSize: fontScale(12),
         color: '#6B7280',
-        paddingLeft: 24,
-        marginTop: -4,
+        paddingLeft: scale(24),
+        marginTop: verticalScale(-4),
         fontStyle: 'italic',
     },
     itemPrice: {
-        fontSize: 14,
+        fontSize: fontScale(14),
         color: '#666',
         fontWeight: '500',
     },
@@ -349,27 +352,27 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     totalLabel: {
-        fontSize: 14,
+        fontSize: fontScale(14),
         color: '#666',
     },
     totalValue: {
-        fontSize: 18,
+        fontSize: fontScale(18),
         fontWeight: 'bold',
         color: '#ee8b1b',
     },
     actionsContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginTop: 16,
-        paddingTop: 16,
+        marginTop: verticalScale(16),
+        paddingTop: verticalScale(16),
         borderTopWidth: 1,
         borderTopColor: '#F0F0F0',
-        gap: 12,
+        gap: scale(12),
     },
     actionButton: {
         flex: 1,
-        paddingVertical: 10,
-        borderRadius: 8,
+        paddingVertical: verticalScale(10),
+        borderRadius: scale(8),
         alignItems: 'center',
     },
     cancelButton: {

@@ -5,7 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class MenuService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   create(createMenuDto: CreateMenuDto) {
     return this.prisma.menuItem.create({
@@ -21,13 +21,13 @@ export class MenuService {
         applyMarkup: createMenuDto.applyMarkup ?? true,
         variations: createMenuDto.variations?.length
           ? {
-              create: createMenuDto.variations.map((v: any) => ({
-                name: v.name,
-                type: v.type,
-                additionalPrice: v.additionalPrice,
-                stockQuantity: v.stockQuantity,
-              })),
-            }
+            create: createMenuDto.variations.map((v: any) => ({
+              name: v.name,
+              type: v.type,
+              additionalPrice: v.additionalPrice,
+              stockQuantity: v.stockQuantity,
+            })),
+          }
           : undefined,
       },
     });
@@ -35,6 +35,19 @@ export class MenuService {
 
   findAll() {
     return this.prisma.menuItem.findMany({
+      include: { variations: true },
+    });
+  }
+
+  findPublic() {
+    return this.prisma.menuItem.findMany({
+      where: {
+        available: true,
+        OR: [
+          { stockQuantity: null },
+          { stockQuantity: { gt: 0 } },
+        ],
+      },
       include: { variations: true },
     });
   }

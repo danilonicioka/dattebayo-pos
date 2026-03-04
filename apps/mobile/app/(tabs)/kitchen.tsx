@@ -3,8 +3,9 @@ import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Dimensions } fro
 
 const { width } = Dimensions.get('window');
 
+import { scale, fontScale, verticalScale } from '@/utils/responsive';
 // Largura da coluna ocupa quase a tela inteira (subtraindo padding da borda)
-const COLUMN_WIDTH = width - 40;
+const COLUMN_WIDTH = width - scale(40);
 import { useOrdersStore } from '@/store/ordersStore';
 import { KitchenOrderCard } from '@/components/KitchenOrderCard';
 
@@ -33,7 +34,7 @@ export default function KitchenScreen() {
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale(12) }}>
                     <View>
                         <Text style={styles.greeting}>Área de Produção</Text>
                         <Text style={styles.headerTitle}>Painel da Cozinha</Text>
@@ -104,63 +105,63 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingTop: 60,
-        paddingBottom: 20,
+        paddingHorizontal: scale(24),
+        paddingTop: verticalScale(60),
+        paddingBottom: verticalScale(20),
         backgroundColor: '#223c0e',
         borderBottomWidth: 0,
-        marginBottom: 16,
+        marginBottom: verticalScale(16),
     },
     greeting: {
-        fontSize: 14,
+        fontSize: fontScale(14),
         color: '#d4edda',
         fontWeight: '500',
     },
     headerTitle: {
-        fontSize: 28,
+        fontSize: fontScale(28),
         fontWeight: 'bold',
         color: '#ffffff',
-        marginTop: 4,
+        marginTop: verticalScale(4),
     },
     board: {
-        paddingHorizontal: 16,
-        paddingBottom: 16,
+        paddingHorizontal: scale(16),
+        paddingBottom: verticalScale(16),
     },
     column: {
         width: COLUMN_WIDTH,
-        marginRight: 16,
+        marginRight: scale(16),
         backgroundColor: '#ffffff',
-        borderRadius: 16,
+        borderRadius: scale(16),
         overflow: 'hidden',
     },
     columnHeader: {
-        padding: 16,
-        borderTopLeftRadius: 16,
-        borderTopRightRadius: 16,
+        padding: scale(16),
+        borderTopLeftRadius: scale(16),
+        borderTopRightRadius: scale(16),
     },
     columnTitle: {
         color: '#fff',
-        fontSize: 18,
+        fontSize: fontScale(18),
         fontWeight: 'bold',
     },
     columnContent: {
-        padding: 16,
-        paddingBottom: 40,
+        padding: scale(16),
+        paddingBottom: verticalScale(40),
         flexGrow: 1,
     },
     emptyText: {
         color: '#9CA3AF',
         fontStyle: 'italic',
         textAlign: 'center',
-        marginTop: 32,
+        marginTop: verticalScale(32),
     },
     errorBox: {
         backgroundColor: '#FEE2E2',
-        marginHorizontal: 16,
-        padding: 12,
-        borderRadius: 8,
-        marginBottom: 16,
-        borderLeftWidth: 4,
+        marginHorizontal: scale(16),
+        padding: scale(12),
+        borderRadius: scale(8),
+        marginBottom: verticalScale(16),
+        borderLeftWidth: scale(4),
         borderLeftColor: '#EF4444',
     },
     errorText: {

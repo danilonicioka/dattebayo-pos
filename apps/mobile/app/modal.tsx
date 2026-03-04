@@ -13,6 +13,7 @@ export default function ModalScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [amountReceived, setAmountReceived] = useState('');
   const [customerName, setCustomerName] = useState('');
+  const [toastMessage, setToastMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
 
   const change = amountReceived ? parseFloat(amountReceived) - cartTotal : 0;
 
@@ -38,32 +39,19 @@ export default function ModalScreen() {
 
       await api.post('/orders', orderDto);
 
-      // Alert.alert no React Native Web não suporta array de botões como onPress nativo.
-      // Usamos lógica cross-platform simples com window.alert no web, e react-native no mobile
-      if (Platform.OS === 'web') {
-        window.alert('Pedido Realizado! 🎉\n\nSeu pedido já foi enviado para a lanchonete.');
+      setToastMessage({ text: 'Pedido Realizado! 🎉\nO pedido foi enviado.', type: 'success' });
+
+      setTimeout(() => {
+        setToastMessage(null);
         clearCart();
         setCustomerName('');
         router.back();
-      } else {
-        Alert.alert(
-          'Pedido Realizado! 🎉',
-          'Seu pedido já foi enviado para a lanchonete.',
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                clearCart();
-                setCustomerName('');
-                router.back();
-              }
-            }
-          ]
-        );
-      }
+      }, 3000);
+
     } catch (error) {
       console.error('Erro ao enviar pedido:', error);
-      Alert.alert('Ops!', 'Não foi possível confirmar o pedido. Verifique a conexão com o servidor.');
+      setToastMessage({ text: 'Ops! Erro ao confirmar pedido.', type: 'error' });
+      setTimeout(() => setToastMessage(null), 3500);
     } finally {
       setIsLoading(false);
     }
@@ -173,6 +161,13 @@ export default function ModalScreen() {
           )}
         </TouchableOpacity>
       </View>
+
+      {/* Global Toast */}
+      {toastMessage && (
+        <View style={[styles.globalToast, toastMessage.type === 'error' && styles.globalToastError]}>
+          <Text style={styles.globalToastText}>{toastMessage.text}</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -189,14 +184,15 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     marginTop: verticalScale(16),
-    fontSize: fontScale(20),
+    marginBottom: verticalScale(8),
+    fontSize: fontScale(22),
     fontWeight: 'bold',
     color: '#1A1A1A',
   },
   emptySubtitle: {
     marginTop: verticalScale(8),
-    fontSize: fontScale(14),
-    color: '#666',
+    fontSize: fontScale(15),
+    color: '#9CA3AF',
     textAlign: 'center',
   },
   title: {
@@ -335,8 +331,8 @@ const styles = StyleSheet.create({
     paddingVertical: verticalScale(8),
     width: scale(100),
     textAlign: 'right',
-    fontSize: fontScale(16),
-    fontWeight: 'bold',
+    fontSize: fontScale(14),
+    fontWeight: '500',
     color: '#1A1A1A',
   },
   changeRow: {
@@ -359,5 +355,30 @@ const styles = StyleSheet.create({
   },
   changeNegative: {
     color: '#D32F2F',
+  },
+  globalToast: {
+    position: 'absolute',
+    bottom: verticalScale(40),
+    alignSelf: 'center',
+    backgroundColor: '#059669', // Success green
+    paddingVertical: verticalScale(12),
+    paddingHorizontal: scale(24),
+    borderRadius: scale(24),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: verticalScale(2) },
+    shadowOpacity: 0.15,
+    shadowRadius: scale(4),
+    elevation: 5,
+    zIndex: 9999,
+  },
+  globalToastError: {
+    backgroundColor: '#EF4444', // Error red
+  },
+  globalToastText: {
+    color: '#fff',
+    fontSize: fontScale(14),
+    fontWeight: 'bold',
+    textAlign: 'center',
   }
 });
+

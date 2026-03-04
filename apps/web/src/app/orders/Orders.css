@@ -9,10 +9,12 @@
 /* Header Replicated from Mobile orders.tsx */
 .orders-header {
     background-color: #223c0e;
-    padding: 60px 24px 20px;
-    /* verticalScale(60), scale(24), verticalScale(20) */
+    height: 124px;
+    padding: 24px 24px 20px;
     display: flex;
+    justify-content: flex-end;
     flex-direction: column;
+    box-sizing: border-box;
 }
 
 .header-left {
@@ -213,8 +215,13 @@
 }
 
 /* Visibility */
-@media (min-width: 769px) {
-    .orders-container {
+@media (min-width: 1025px) {
+    .orders-header {
+        height: 80px;
+        justify-content: center;
+    }
+
+    .orders-list {
         padding: 32px;
     }
 }

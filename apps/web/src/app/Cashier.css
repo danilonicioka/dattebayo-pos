@@ -3,6 +3,7 @@
     height: 100vh;
     background-color: #f8f9fa;
     overflow: hidden;
+    gap: 0;
 }
 
 .catalog-section {
@@ -10,17 +11,19 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    border-right: none;
 }
 
 /* Header Replicated from Mobile index.tsx */
 .catalog-header {
+    display: flex;
     flex-direction: row;
     justify-content: space-between;
-    align-items: center;
-    padding: 60px 24px 20px 24px;
-    /* verticalScale(60), scale(24), verticalScale(20) */
+    align-items: flex-end;
+    height: 124px;
+    padding: 24px 24px 20px 24px;
     background-color: #223c0e;
-    display: flex;
+    box-sizing: border-box;
 }
 
 .header-left {
@@ -105,6 +108,51 @@
     padding: 20px 24px;
     background-color: #fff;
     border-bottom: 1px solid #f0f0f0;
+}
+
+.categories-list {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    /* for scrollbar */
+}
+
+.categories-list::-webkit-scrollbar {
+    height: 4px;
+}
+
+.categories-list::-webkit-scrollbar-thumb {
+    background-color: #ddd;
+    border-radius: 4px;
+}
+
+.category-chip {
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid #E5E7EB;
+    background-color: #fff;
+    color: #4B5563;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    transition: all 0.2s;
+    outline: none;
+}
+
+.category-chip:hover {
+    background-color: #F9FAFB;
+}
+
+.category-chip.active {
+    background-color: #ee8b1b;
+    color: #fff;
+    border-color: #ee8b1b;
 }
 
 /* On mobile view, we hide categories to match search-less/category-less mobile home */
@@ -202,16 +250,15 @@
     background-color: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
-    align-items: flex-end;
+    align-items: center;
     z-index: 1000;
 }
 
 .modal-content {
     background-color: #fff;
-    width: 100%;
+    width: 90%;
     max-width: 500px;
-    border-top-left-radius: 24px;
-    border-top-right-radius: 24px;
+    border-radius: 24px;
     padding: 24px;
     max-height: 80vh;
     display: flex;
@@ -327,6 +374,7 @@
     flex: 1;
     overflow-y: auto;
     padding: 20px;
+    border-left: 1px solid #E5E7EB;
 }
 
 .cart-item {
@@ -414,25 +462,39 @@
 }
 
 .cart-header {
-    padding: 24px;
-    border-bottom: 1px solid #f0f0f0;
+    height: 124px;
+    padding: 24px 24px 20px 24px;
+    background-color: #223c0e;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-end;
+    box-sizing: border-box;
+}
+
+.cart-header .title-3 {
+    color: #ffffff;
+    margin-bottom: 0;
+}
+
+.cart-header .mobile-only.close-cart-btn {
+    color: #ffffff;
 }
 
 .clear-cart-btn {
-    color: #DC2626;
+    color: #ffcfcf;
     background: transparent;
     border: none;
     font-weight: bold;
     cursor: pointer;
+    font-size: 14px;
 }
 
 .cart-footer {
     padding: 20px;
     background-color: #fff;
     border-top: 1px solid #F3F4F6;
+    border-left: 1px solid #E5E7EB;
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -441,10 +503,10 @@
 .payment-section {
     background-color: #F9FAFB;
     border-radius: 12px;
-    padding: 12px;
+    padding: 16px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 12px;
     border: 1px solid #E5E7EB;
 }
 
@@ -463,12 +525,19 @@
 
 .amount-input {
     width: 100px;
-    padding: 6px 10px;
+    padding: 8px 12px;
     border: 1px solid #D1D5DB;
     border-radius: 8px;
     text-align: right;
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 500;
+    background-color: #fff;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.amount-input:focus {
+    border-color: #ee8b1b;
 }
 
 .change-row {
@@ -531,6 +600,7 @@
     align-items: center;
     padding: 40px;
     text-align: center;
+    border-left: 1px solid #E5E7EB;
 }
 
 .cart-empty-icon {
@@ -547,7 +617,10 @@
 .cart-sidebar {
     width: 400px;
     background-color: #fff;
-    border-left: 1px solid #f0f0f0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    margin-left: -1px;
 }
 
 .mobile-only {
@@ -608,5 +681,98 @@
         display: flex;
         justify-content: center;
         align-items: center;
+    }
+}
+
+/* PC View Overrides */
+@media (min-width: 1025px) {
+    .catalog-header {
+        padding-top: 24px;
+        /* Eliminate mobile notch padding on desktop */
+    }
+
+    .cart-btn {
+        display: none;
+        /* Sidebar is always open on PC, no need for the button */
+    }
+
+    .management-btn {
+        display: none;
+        /* Redundant with sidebar navigation */
+    }
+
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 16px;
+        align-items: start;
+        align-content: start;
+    }
+
+    .product-card {
+        margin-bottom: 0px;
+        /* Reset because grid handles the gap */
+    }
+
+    .cart-header,
+    .catalog-header {
+        height: 80px;
+        padding-top: 24px;
+        align-items: center;
+    }
+}
+
+/* Global Toast Notification */
+.global-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 24px;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 9999;
+    animation: slideUp 0.3s ease-out forwards, fadeOut 0.3s ease-in 3.2s forwards;
+}
+
+.global-toast.success {
+    background-color: #059669;
+}
+
+.global-toast.error {
+    background-color: #EF4444;
+}
+
+.toast-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
     }
 }

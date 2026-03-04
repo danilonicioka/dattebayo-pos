@@ -53,6 +53,9 @@ export default function CashierPage() {
   const [amountReceived, setAmountReceived] = useState<string>('');
   const [customerName, setCustomerName] = useState<string>('');
 
+  // Toast State
+  const [toastMessage, setToastMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
+
   // Variation Selection State
   const [selectedItemForVariations, setSelectedItemForVariations] = useState<MenuItem | null>(null);
   const [selectedVariations, setSelectedVariations] = useState<string[]>([]);
@@ -196,19 +199,28 @@ export default function CashierPage() {
         tableNumber: customerName || null,
         items: cart.map(item => ({
           menuItemId: item.productId,
+          name: item.name,
+          price: item.price,
           quantity: item.quantity,
           variations: item.variations.map(v => ({
-            menuItemVariationId: v.menuItemVariationId
+            menuItemVariationId: v.menuItemVariationId,
+            name: v.name,
+            additionalPrice: v.additionalPrice
           }))
         }))
       };
 
       await api.post('/orders', orderData);
-      alert('Pedido realizado com sucesso!');
+
+      setToastMessage({ text: 'Pedido realizado com sucesso! 🎉', type: 'success' });
+      setTimeout(() => setToastMessage(null), 3500);
+
       setCart([]);
+      setIsCartOpen(false);
     } catch (error) {
       console.error('Erro ao finalizar pedido:', error);
-      alert('Erro ao finalizar pedido. Verifique os logs.');
+      setToastMessage({ text: 'Erro ao finalizar pedido.', type: 'error' });
+      setTimeout(() => setToastMessage(null), 3500);
     }
   };
 
@@ -231,7 +243,7 @@ export default function CashierPage() {
             </button>
             <div className="title-stack">
               <span className="greeting">Olá, Atendente</span>
-              <h1 className="title-large">Cardápio</h1>
+              <h1 className="title-large">Caixa</h1>
             </div>
           </div>
 
@@ -304,10 +316,10 @@ export default function CashierPage() {
         </div>
 
         {cart.length === 0 ? (
-          <div className="empty-cart">
-            <ShoppingCart size={48} color="#ccc" />
-            <p className="title-3">Carrinho Vazio</p>
-            <p className="text-body-secondary">Adicione itens para começar</p>
+          <div className="cart-empty">
+            <ShoppingCart size={48} className="cart-empty-icon" />
+            <p className="title-3" style={{ marginBottom: '8px' }}>Carrinho Vazio</p>
+            <p className="cart-empty-sub">Adicione itens para começar</p>
           </div>
         ) : (
           <div className="cart-items">
@@ -472,6 +484,15 @@ export default function CashierPage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Global Toast */}
+      {toastMessage && (
+        <div className={`global-toast ${toastMessage.type}`}>
+          {toastMessage.type === 'success' && <Check size={18} className="toast-icon" />}
+          {toastMessage.type === 'error' && <X size={18} className="toast-icon" />}
+          <span>{toastMessage.text}</span>
         </div>
       )}
     </div>

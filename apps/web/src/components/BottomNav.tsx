@@ -11,14 +11,14 @@ export default function BottomNav() {
     const isAdminPath = pathname.startsWith('/admin');
 
     const mainItems = [
-        { name: 'Cardápio', path: '/', icon: ShoppingCart },
+        { name: 'Caixa', path: '/', icon: ShoppingCart },
         { name: 'Pedidos', path: '/orders', icon: Clock },
         { name: 'Cozinha', path: '/kitchen', icon: ClipboardList },
     ];
 
     const adminItems = [
         { name: 'Gerenciamento', path: '/admin/products/edit', icon: Settings },
-        { name: 'Caixa', path: '/admin/summary', icon: DollarSign },
+        { name: 'Relatórios', path: '/admin/summary', icon: DollarSign },
     ];
 
     const navItems = isAdminPath ? adminItems : mainItems;

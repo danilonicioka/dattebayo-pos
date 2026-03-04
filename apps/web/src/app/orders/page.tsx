@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Clock, CheckCircle, ChefHat, Trash2, Printer, Settings } from 'lucide-react';
+import { Clock, CheckCircle, ChefHat, Trash2, Printer, Settings, Check, X } from 'lucide-react';
 import { api } from '@/services/api';
+import { ConfirmModal } from '@/components/ConfirmModal';
 import './Orders.css';
 
 interface OrderItem {
@@ -25,6 +26,32 @@ export default function OrdersPage() {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'ACTIVE' | 'HISTORY'>('ACTIVE');
 
+    // Toast State
+    const [toastMessage, setToastMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
+
+    // Modal State
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: 'danger' | 'success' | 'warning' | 'info';
+        action: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'warning',
+        action: () => { }
+    });
+
+    const openConfirmModal = (title: string, message: string, type: 'danger' | 'success' | 'warning', action: () => void) => {
+        setConfirmModal({ isOpen: true, title, message, type, action });
+    };
+
+    const closeConfirmModal = () => {
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+    };
+
     const fetchOrders = async () => {
         try {
             const response = await api.get('/orders');
@@ -43,11 +70,21 @@ export default function OrdersPage() {
     }, []);
 
     const updateStatus = async (orderId: number | string, newStatus: string) => {
+        closeConfirmModal();
         try {
             await api.patch(`/orders/${orderId}/status`, { status: newStatus });
+
+            setToastMessage({
+                text: newStatus === 'DELIVERED' ? 'Pedido entregue com sucesso!' : 'Pedido cancelado.',
+                type: 'success'
+            });
+            setTimeout(() => setToastMessage(null), 3000);
+
             fetchOrders();
         } catch (error) {
             console.error('Erro ao atualizar status:', error);
+            setToastMessage({ text: 'Erro ao atualizar pedido.', type: 'error' });
+            setTimeout(() => setToastMessage(null), 3000);
         }
     };
 
@@ -149,13 +186,23 @@ export default function OrdersPage() {
                                 <div className="order-actions">
                                     <button
                                         className="action-btn btn-cancel"
-                                        onClick={() => updateStatus(order.id, 'CANCELLED')}
+                                        onClick={() => openConfirmModal(
+                                            'Cancelar Pedido',
+                                            `Deseja realmente cancelar o pedido #${order.id}?`,
+                                            'danger',
+                                            () => updateStatus(order.id, 'CANCELLED')
+                                        )}
                                     >
                                         Cancelar
                                     </button>
                                     <button
                                         className="action-btn btn-deliver"
-                                        onClick={() => updateStatus(order.id, 'DELIVERED')}
+                                        onClick={() => openConfirmModal(
+                                            'Entregar ao Cliente',
+                                            `Confirmar a entrega do pedido #${order.id} ao cliente?`,
+                                            'success',
+                                            () => updateStatus(order.id, 'DELIVERED')
+                                        )}
                                     >
                                         Entregar
                                     </button>
@@ -165,6 +212,24 @@ export default function OrdersPage() {
                     ))
                 )}
             </div>
+
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                type={confirmModal.type}
+                onConfirm={confirmModal.action}
+                onCancel={closeConfirmModal}
+            />
+
+            {/* Global Toast */}
+            {toastMessage && (
+                <div className={`global-toast ${toastMessage.type}`}>
+                    {toastMessage.type === 'success' && <Check size={18} className="toast-icon" />}
+                    {toastMessage.type === 'error' && <X size={18} className="toast-icon" />}
+                    <span>{toastMessage.text}</span>
+                </div>
+            )}
         </div>
     );
 }

@@ -97,7 +97,7 @@ export default function HomeScreen() {
           </TouchableOpacity>
           <View>
             <Text style={styles.greeting}>Olá, Atendente</Text>
-            <Text style={styles.title}>Cardápio</Text>
+            <Text style={styles.title}>Caixa</Text>
           </View>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -389,13 +389,14 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalContent: {
     backgroundColor: '#fff',
-    borderTopLeftRadius: scale(24),
-    borderTopRightRadius: scale(24),
+    borderRadius: scale(24),
     padding: scale(24),
+    width: '90%',
     maxHeight: '80%',
   },
   modalTitle: {

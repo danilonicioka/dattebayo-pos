@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { TrendingUp, Package, Trash2, Tag, ChevronLeft } from 'lucide-react';
+import { TrendingUp, Package, Trash2, Tag, ChevronLeft, Check, X } from 'lucide-react';
 import { api } from '@/services/api';
+import { ConfirmModal } from '@/components/ConfirmModal';
 import './Summary.css';
 
 interface DashboardMetrics {
@@ -23,6 +24,32 @@ export default function SummaryPage() {
     const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
+    // Toast State
+    const [toastMessage, setToastMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
+
+    // Modal State
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: 'danger' | 'success' | 'warning' | 'info';
+        action: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'warning',
+        action: () => { }
+    });
+
+    const openConfirmModal = (title: string, message: string, type: 'danger' | 'success' | 'warning' | 'info', action: () => void) => {
+        setConfirmModal({ isOpen: true, title, message, type, action });
+    };
+
+    const closeConfirmModal = () => {
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+    };
+
     const fetchMetrics = useCallback(async () => {
         try {
             const response = await api.get('/orders/summary');
@@ -38,18 +65,29 @@ export default function SummaryPage() {
         fetchMetrics();
     }, [fetchMetrics]);
 
-    const handleClear = async () => {
-        if (window.confirm('Tem certeza que deseja limpar o caixa? Todos os pedidos entregues serão apagados permanentemente.')) {
-            try {
-                setIsLoading(true);
-                await api.post('/orders/clear');
-                fetchMetrics();
-            } catch (error) {
-                console.error('Erro ao limpar caixa:', error);
-                alert('Erro ao tentar limpar o caixa.');
-                setIsLoading(false);
-            }
+    const confirmClear = async () => {
+        closeConfirmModal();
+        try {
+            setIsLoading(true);
+            await api.post('/orders/clear');
+            setToastMessage({ text: 'Caixa limpo com sucesso.', type: 'success' });
+            setTimeout(() => setToastMessage(null), 3000);
+            fetchMetrics();
+        } catch (error) {
+            console.error('Erro ao limpar caixa:', error);
+            setToastMessage({ text: 'Erro ao tentar limpar o caixa.', type: 'error' });
+            setTimeout(() => setToastMessage(null), 3000);
+            setIsLoading(false);
         }
+    };
+
+    const handleClear = () => {
+        openConfirmModal(
+            'Zerar Caixa',
+            'Tem certeza que deseja zerar o histórico de pedidos entregues? Isso não pode ser desfeito.',
+            'danger',
+            confirmClear
+        );
     };
 
     if (isLoading && !metrics) {
@@ -133,6 +171,24 @@ export default function SummaryPage() {
                     </div>
                 )}
             </div>
+
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                type={confirmModal.type}
+                onConfirm={confirmModal.action}
+                onCancel={closeConfirmModal}
+            />
+
+            {/* Global Toast */}
+            {toastMessage && (
+                <div className={`global-toast ${toastMessage.type}`}>
+                    {toastMessage.type === 'success' && <Check size={18} className="toast-icon" />}
+                    {toastMessage.type === 'error' && <X size={18} className="toast-icon" />}
+                    <span>{toastMessage.text}</span>
+                </div>
+            )}
         </div>
     );
 }

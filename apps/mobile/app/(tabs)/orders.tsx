@@ -4,10 +4,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { api } from '@/services/api';
 import { useOrdersStore } from '@/store/ordersStore';
 import { OrderStatus } from '@dattebayo/core';
-import { Flame } from 'lucide-react-native';
+import { Clock, ChefHat, CheckCircle2, ChevronDown, Utensils, Flame } from 'lucide-react-native';
 import { formatProductNameWithVariations } from '@/utils/formatters';
 import { scale, fontScale, verticalScale } from '@/utils/responsive';
-
+import { ConfirmModal } from '@/components/ConfirmModal';
 // Interface básica baseada no Core simplificado para o frontend
 interface OrderResponse {
     id: number;
@@ -28,6 +28,48 @@ export default function OrdersScreen() {
     const [refreshing, setRefreshing] = useState(false);
     const [filter, setFilter] = useState<'ACTIVE' | 'HISTORY'>('ACTIVE');
     const { updateOrderStatus } = useOrdersStore();
+
+    // Toast State
+    const [toastMessage, setToastMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
+
+    // Modal State
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: 'danger' | 'success' | 'warning' | 'info';
+        action: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'warning',
+        action: () => { }
+    });
+
+    const openConfirmModal = (title: string, message: string, type: 'danger' | 'success' | 'warning' | 'info', action: () => void) => {
+        setConfirmModal({ isOpen: true, title, message, type, action });
+    };
+
+    const closeConfirmModal = () => {
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+    };
+
+    const handleUpdateStatus = async (orderId: number, nextStatus: OrderStatus) => {
+        closeConfirmModal();
+        try {
+            await updateOrderStatus(orderId, nextStatus);
+            setToastMessage({
+                text: nextStatus === 'DELIVERED' ? 'Pedido entregue com sucesso!' : 'Pedido cancelado.',
+                type: 'success'
+            });
+            setTimeout(() => setToastMessage(null), 3000);
+            fetchOrders();
+        } catch (error) {
+            setToastMessage({ text: 'Erro ao atualizar pedido.', type: 'error' });
+            setTimeout(() => setToastMessage(null), 3000);
+        }
+    };
 
     const fetchOrders = async () => {
         try {
@@ -178,20 +220,24 @@ export default function OrdersScreen() {
                                 <View style={styles.actionsContainer}>
                                     <TouchableOpacity
                                         style={[styles.actionButton, styles.cancelButton]}
-                                        onPress={async () => {
-                                            await updateOrderStatus(item.id, 'CANCELLED');
-                                            fetchOrders();
-                                        }}
+                                        onPress={() => openConfirmModal(
+                                            'Cancelar Pedido',
+                                            `Deseja realmente cancelar o pedido #${item.id}?`,
+                                            'danger',
+                                            () => handleUpdateStatus(item.id, 'CANCELLED')
+                                        )}
                                     >
                                         <Text style={styles.cancelText}>Cancelar</Text>
                                     </TouchableOpacity>
 
                                     <TouchableOpacity
                                         style={[styles.actionButton, styles.deliverButton]}
-                                        onPress={async () => {
-                                            await updateOrderStatus(item.id, 'DELIVERED');
-                                            fetchOrders();
-                                        }}
+                                        onPress={() => openConfirmModal(
+                                            'Entregar ao Cliente',
+                                            `Confirmar a entrega do pedido #${item.id} ao cliente?`,
+                                            'success',
+                                            () => handleUpdateStatus(item.id, 'DELIVERED')
+                                        )}
                                     >
                                         <Text style={styles.deliverText}>Entregar</Text>
                                     </TouchableOpacity>
@@ -201,6 +247,21 @@ export default function OrdersScreen() {
                     )
                 }}
             />
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                type={confirmModal.type}
+                onConfirm={confirmModal.action}
+                onCancel={closeConfirmModal}
+            />
+
+            {/* Global Toast */}
+            {toastMessage && (
+                <View style={[styles.globalToast, toastMessage.type === 'error' && styles.globalToastError]}>
+                    <Text style={styles.globalToastText}>{toastMessage.text}</Text>
+                </View>
+            )}
         </View>
     );
 }
@@ -390,5 +451,29 @@ const styles = StyleSheet.create({
     deliverText: {
         color: '#FFFFFF',
         fontWeight: 'bold',
+    },
+    globalToast: {
+        position: 'absolute',
+        bottom: verticalScale(40),
+        alignSelf: 'center',
+        backgroundColor: '#059669', // Success green
+        paddingVertical: verticalScale(12),
+        paddingHorizontal: scale(24),
+        borderRadius: scale(24),
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: verticalScale(2) },
+        shadowOpacity: 0.15,
+        shadowRadius: scale(4),
+        elevation: 5,
+        zIndex: 9999,
+    },
+    globalToastError: {
+        backgroundColor: '#EF4444', // Error red
+    },
+    globalToastText: {
+        color: '#fff',
+        fontSize: fontScale(14),
+        fontWeight: 'bold',
+        textAlign: 'center',
     }
 });

@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Clock, CheckCircle2, ChefHat, Settings, Utensils, Flame } from 'lucide-react';
+import { Clock, CheckCircle2, ChefHat, Settings, Utensils, Flame, Check, X } from 'lucide-react';
 import { api } from '@/services/api';
+import { ConfirmModal } from '@/components/ConfirmModal';
 import './Kitchen.css';
 
 interface OrderItem {
@@ -26,6 +27,32 @@ export default function KitchenPage() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
 
+    // Toast State
+    const [toastMessage, setToastMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
+
+    // Modal State
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: 'danger' | 'success' | 'warning' | 'info';
+        action: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'warning',
+        action: () => { }
+    });
+
+    const openConfirmModal = (title: string, message: string, type: 'danger' | 'success' | 'warning' | 'info', action: () => void) => {
+        setConfirmModal({ isOpen: true, title, message, type, action });
+    };
+
+    const closeConfirmModal = () => {
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+    };
+
     const fetchOrders = async () => {
         try {
             const response = await api.get('/orders');
@@ -44,11 +71,23 @@ export default function KitchenPage() {
     }, []);
 
     const updateOrderStatus = async (orderId: number, nextStatus: string) => {
+        closeConfirmModal();
         try {
             await api.patch(`/orders/${orderId}/status`, { status: nextStatus });
+
+            const msgs: Record<string, string> = {
+                'PREPARING': 'Pedido está sendo preparado.',
+                'READY': 'Pedido marcado como pronto!',
+                'DELIVERED': 'Pedido entregue ao cliente.'
+            };
+            setToastMessage({ text: msgs[nextStatus] || 'Status atualizado.', type: 'success' });
+            setTimeout(() => setToastMessage(null), 3000);
+
             fetchOrders();
         } catch (error) {
             console.error('Erro ao atualizar status do pedido:', error);
+            setToastMessage({ text: 'Erro ao atualizar pedido.', type: 'error' });
+            setTimeout(() => setToastMessage(null), 3000);
         }
     };
 
@@ -69,9 +108,30 @@ export default function KitchenPage() {
 
     const OrderCard = ({ order, isOldest }: { order: Order, isOldest: boolean }) => {
         const handleStatusAdvance = () => {
-            if (order.status === 'PENDING') updateOrderStatus(order.id, 'PREPARING');
-            else if (order.status === 'PREPARING') updateOrderStatus(order.id, 'READY');
-            else if (order.status === 'READY') updateOrderStatus(order.id, 'DELIVERED');
+            const displayName = order.tableNumber ? `${order.tableNumber}` : `Pedido #${order.id}`;
+
+            if (order.status === 'PENDING') {
+                openConfirmModal(
+                    'Aceitar Pedido',
+                    `Iniciar o preparo para ${displayName}?`,
+                    'info',
+                    () => updateOrderStatus(order.id, 'PREPARING')
+                );
+            } else if (order.status === 'PREPARING') {
+                openConfirmModal(
+                    'Marcar como Pronto',
+                    `O ${displayName} já está pronto para entrega?`,
+                    'success',
+                    () => updateOrderStatus(order.id, 'READY')
+                );
+            } else if (order.status === 'READY') {
+                openConfirmModal(
+                    'Entregar',
+                    `Confirmar entrega do ${displayName} ao cliente?`,
+                    'success',
+                    () => updateOrderStatus(order.id, 'DELIVERED')
+                );
+            }
         };
 
         const getIcon = () => {
@@ -193,6 +253,24 @@ export default function KitchenPage() {
                     </div>
                 </div>
             </div>
+
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                type={confirmModal.type}
+                onConfirm={confirmModal.action}
+                onCancel={closeConfirmModal}
+            />
+
+            {/* Global Toast */}
+            {toastMessage && (
+                <div className={`global-toast ${toastMessage.type}`}>
+                    {toastMessage.type === 'success' && <Check size={18} className="toast-icon" />}
+                    {toastMessage.type === 'error' && <X size={18} className="toast-icon" />}
+                    <span>{toastMessage.text}</span>
+                </div>
+            )}
         </div>
     );
 }

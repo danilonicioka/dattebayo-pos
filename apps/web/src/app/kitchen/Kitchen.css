@@ -11,9 +11,12 @@
 /* Header */
 .kitchen-header {
     background-color: #223c0e;
-    padding: 40px 24px 16px;
+    height: 124px;
+    padding: 24px 24px 20px 24px;
     display: flex;
-    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-end;
+    box-sizing: border-box;
 }
 
 .header-left {
@@ -241,5 +244,18 @@
         flex: 1;
         min-width: 320px;
         max-width: 400px;
+    }
+}
+
+/* PC View Overrides */
+@media (min-width: 1025px) {
+    .kitchen-header {
+        height: 80px;
+        padding-top: 24px;
+        align-items: center;
+    }
+
+    .boards-wrapper {
+        padding-bottom: 24px;
     }
 }

@@ -13,7 +13,7 @@ export default function Sidebar() {
         { name: 'Cozinha', path: '/kitchen', icon: ChefHat },
         { name: 'Pedidos', path: '/orders', icon: ClipboardList },
         { name: 'Relatórios', path: '/admin/summary', icon: BarChart3 },
-        { name: 'Cardápio', path: '/admin/products/edit', icon: Settings },
+        { name: 'Gerenciamento', path: '/admin/products/edit', icon: Settings },
     ];
 
     return (

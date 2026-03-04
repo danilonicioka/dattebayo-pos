@@ -6,6 +6,7 @@ import { router } from 'expo-router';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { TouchableOpacity, Alert, Platform } from 'react-native';
 import { scale, fontScale, verticalScale } from '@/utils/responsive';
+import { ConfirmModal } from '@/components/ConfirmModal';
 
 interface SalesSummary {
     totalRevenue: number;
@@ -21,6 +22,32 @@ export default function SummaryScreen() {
     const [summary, setSummary] = useState<SalesSummary | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
+
+    // Toast State
+    const [toastMessage, setToastMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
+
+    // Modal State
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: 'danger' | 'success' | 'warning' | 'info';
+        action: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'warning',
+        action: () => { }
+    });
+
+    const openConfirmModal = (title: string, message: string, type: 'danger' | 'success' | 'warning' | 'info', action: () => void) => {
+        setConfirmModal({ isOpen: true, title, message, type, action });
+    };
+
+    const closeConfirmModal = () => {
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+    };
 
     const fetchSummary = async () => {
         try {
@@ -46,30 +73,26 @@ export default function SummaryScreen() {
     };
 
     const handleClear = () => {
-        if (Platform.OS === 'web') {
-            if (window.confirm('Tem certeza que deseja limpar o caixa? Todos os pedidos entregues serão apagados permanentemente.')) {
-                performClear();
-            }
-        } else {
-            Alert.alert(
-                'Limpar Caixa',
-                'Tem certeza que deseja limpar o caixa? Todos os pedidos entregues serão apagados permanentemente.',
-                [
-                    { text: 'Cancelar', style: 'cancel' },
-                    { text: 'Limpar', style: 'destructive', onPress: performClear },
-                ]
-            );
-        }
+        openConfirmModal(
+            'Zerar Caixa',
+            'Tem certeza que deseja limpar o caixa? Todos os pedidos entregues serão apagados permanentemente.',
+            'danger',
+            performClear
+        );
     };
 
     const performClear = async () => {
+        closeConfirmModal();
         try {
             setIsLoading(true);
             await api.post('/orders/clear');
+            setToastMessage({ text: 'Caixa zerado com sucesso!', type: 'success' });
+            setTimeout(() => setToastMessage(null), 3000);
             fetchSummary();
         } catch (e) {
             console.error('Erro ao limpar caixa:', e);
-            Alert.alert('Ops', 'Erro ao tentar limpar o caixa.');
+            setToastMessage({ text: 'Erro ao tentar limpar o caixa.', type: 'error' });
+            setTimeout(() => setToastMessage(null), 3000);
             setIsLoading(false);
         }
     };
@@ -155,6 +178,22 @@ export default function SummaryScreen() {
                     </View>
                 )}
             </ScrollView>
+
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                type={confirmModal.type}
+                onConfirm={confirmModal.action}
+                onCancel={closeConfirmModal}
+            />
+
+            {/* Global Toast */}
+            {toastMessage && (
+                <View style={[styles.globalToast, toastMessage.type === 'error' && styles.globalToastError]}>
+                    <Text style={styles.globalToastText}>{toastMessage.text}</Text>
+                </View>
+            )}
         </View>
     );
 }
@@ -295,5 +334,29 @@ const styles = StyleSheet.create({
         fontSize: fontScale(16),
         fontWeight: 'bold',
         color: '#10B981',
+    },
+    globalToast: {
+        position: 'absolute',
+        bottom: verticalScale(40),
+        alignSelf: 'center',
+        backgroundColor: '#059669', // Success green
+        paddingVertical: verticalScale(12),
+        paddingHorizontal: scale(24),
+        borderRadius: scale(24),
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: verticalScale(2) },
+        shadowOpacity: 0.15,
+        shadowRadius: scale(4),
+        elevation: 5,
+        zIndex: 9999,
+    },
+    globalToastError: {
+        backgroundColor: '#EF4444', // Error red
+    },
+    globalToastText: {
+        color: '#fff',
+        fontSize: fontScale(14),
+        fontWeight: 'bold',
+        textAlign: 'center',
     }
 });

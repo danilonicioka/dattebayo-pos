@@ -7,10 +7,82 @@ import { scale, fontScale, verticalScale } from '@/utils/responsive';
 // Largura da coluna ocupa quase a tela inteira (subtraindo padding da borda)
 const COLUMN_WIDTH = width - scale(40);
 import { useOrdersStore } from '@/store/ordersStore';
+import { OrderStatus } from '@dattebayo/core';
 import { KitchenOrderCard } from '@/components/KitchenOrderCard';
+import { ConfirmModal } from '@/components/ConfirmModal';
+import { useState } from 'react';
 
 export default function KitchenScreen() {
     const { orders, fetchOrders, updateOrderStatus, isLoading, error } = useOrdersStore();
+
+    // Toast State
+    const [toastMessage, setToastMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
+
+    // Modal State
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: 'danger' | 'success' | 'warning' | 'info';
+        action: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'warning',
+        action: () => { }
+    });
+
+    const openConfirmModal = (title: string, message: string, type: 'danger' | 'success' | 'warning' | 'info', action: () => void) => {
+        setConfirmModal({ isOpen: true, title, message, type, action });
+    };
+
+    const closeConfirmModal = () => {
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+    };
+
+    const handleRequestUpdateStatus = (orderId: number, nextStatus: OrderStatus) => {
+        const order = orders.find(o => o.id === orderId);
+        const displayName = order?.tableNumber ? `${order.tableNumber}` : `Pedido #${orderId}`;
+
+        let title = '';
+        let message = '';
+        let type: 'info' | 'success' = 'info';
+
+        if (nextStatus === 'PREPARING') {
+            title = 'Aceitar Pedido';
+            message = `Iniciar o preparo para ${displayName}?`;
+        } else if (nextStatus === 'READY') {
+            title = 'Marcar como Pronto';
+            message = `O ${displayName} já está pronto para entrega?`;
+            type = 'success';
+        } else if (nextStatus === 'DELIVERED') {
+            title = 'Entregar';
+            message = `Confirmar entrega do ${displayName} ao cliente?`;
+            type = 'success';
+        }
+
+        openConfirmModal(title, message, type, () => performUpdateStatus(orderId, nextStatus));
+    };
+
+    const performUpdateStatus = async (orderId: number, nextStatus: OrderStatus) => {
+        closeConfirmModal();
+        try {
+            await updateOrderStatus(orderId, nextStatus);
+
+            const msgs: Record<string, string> = {
+                'PREPARING': 'Pedido em preparação.',
+                'READY': 'Pedido pronto!',
+                'DELIVERED': 'Pedido entregue.'
+            };
+            setToastMessage({ text: msgs[nextStatus] || 'Atualizado.', type: 'success' });
+            setTimeout(() => setToastMessage(null), 3000);
+            fetchOrders();
+        } catch (err) {
+            setToastMessage({ text: 'Erro ao atualizar.', type: 'error' });
+            setTimeout(() => setToastMessage(null), 3000);
+        }
+    };
 
     useEffect(() => {
         fetchOrders();
@@ -61,7 +133,7 @@ export default function KitchenScreen() {
                             <KitchenOrderCard
                                 key={`pending-${order.id}`}
                                 order={order}
-                                onUpdateStatus={updateOrderStatus}
+                                onUpdateStatus={handleRequestUpdateStatus}
                                 isOldest={order.id === oldestPendingId}
                             />
                         ))}
@@ -81,7 +153,7 @@ export default function KitchenScreen() {
                             <KitchenOrderCard
                                 key={`preparing-${order.id}`}
                                 order={order}
-                                onUpdateStatus={updateOrderStatus}
+                                onUpdateStatus={handleRequestUpdateStatus}
                                 isOldest={order.id === oldestPreparingId}
                             />
                         ))}
@@ -92,6 +164,22 @@ export default function KitchenScreen() {
                 </View>
 
             </ScrollView>
+
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                type={confirmModal.type}
+                onConfirm={confirmModal.action}
+                onCancel={closeConfirmModal}
+            />
+
+            {/* Global Toast */}
+            {toastMessage && (
+                <View style={[styles.globalToast, toastMessage.type === 'error' && styles.globalToastError]}>
+                    <Text style={styles.globalToastText}>{toastMessage.text}</Text>
+                </View>
+            )}
         </View>
     );
 }
@@ -167,5 +255,29 @@ const styles = StyleSheet.create({
     errorText: {
         color: '#991B1B',
         fontWeight: '500',
+    },
+    globalToast: {
+        position: 'absolute',
+        bottom: verticalScale(40),
+        alignSelf: 'center',
+        backgroundColor: '#059669', // Success green
+        paddingVertical: verticalScale(12),
+        paddingHorizontal: scale(24),
+        borderRadius: scale(24),
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: verticalScale(2) },
+        shadowOpacity: 0.15,
+        shadowRadius: scale(4),
+        elevation: 5,
+        zIndex: 9999,
+    },
+    globalToastError: {
+        backgroundColor: '#EF4444', // Error red
+    },
+    globalToastText: {
+        color: '#fff',
+        fontSize: fontScale(14),
+        fontWeight: 'bold',
+        textAlign: 'center',
     }
 });

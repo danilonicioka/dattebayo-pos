@@ -10,11 +10,13 @@
 /* Header */
 .edit-header {
     background-color: #223c0e;
-    padding: 60px 24px 20px;
+    height: 124px;
+    padding: 24px 24px 20px;
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-end;
     margin-bottom: 16px;
+    box-sizing: border-box;
 }
 
 .header-left {
@@ -329,5 +331,17 @@ input:checked+.slider:before {
         max-width: 500px;
         border-radius: 24px;
         margin: 24px;
+    }
+}
+
+/* PC View Overrides */
+@media (min-width: 1025px) {
+    .edit-header {
+        height: 80px;
+        align-items: center;
+    }
+
+    .scroll-area {
+        padding: 40px;
     }
 }

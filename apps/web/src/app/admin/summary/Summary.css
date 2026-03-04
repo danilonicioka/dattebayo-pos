@@ -11,11 +11,13 @@
 /* Header */
 .summary-header {
     background-color: #223c0e;
-    padding: 60px 24px 20px;
+    height: 124px;
+    padding: 24px 24px 20px;
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-end;
     margin-bottom: 16px;
+    box-sizing: border-box;
 }
 
 .header-left {
@@ -215,5 +217,17 @@
 
     .metric-card {
         flex: 1;
+    }
+}
+
+/* PC View Overrides */
+@media (min-width: 1025px) {
+    .summary-header {
+        height: 80px;
+        align-items: center;
+    }
+
+    .metrics-section {
+        padding: 40px;
     }
 }

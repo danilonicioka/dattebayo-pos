@@ -7,9 +7,9 @@
     "packages/*"
   ],
   "overrides": {
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
-    "react-test-renderer": "19.2.3"
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-test-renderer": "19.1.0"
   },
   "dependencies": {
     "@dattebayo/core": "^1.0.0",

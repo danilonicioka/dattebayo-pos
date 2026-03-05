@@ -26,5 +26,5 @@ RUN npm run build --workspace=api
 # Expor a porta 3000 do NestJS
 EXPOSE 3000
 
-# Executar a API
-CMD ["npm", "run", "start:prod", "--workspace", "api"]
+# Executar a API rodando as migrações primeiro
+CMD ["npm", "run", "start:migrate:prod", "--workspace", "api"]

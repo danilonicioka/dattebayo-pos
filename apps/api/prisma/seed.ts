@@ -5,8 +5,13 @@ const prisma = new PrismaClient();
 async function main() {
     console.log('Iniciando o Seed do Banco de Dados com os itens Originais V1...');
 
-    // Limpa os itens de menu e variações antes de popular para evitar duplicação (opicional)
-    // Mas como a V2 ainda não está em prod, vamos apagar tudo e recriar.
+    const count = await prisma.menuItem.count();
+    if (count > 0) {
+        console.log('O banco de dados já possui itens. Pulando o seed para evitar perda de dados.');
+        return;
+    }
+
+    console.log('Banco de dados vazio. Populando itens iniciais...');
     await prisma.menuItemVariation.deleteMany();
     await prisma.menuItem.deleteMany();
 

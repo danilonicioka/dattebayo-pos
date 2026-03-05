@@ -10,6 +10,7 @@ COPY package.json package-lock.json ./
 COPY apps/api/package.json ./apps/api/
 COPY packages/core/package.json ./packages/core/
 COPY apps/mobile/package.json ./apps/mobile/
+COPY apps/web/package.json ./apps/web/
 
 # Usar npm ci para garantir as exatas versões da máquina
 RUN npm ci

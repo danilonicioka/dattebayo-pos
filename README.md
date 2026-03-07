@@ -109,7 +109,7 @@ Once your VM is created and you have SSH access, follow these steps to get the p
     ```bash
     sudo apt-get update
     sudo apt-get install -y git
-    git clone https://github.com/YOUR_USERNAME/dattebayo-pos.git
+    git clone https://github.com/danilo.nicioka/dattebayo-pos.git
     cd dattebayo-pos
     ```
 

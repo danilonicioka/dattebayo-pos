@@ -101,134 +101,33 @@ The backend uses Spring profiles. Environment variables are defined in `.env` an
 See [LICENSE](LICENSE) file.
 
 
-## Deployment
+### VM Configuration
 
-### Create VM on Google Cloud
+Once your VM is created and you have SSH access, follow these steps to get the project running:
 
-#### CLI
+1.  **Install Git and clone the repository:**
+    ```bash
+    sudo apt-get update
+    sudo apt-get install -y git
+    git clone https://github.com/YOUR_USERNAME/dattebayo-pos.git
+    cd dattebayo-pos
+    ```
 
-```bash
-gcloud compute instances create dattebayo-pos \
-    --project=project-a18a3986-421a-4272-87a \
-    --zone=southamerica-east1-a \
-    --machine-type=e2-small \
-    --network-interface=network-tier=PREMIUM,stack-type=IPV4_ONLY,subnet=default \
-    --maintenance-policy=MIGRATE \
-    --provisioning-model=STANDARD \
-    --service-account=314446990476-compute@developer.gserviceaccount.com \
-    --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/trace.append \
-    --tags=https-server,http-server \
-    --create-disk=auto-delete=yes,boot=yes,device-name=dattebayo-pos,disk-resource-policy=projects/project-a18a3986-421a-4272-87a/regions/southamerica-east1/resourcePolicies/default-schedule-1,image=projects/debian-cloud/global/images/debian-13-trixie-v20260114,mode=rw,size=20,type=pd-balanced \
-    --no-shielded-secure-boot \
-    --shielded-vtpm \
-    --shielded-integrity-monitoring \
-    --labels=goog-ec-src=vm_add-gcloud
-```
+2.  **Run the setup script:**
+    This script will install Docker, configure your user, and start the services.
+    ```bash
+    chmod +x setup-vm.sh
+    ./setup-vm.sh
+    ```
 
-#### REST
+3.  **Reload group membership:**
+    After the script finishes, you need to apply the new group membership for Docker to work without `sudo`:
+    ```bash
+    newgrp docker
+    ```
 
-```json
-POST https://compute.googleapis.com/compute/v1/projects/project-a18a3986-421a-4272-87a/zones/southamerica-east1-a/instances
-
-{
-  "name": "dattebayo-pos",
-  "machineType": "zones/southamerica-east1-a/machineTypes/e2-small",
-  "disks": [
-    {
-      "boot": true,
-      "autoDelete": true,
-      "initializeParams": {
-        "sourceImage": "projects/debian-cloud/global/images/debian-13-trixie-v20260114",
-        "diskSizeGb": "20"
-      }
-    }
-  ],
-  "networkInterfaces": [
-    {
-      "network": "global/networks/default",
-      "accessConfigs": [
-        {
-          "type": "ONE_TO_ONE_NAT",
-          "name": "External NAT"
-        }
-      ]
-    }
-  ],
-  "serviceAccounts": [
-    {
-      "email": "314446990476-compute@developer.gserviceaccount.com",
-      "scopes": [
-        "https://www.googleapis.com/auth/devstorage.read_only",
-        "https://www.googleapis.com/auth/logging.write",
-        "https://www.googleapis.com/auth/monitoring.write",
-        "https://www.googleapis.com/auth/service.management.readonly",
-        "https://www.googleapis.com/auth/servicecontrol",
-        "https://www.googleapis.com/auth/trace.append"
-      ]
-    }
-  ],
-  "tags": {
-    "items": [
-      "https-server",
-      "http-server"
-    ]
-  },
-  "shieldedInstanceConfig": {
-    "enableSecureBoot": false,
-    "enableVtpm": true,
-    "enableIntegrityMonitoring": true
-  },
-  "labels": {
-    "goog-ec-src": "vm_add-gcloud"
-  }
-}
-```
-
-#### Terraform
-
-```hcl
-resource "google_compute_instance" "dattebayo-pos" {
-  project      = "project-a18a3986-421a-4272-87a"
-  name         = "dattebayo-pos"
-  zone         = "southamerica-east1-a"
-  machine_type = "e2-small"
-
-  boot_disk {
-    initialize_params {
-      image = "projects/debian-cloud/global/images/debian-13-trixie-v20260114"
-      size  = 20
-    }
-  }
-
-  network_interface {
-    network = "global/networks/default"
-    access_config {
-      # Ephemeral IP
-    }
-  }
-
-  service_account {
-    email  = "314446990476-compute@developer.gserviceaccount.com"
-    scopes = [
-      "https://www.googleapis.com/auth/devstorage.read_only",
-      "https://www.googleapis.com/auth/logging.write",
-      "https://www.googleapis.com/auth/monitoring.write",
-      "https://www.googleapis.com/auth/service.management.readonly",
-      "https://www.googleapis.com/auth/servicecontrol",
-      "https://www.googleapis.com/auth/trace.append"
-    ]
-  }
-
-  tags = ["https-server", "http-server"]
-
-  shielded_instance_config {
-    enable_secure_boot          = false
-    enable_vtpm                 = true
-    enable_integrity_monitoring = true
-  }
-
-  labels = {
-    "goog-ec-src" = "vm_add-gcloud"
-  }
-}
-```
+4.  **Verify services:**
+    Check if the containers are running:
+    ```bash
+    docker compose ps
+    ```

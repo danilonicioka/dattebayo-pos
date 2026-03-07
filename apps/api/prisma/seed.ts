@@ -51,6 +51,15 @@ async function main() {
         ]
     );
 
+    // 2. Takoyaki
+    await createItemWithVariations(
+        'Takoyaki',
+        'Bolinho de com recheio de polvo',
+        23.0,
+        'Comidas',
+        []
+    );
+
     // 3. Temaki
     await createItemWithVariations(
         'Temaki',
@@ -61,6 +70,15 @@ async function main() {
             { name: 'De Salmão', type: 'SINGLE', additionalPrice: 0.0 },
             { name: 'De Camarão', type: 'SINGLE', additionalPrice: 0.0 },
         ]
+    );
+
+    // 4. Gyoza
+    await createItemWithVariations(
+        'Gyoza',
+        'Gyoza de carne bovina com legumes',
+        18.0,
+        'Comidas',
+        []
     );
 
     // 5. Hot Ball
@@ -123,7 +141,38 @@ async function main() {
             { name: 'Carne', type: 'MULTIPLE', additionalPrice: 2.0 },
             { name: 'Calabresa', type: 'MULTIPLE', additionalPrice: 2.0 },
             { name: 'Catupiry', type: 'MULTIPLE', additionalPrice: 2.0 },
+            { name: 'Paraense (com camarão, jambu, queijo e catupiry)', type: 'MULTIPLE', additionalPrice: 9.0 },
         ]
+    );
+
+    // 10. Camarão Milanesa
+    await createItemWithVariations(
+        'Camarão Milanesa',
+        'Camarão rosa empanado e frito',
+        0.0,
+        'Comidas',
+        [
+            { name: 'Unidade', type: 'SINGLE', additionalPrice: 6.0 },
+            { name: 'Porção com 5 unidades', type: 'SINGLE', additionalPrice: 25.0 }
+        ]
+    );
+
+    // 11. Polvo no Espeto
+    await createItemWithVariations(
+        'Polvo no Espeto',
+        'Polvo no espeto frito na chapa acompanhado de arroz',
+        20.0,
+        'Comidas',
+        []
+    );
+
+    // 12. Bubble
+    await createItemWithVariations(
+        'Bubble',
+        'Suco com bolinhas saborizadas (300 ml)',
+        15.0,
+        'Bebidas',
+        []
     );
 
     console.log('Seed do banco de dados concluído com sucesso!');

@@ -76,3 +76,25 @@ export const OrderSchema = z.object({
     notes: z.string().max(500).optional().nullable(),
 });
 export type Order = z.infer<typeof OrderSchema>;
+
+// Response DTOs (Representing data as it comes from the API)
+export type OrderItemResponseDTO = {
+    id: number;
+    name: string;
+    quantity: number;
+    price: number;
+    specialInstructions?: string | null;
+    variations: OrderItemVariation[];
+    menuItem?: MenuItem & { id: number };
+};
+
+export type OrderResponseDTO = {
+    id: number;
+    tableNumber?: string | null;
+    status: OrderStatus;
+    createdAt: string | Date;
+    updatedAt?: string | Date | null;
+    items: OrderItemResponseDTO[];
+    notes?: string | null;
+};
+

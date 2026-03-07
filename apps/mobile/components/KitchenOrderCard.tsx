@@ -15,7 +15,7 @@ export function KitchenOrderCard({ order, onUpdateStatus, isOldest = false }: Ki
     const handleStatusAdvance = () => {
         if (order.status === 'PENDING') onUpdateStatus(order.id, 'PREPARING');
         else if (order.status === 'PREPARING') onUpdateStatus(order.id, 'READY');
-        else if (order.status === 'READY') onUpdateStatus(order.id, 'DELIVERED');
+        else if (order.status === 'READY') onUpdateStatus(order.id, 'COMPLETED');
     };
 
     const getStatusColor = () => {
@@ -93,7 +93,7 @@ export function KitchenOrderCard({ order, onUpdateStatus, isOldest = false }: Ki
             ) : null}
 
             {/* Botão de Ação do Ticket */}
-            {order.status !== 'DELIVERED' && order.status !== 'CANCELLED' && (
+            {order.status !== 'COMPLETED' && order.status !== 'CANCELLED' && (
                 <TouchableOpacity
                     style={[styles.actionButton, { backgroundColor: getStatusColor() }]}
                     onPress={handleStatusAdvance}

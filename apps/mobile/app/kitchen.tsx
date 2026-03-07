@@ -1,5 +1,9 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Dimensions } from 'react-native';
+import React, { useEffect, useCallback, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Dimensions, TouchableOpacity } from 'react-native';
+import { useFocusEffect, Stack } from 'expo-router';
+import { Wifi, WifiOff } from 'lucide-react-native';
+import { useAudioPlayer } from 'expo-audio';
+import * as Haptics from 'expo-haptics';
 
 const { width } = Dimensions.get('window');
 
@@ -7,16 +11,16 @@ import { scale, fontScale, verticalScale } from '@/utils/responsive';
 // Largura da coluna ocupa quase a tela inteira (subtraindo padding da borda)
 const COLUMN_WIDTH = width - scale(40);
 import { useOrdersStore } from '@/store/ordersStore';
+import { socket } from '@/services/socket';
 import { OrderStatus } from '@dattebayo/core';
 import { KitchenOrderCard } from '@/components/KitchenOrderCard';
 import { ConfirmModal } from '@/components/ConfirmModal';
-import { useState } from 'react';
+import { useToastStore } from '@/store/toastStore';
 
 export default function KitchenScreen() {
     const { orders, fetchOrders, updateOrderStatus, isLoading, error } = useOrdersStore();
-
-    // Toast State
-    const [toastMessage, setToastMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
+    const triggerToast = useToastStore(state => state.triggerToast);
+    const [isConnected, setIsConnected] = useState(socket.connected);
 
     // Modal State
     const [confirmModal, setConfirmModal] = useState<{
@@ -56,7 +60,7 @@ export default function KitchenScreen() {
             title = 'Marcar como Pronto';
             message = `O ${displayName} já está pronto para entrega?`;
             type = 'success';
-        } else if (nextStatus === 'DELIVERED') {
+        } else if (nextStatus === 'COMPLETED') {
             title = 'Entregar';
             message = `Confirmar entrega do ${displayName} ao cliente?`;
             type = 'success';
@@ -73,31 +77,75 @@ export default function KitchenScreen() {
             const msgs: Record<string, string> = {
                 'PREPARING': 'Pedido em preparação.',
                 'READY': 'Pedido pronto!',
-                'DELIVERED': 'Pedido entregue.'
+                'COMPLETED': 'Pedido entregue.'
             };
-            setToastMessage({ text: msgs[nextStatus] || 'Atualizado.', type: 'success' });
-            setTimeout(() => setToastMessage(null), 3000);
+            triggerToast(msgs[nextStatus] || 'Atualizado.', 'success');
             fetchOrders();
         } catch (err) {
-            setToastMessage({ text: 'Erro ao atualizar.', type: 'error' });
-            setTimeout(() => setToastMessage(null), 3000);
+            triggerToast('Erro ao atualizar.', 'error');
         }
     };
 
-    useEffect(() => {
-        fetchOrders();
-        // Auto-Reload para atualizar a esteira a cada 10 seg na cozinha
-        const interval = setInterval(fetchOrders, 10000);
-        return () => clearInterval(interval);
-    }, []);
+    const notificationPlayer = useAudioPlayer(require('@/assets/notification.mp3'));
+
+    const playNotification = () => {
+        try {
+            // Vibração
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+            // Som
+            notificationPlayer.seekTo(0);
+            notificationPlayer.play();
+        } catch (error) {
+            console.error('Error playing notification:', error);
+        }
+    };
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchOrders();
+
+            const handleUpdate = () => {
+                console.log('Mobile Kitchen Real-time update: fetching orders...');
+                fetchOrders();
+            };
+
+            const handleNewOrder = () => {
+                console.log('Mobile: New order received! Notifying...');
+                playNotification();
+                fetchOrders();
+            };
+
+            const onConnect = () => {
+                setIsConnected(true);
+                fetchOrders(); // Sync on reconnect
+            };
+
+            const onDisconnect = () => {
+                setIsConnected(false);
+            };
+
+            socket.on('order_created', handleNewOrder);
+            socket.on('order_updated', handleUpdate);
+            socket.on('connect', onConnect);
+            socket.on('disconnect', onDisconnect);
+
+            return () => {
+                socket.off('order_created', handleNewOrder);
+                socket.off('order_updated', handleUpdate);
+                socket.off('connect', onConnect);
+                socket.off('disconnect', onDisconnect);
+            };
+        }, [fetchOrders])
+    );
 
     const pendingOrders = orders
         .filter((o) => o.status === 'PENDING')
-        .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        .sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime());
 
     const preparingOrders = orders
         .filter((o) => o.status === 'PREPARING')
-        .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        .sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime());
 
     // Identifica o pedido mais antigo independentemente para cada coluna (Novos e Em Preparo)
     const oldestPendingId = pendingOrders.length > 0 ? pendingOrders[0].id : null;
@@ -105,11 +153,16 @@ export default function KitchenScreen() {
 
     return (
         <View style={styles.container}>
+            <Stack.Screen options={{ title: 'Cozinha', headerBackTitle: 'Voltar' }} />
             <View style={styles.header}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale(12) }}>
                     <View>
                         <Text style={styles.greeting}>Área de Produção</Text>
                         <Text style={styles.headerTitle}>Painel da Cozinha</Text>
+                    </View>
+                    <View style={[styles.connectionBadge, isConnected ? styles.onlineBadge : styles.offlineBadge]}>
+                        {isConnected ? <Wifi size={14} color="#4CAF50" /> : <WifiOff size={14} color="#F44336" />}
+                        <Text style={styles.connectionText}>{isConnected ? 'Online' : 'Offline'}</Text>
                     </View>
                 </View>
                 {isLoading && <ActivityIndicator size="small" color="#ee8b1b" />}
@@ -173,13 +226,6 @@ export default function KitchenScreen() {
                 onConfirm={confirmModal.action}
                 onCancel={closeConfirmModal}
             />
-
-            {/* Global Toast */}
-            {toastMessage && (
-                <View style={[styles.globalToast, toastMessage.type === 'error' && styles.globalToastError]}>
-                    <Text style={styles.globalToastText}>{toastMessage.text}</Text>
-                </View>
-            )}
         </View>
     );
 }
@@ -194,11 +240,31 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: scale(24),
-        paddingTop: verticalScale(60),
-        paddingBottom: verticalScale(20),
+        paddingTop: verticalScale(16),
+        paddingBottom: verticalScale(16),
         backgroundColor: '#223c0e',
         borderBottomWidth: 0,
         marginBottom: verticalScale(16),
+    },
+    connectionBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 12,
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    },
+    onlineBadge: {
+        backgroundColor: 'rgba(76, 175, 80, 0.2)',
+    },
+    offlineBadge: {
+        backgroundColor: 'rgba(244, 67, 54, 0.2)',
+    },
+    connectionText: {
+        fontSize: fontScale(12),
+        fontWeight: '600',
+        color: 'white',
     },
     greeting: {
         fontSize: fontScale(14),
@@ -255,29 +321,5 @@ const styles = StyleSheet.create({
     errorText: {
         color: '#991B1B',
         fontWeight: '500',
-    },
-    globalToast: {
-        position: 'absolute',
-        bottom: verticalScale(40),
-        alignSelf: 'center',
-        backgroundColor: '#059669', // Success green
-        paddingVertical: verticalScale(12),
-        paddingHorizontal: scale(24),
-        borderRadius: scale(24),
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: verticalScale(2) },
-        shadowOpacity: 0.15,
-        shadowRadius: scale(4),
-        elevation: 5,
-        zIndex: 9999,
-    },
-    globalToastError: {
-        backgroundColor: '#EF4444', // Error red
-    },
-    globalToastText: {
-        color: '#fff',
-        fontSize: fontScale(14),
-        fontWeight: 'bold',
-        textAlign: 'center',
     }
 });

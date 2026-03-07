@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Clock, CheckCircle, ChefHat, Trash2, Printer, Settings, Check, X } from 'lucide-react';
+import { Clock, CheckCircle, ChefHat, Trash2, Printer, Settings, Check, X, Wifi, WifiOff } from 'lucide-react';
 import { api } from '@/services/api';
+import { socket } from '@/services/socket';
 import { ConfirmModal } from '@/components/ConfirmModal';
 import './Orders.css';
 
@@ -17,7 +18,7 @@ interface Order {
     id: number;
     tableNumber: string | null;
     createdAt: string;
-    status: 'PENDING' | 'PREPARING' | 'READY' | 'DELIVERED' | 'CANCELLED';
+    status: 'PENDING' | 'PREPARING' | 'READY' | 'COMPLETED' | 'CANCELLED';
     items: OrderItem[];
 }
 
@@ -25,6 +26,7 @@ export default function OrdersPage() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'ACTIVE' | 'HISTORY'>('ACTIVE');
+    const [isConnected, setIsConnected] = useState(socket.connected);
 
     // Toast State
     const [toastMessage, setToastMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
@@ -65,17 +67,41 @@ export default function OrdersPage() {
 
     useEffect(() => {
         fetchOrders();
-        const interval = setInterval(fetchOrders, 10000);
-        return () => clearInterval(interval);
+
+        const handleUpdate = () => {
+            console.log('Real-time update received in Orders: fetching...');
+            fetchOrders();
+        };
+
+        const onConnect = () => {
+            setIsConnected(true);
+            fetchOrders(); // Sync on reconnect
+        };
+
+        const onDisconnect = () => {
+            setIsConnected(false);
+        };
+
+        socket.on('order_created', handleUpdate);
+        socket.on('order_updated', handleUpdate);
+        socket.on('connect', onConnect);
+        socket.on('disconnect', onDisconnect);
+
+        return () => {
+            socket.off('order_created', handleUpdate);
+            socket.off('order_updated', handleUpdate);
+            socket.off('connect', onConnect);
+            socket.off('disconnect', onDisconnect);
+        };
     }, []);
 
     const updateStatus = async (orderId: number | string, newStatus: string) => {
         closeConfirmModal();
         try {
-            await api.patch(`/orders/${orderId}/status`, { status: newStatus });
+            await api.patch(`/orders/${orderId}`, { status: newStatus });
 
             setToastMessage({
-                text: newStatus === 'DELIVERED' ? 'Pedido entregue com sucesso!' : 'Pedido cancelado.',
+                text: newStatus === 'COMPLETED' ? 'Pedido entregue com sucesso!' : 'Pedido cancelado.',
                 type: 'success'
             });
             setTimeout(() => setToastMessage(null), 3000);
@@ -98,7 +124,7 @@ export default function OrdersPage() {
     const filteredOrders = orders.filter(order =>
         activeTab === 'ACTIVE'
             ? ['PENDING', 'PREPARING', 'READY'].includes(order.status)
-            : ['DELIVERED', 'CANCELLED'].includes(order.status)
+            : ['COMPLETED', 'CANCELLED'].includes(order.status)
     ).sort((a, b) => {
         const timeA = new Date(a.createdAt).getTime();
         const timeB = new Date(b.createdAt).getTime();
@@ -114,7 +140,7 @@ export default function OrdersPage() {
             PENDING: 'Pendente',
             PREPARING: 'Preparando',
             READY: 'Pronto',
-            DELIVERED: 'Entregue',
+            COMPLETED: 'Entregue',
             CANCELLED: 'Cancelado'
         };
         return map[status] || status;
@@ -123,7 +149,13 @@ export default function OrdersPage() {
     return (
         <div className="orders-container">
             <header className="orders-header">
-                <h1 className="title-1">Meus Pedidos</h1>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <h1 className="title-1">Meus Pedidos</h1>
+                    <div className={`connection-status ${isConnected ? 'online' : 'offline'}`}>
+                        {isConnected ? <Wifi size={16} /> : <WifiOff size={16} />}
+                        <span>{isConnected ? 'Online' : 'Offline'}</span>
+                    </div>
+                </div>
             </header>
 
             <div className="status-tabs">
@@ -201,7 +233,7 @@ export default function OrdersPage() {
                                             'Entregar ao Cliente',
                                             `Confirmar a entrega do pedido #${order.id} ao cliente?`,
                                             'success',
-                                            () => updateStatus(order.id, 'DELIVERED')
+                                            () => updateStatus(order.id, 'COMPLETED')
                                         )}
                                     >
                                         Entregar

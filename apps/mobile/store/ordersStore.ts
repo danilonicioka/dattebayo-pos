@@ -1,8 +1,6 @@
 import { create } from 'zustand';
-import { Order, OrderStatus } from '@dattebayo/core';
+import { OrderResponseDTO, OrderStatus } from '@dattebayo/core';
 import { api } from '@/services/api';
-
-export type OrderResponseDTO = Order;
 export interface UpdateOrderStatusDTO {
     status: OrderStatus;
 }

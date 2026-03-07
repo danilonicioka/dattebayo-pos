@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { StyleSheet, View, Text, FlatList, TouchableOpacity, Alert, ActivityIndicator, Platform, TextInput } from 'react-native';
+import { StyleSheet, View, Text, FlatList, TouchableOpacity, Alert, ActivityIndicator, Platform, TextInput, KeyboardAvoidingView } from 'react-native';
 import { useCartStore, getCartTotal } from '@/store/cartStore';
 import { Minus, Plus, Trash2, ShoppingCart } from 'lucide-react-native';
 import { api } from '@/services/api';
 import { router } from 'expo-router';
 import { formatProductNameWithVariations } from '@/utils/formatters';
 import { scale, fontScale, verticalScale } from '@/utils/responsive';
+import { useToastStore } from '@/store/toastStore';
 
 export default function ModalScreen() {
   const { items, addOrderItem, removeOrderItem, clearCart } = useCartStore();
@@ -13,7 +14,7 @@ export default function ModalScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [amountReceived, setAmountReceived] = useState('');
   const [customerName, setCustomerName] = useState('');
-  const [toastMessage, setToastMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
+  const triggerToast = useToastStore(state => state.triggerToast);
 
   const change = amountReceived ? parseFloat(amountReceived) - cartTotal : 0;
 
@@ -39,19 +40,15 @@ export default function ModalScreen() {
 
       await api.post('/orders', orderDto);
 
-      setToastMessage({ text: 'Pedido Realizado! 🎉\nO pedido foi enviado.', type: 'success' });
-
-      setTimeout(() => {
-        setToastMessage(null);
-        clearCart();
-        setCustomerName('');
-        router.back();
-      }, 3000);
+      // Limpa os status, fecha a tela e aciona o toast global (sem delay)
+      clearCart();
+      setCustomerName('');
+      triggerToast('Pedido Realizado! 🎉\nO pedido foi enviado.', 'success');
+      router.back();
 
     } catch (error) {
       console.error('Erro ao enviar pedido:', error);
-      setToastMessage({ text: 'Ops! Erro ao confirmar pedido.', type: 'error' });
-      setTimeout(() => setToastMessage(null), 3500);
+      triggerToast('Ops! Erro ao confirmar pedido.', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -68,107 +65,106 @@ export default function ModalScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Resumo do Pedido</Text>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={{ flex: 1 }}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
+    >
+      <View style={styles.container}>
+        <Text style={styles.title}>Resumo do Pedido</Text>
 
-      <FlatList
-        data={items}
-        keyExtractor={(_, index) => index.toString()}
-        contentContainerStyle={styles.listContainer}
-        showsVerticalScrollIndicator={false}
-        renderItem={({ item, index }) => (
-          <View style={styles.card}>
-            <View style={styles.cardInfo}>
-              <Text style={styles.itemName} numberOfLines={2}>
-                {formatProductNameWithVariations(item.menuItem.name, item.variations)}
-              </Text>
+        <FlatList
+          data={items}
+          keyExtractor={(_, index) => index.toString()}
+          contentContainerStyle={styles.listContainer}
+          showsVerticalScrollIndicator={false}
+          renderItem={({ item, index }) => (
+            <View style={styles.card}>
+              <View style={styles.cardInfo}>
+                <Text style={styles.itemName} numberOfLines={2}>
+                  {formatProductNameWithVariations(item.menuItem.name, item.variations)}
+                </Text>
 
-              <Text style={styles.price}>
-                R$ {((item.price + item.variations.reduce((acc: number, v: any) => acc + v.additionalPrice, 0)) * item.quantity).toFixed(2).replace('.', ',')}
-              </Text>
-            </View>
-
-            <View style={styles.actions}>
-              <TouchableOpacity
-                style={styles.actionBtn}
-                onPress={() => removeOrderItem(index)}
-              >
-                <Trash2 color="#D32F2F" size={scale(18)} />
-              </TouchableOpacity>
-
-              <View style={styles.qtyBox}>
-                <Text style={styles.qtyText}>{item.quantity}</Text>
+                <Text style={styles.price}>
+                  R$ {((item.price + item.variations.reduce((acc: number, v: any) => acc + v.additionalPrice, 0)) * item.quantity).toFixed(2).replace('.', ',')}
+                </Text>
               </View>
 
-              <TouchableOpacity
-                style={styles.actionBtn}
-                onPress={() => addOrderItem(item.menuItem, 1)}
-              >
-                <Plus color="#ee8b1b" size={scale(18)} />
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-      />
+              <View style={styles.actions}>
+                <TouchableOpacity
+                  style={styles.actionBtn}
+                  onPress={() => removeOrderItem(index)}
+                >
+                  <Trash2 color="#D32F2F" size={scale(18)} />
+                </TouchableOpacity>
 
-      <View style={styles.footer}>
-        <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Total</Text>
-          <Text style={styles.totalValue}>R$ {cartTotal.toFixed(2).replace('.', ',')}</Text>
-        </View>
+                <View style={styles.qtyBox}>
+                  <Text style={styles.qtyText}>{item.quantity}</Text>
+                </View>
 
-        <View style={styles.paymentSection}>
-          <View style={styles.inputRow}>
-            <Text style={styles.inputLabel}>Nome do Cliente</Text>
-            <TextInput
-              style={[styles.textInput, { width: scale(140), textAlign: 'left' }]}
-              placeholder="Opcional"
-              value={customerName}
-              onChangeText={setCustomerName}
-            />
-          </View>
-
-          <View style={[styles.inputRow, { marginTop: verticalScale(12) }]}>
-            <Text style={styles.inputLabel}>Valor Recebido</Text>
-            <TextInput
-              style={styles.textInput}
-              placeholder="0,00"
-              keyboardType="numeric"
-              value={amountReceived}
-              onChangeText={(text) => setAmountReceived(text.replace(',', '.'))}
-            />
-          </View>
-
-          {amountReceived !== '' && (
-            <View style={styles.changeRow}>
-              <Text style={styles.changeLabel}>Troco</Text>
-              <Text style={[styles.changeValue, change < 0 && styles.changeNegative]}>
-                R$ {change.toFixed(2).replace('.', ',')}
-              </Text>
+                <TouchableOpacity
+                  style={styles.actionBtn}
+                  onPress={() => addOrderItem(item.menuItem, 1, item.variations)}
+                >
+                  <Plus color="#059669" size={scale(18)} />
+                </TouchableOpacity>
+              </View>
             </View>
           )}
-        </View>
+        />
 
-        <TouchableOpacity
-          style={[styles.checkoutBtn, isLoading && styles.checkoutBtnDisabled]}
-          onPress={handleCheckout}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.checkoutBtnText}>Confirmar Pedido</Text>
-          )}
-        </TouchableOpacity>
+        <View style={styles.footer}>
+          <View style={styles.totalRow}>
+            <Text style={styles.totalLabel}>Total</Text>
+            <Text style={styles.totalValue}>R$ {cartTotal.toFixed(2).replace('.', ',')}</Text>
+          </View>
+
+          <View style={styles.paymentSection}>
+            <View style={styles.inputRow}>
+              <Text style={styles.inputLabel}>Nome do Cliente</Text>
+              <TextInput
+                style={[styles.textInput, { textAlign: 'left', width: scale(150) }]}
+                placeholder="Opcional"
+                value={customerName}
+                onChangeText={setCustomerName}
+              />
+            </View>
+
+            <View style={styles.inputRow}>
+              <Text style={styles.inputLabel}>Valor Recebido</Text>
+              <TextInput
+                style={styles.textInput}
+                placeholder="R$ 0,00"
+                keyboardType="numeric"
+                value={amountReceived}
+                onChangeText={(text) => setAmountReceived(text.replace(',', '.'))}
+              />
+            </View>
+
+            {amountReceived !== '' && (
+              <View style={styles.changeRow}>
+                <Text style={styles.changeLabel}>Troco</Text>
+                <Text style={[styles.changeValue, change < 0 && styles.changeNegative]}>
+                  R$ {change.toFixed(2).replace('.', ',')}
+                </Text>
+              </View>
+            )}
+          </View>
+
+          <TouchableOpacity
+            style={[styles.checkoutBtn, isLoading && styles.checkoutBtnDisabled]}
+            onPress={handleCheckout}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.checkoutBtnText}>Confirmar Pedido</Text>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
-
-      {/* Global Toast */}
-      {toastMessage && (
-        <View style={[styles.globalToast, toastMessage.type === 'error' && styles.globalToastError]}>
-          <Text style={styles.globalToastText}>{toastMessage.text}</Text>
-        </View>
-      )}
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

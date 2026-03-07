@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Clock, CheckCircle2, ChefHat, Settings, Utensils, Flame, Check, X } from 'lucide-react';
+import { Clock, CheckCircle2, ChefHat, Settings, Utensils, Flame, Check, X, Wifi, WifiOff } from 'lucide-react';
 import { api } from '@/services/api';
+import { socket } from '@/services/socket';
 import { ConfirmModal } from '@/components/ConfirmModal';
 import './Kitchen.css';
 
@@ -18,7 +19,7 @@ interface Order {
     id: number;
     tableNumber: string | number;
     createdAt: string;
-    status: 'PENDING' | 'PREPARING' | 'READY' | 'DELIVERED';
+    status: 'PENDING' | 'PREPARING' | 'READY' | 'COMPLETED';
     items: OrderItem[];
     notes?: string;
 }
@@ -26,6 +27,7 @@ interface Order {
 export default function KitchenPage() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isConnected, setIsConnected] = useState(socket.connected);
 
     // Toast State
     const [toastMessage, setToastMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
@@ -64,21 +66,56 @@ export default function KitchenPage() {
         }
     };
 
+    const playNotificationSound = () => {
+        const audio = new Audio('/notification.mp3');
+        audio.play().catch(err => console.error('Error playing sound:', err));
+    };
+
     useEffect(() => {
         fetchOrders();
-        const interval = setInterval(fetchOrders, 10000); // 10s como no mobile
-        return () => clearInterval(interval);
+
+        const handleUpdate = () => {
+            console.log('Real-time update received: fetching orders...');
+            fetchOrders();
+        };
+
+        const handleNewOrder = () => {
+            console.log('New order received! Playing sound...');
+            playNotificationSound();
+            fetchOrders();
+        };
+
+        const onConnect = () => {
+            setIsConnected(true);
+            fetchOrders(); // Sync on reconnect
+        };
+
+        const onDisconnect = () => {
+            setIsConnected(false);
+        };
+
+        socket.on('order_created', handleNewOrder);
+        socket.on('order_updated', handleUpdate);
+        socket.on('connect', onConnect);
+        socket.on('disconnect', onDisconnect);
+
+        return () => {
+            socket.off('order_created', handleNewOrder);
+            socket.off('order_updated', handleUpdate);
+            socket.off('connect', onConnect);
+            socket.off('disconnect', onDisconnect);
+        };
     }, []);
 
     const updateOrderStatus = async (orderId: number, nextStatus: string) => {
         closeConfirmModal();
         try {
-            await api.patch(`/orders/${orderId}/status`, { status: nextStatus });
+            await api.patch(`/orders/${orderId}`, { status: nextStatus });
 
             const msgs: Record<string, string> = {
                 'PREPARING': 'Pedido está sendo preparado.',
                 'READY': 'Pedido marcado como pronto!',
-                'DELIVERED': 'Pedido entregue ao cliente.'
+                'COMPLETED': 'Pedido entregue ao cliente.'
             };
             setToastMessage({ text: msgs[nextStatus] || 'Status atualizado.', type: 'success' });
             setTimeout(() => setToastMessage(null), 3000);
@@ -129,7 +166,7 @@ export default function KitchenPage() {
                     'Entregar',
                     `Confirmar entrega do ${displayName} ao cliente?`,
                     'success',
-                    () => updateOrderStatus(order.id, 'DELIVERED')
+                    () => updateOrderStatus(order.id, 'COMPLETED')
                 );
             }
         };
@@ -205,6 +242,10 @@ export default function KitchenPage() {
                     <div>
                         <p className="greeting-text">Área de Produção</p>
                         <h1 className="title-1">Painel da Cozinha</h1>
+                    </div>
+                    <div className={`connection-status ${isConnected ? 'online' : 'offline'}`}>
+                        {isConnected ? <Wifi size={16} /> : <WifiOff size={16} />}
+                        <span>{isConnected ? 'Online' : 'Offline'}</span>
                     </div>
                 </div>
                 {loading && <div className="loading-spinner-small" />}

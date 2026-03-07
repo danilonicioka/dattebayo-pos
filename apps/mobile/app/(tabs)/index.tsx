@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, Text, FlatList, TouchableOpacity, ActivityIndicator, Modal, ScrollView } from 'react-native';
 import { MenuItem } from '@dattebayo/core';
-import { ShoppingCart, Plus } from 'lucide-react-native';
+import { ShoppingCart, Plus, ChefHat } from 'lucide-react-native';
 import { useCartStore, getCartItemCount } from '@/store/cartStore';
 import { api } from '@/services/api';
 import { Link, useFocusEffect, router } from 'expo-router';
@@ -94,6 +94,12 @@ export default function HomeScreen() {
             style={styles.managementButton}
           >
             <IconSymbol name="gearshape.fill" size={scale(22)} color="#ffffff" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.push('/kitchen')}
+            style={styles.managementButton}
+          >
+            <ChefHat size={scale(22)} color="#ffffff" />
           </TouchableOpacity>
           <View>
             <Text style={styles.greeting}>Olá, Atendente</Text>

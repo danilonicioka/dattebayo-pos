@@ -1,13 +1,15 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { StyleSheet, View, Text, FlatList, ActivityIndicator, RefreshControl, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from 'expo-router';
 import { api } from '@/services/api';
+import { socket } from '@/services/socket';
 import { useOrdersStore } from '@/store/ordersStore';
 import { OrderStatus } from '@dattebayo/core';
-import { Clock, ChefHat, CheckCircle2, ChevronDown, Utensils, Flame } from 'lucide-react-native';
+import { Clock, ChefHat, CheckCircle2, ChevronDown, Utensils, Flame, Wifi, WifiOff } from 'lucide-react-native';
 import { formatProductNameWithVariations } from '@/utils/formatters';
 import { scale, fontScale, verticalScale } from '@/utils/responsive';
 import { ConfirmModal } from '@/components/ConfirmModal';
+import { useToastStore } from '@/store/toastStore';
 // Interface básica baseada no Core simplificado para o frontend
 interface OrderResponse {
     id: number;
@@ -26,11 +28,10 @@ export default function OrdersScreen() {
     const [orders, setOrders] = useState<OrderResponse[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [isConnected, setIsConnected] = useState(socket.connected);
     const [filter, setFilter] = useState<'ACTIVE' | 'HISTORY'>('ACTIVE');
     const { updateOrderStatus } = useOrdersStore();
-
-    // Toast State
-    const [toastMessage, setToastMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
+    const triggerToast = useToastStore(state => state.triggerToast);
 
     // Modal State
     const [confirmModal, setConfirmModal] = useState<{
@@ -59,19 +60,14 @@ export default function OrdersScreen() {
         closeConfirmModal();
         try {
             await updateOrderStatus(orderId, nextStatus);
-            setToastMessage({
-                text: nextStatus === 'DELIVERED' ? 'Pedido entregue com sucesso!' : 'Pedido cancelado.',
-                type: 'success'
-            });
-            setTimeout(() => setToastMessage(null), 3000);
+            triggerToast(nextStatus === 'COMPLETED' ? 'Pedido entregue com sucesso!' : 'Pedido cancelado.', 'success');
             fetchOrders();
         } catch (error) {
-            setToastMessage({ text: 'Erro ao atualizar pedido.', type: 'error' });
-            setTimeout(() => setToastMessage(null), 3000);
+            triggerToast('Erro ao atualizar pedido.', 'error');
         }
     };
 
-    const fetchOrders = async () => {
+    const fetchOrders = useCallback(async () => {
         try {
             const response = await api.get('/orders');
             setOrders(response.data);
@@ -81,11 +77,39 @@ export default function OrdersScreen() {
             setIsLoading(false);
             setRefreshing(false);
         }
-    };
-
-    useEffect(() => {
-        fetchOrders();
     }, []);
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchOrders();
+
+            const handleUpdate = () => {
+                console.log('Mobile Real-time update: fetching orders...');
+                fetchOrders();
+            };
+
+            const onConnect = () => {
+                setIsConnected(true);
+                fetchOrders(); // Sync on reconnect
+            };
+
+            const onDisconnect = () => {
+                setIsConnected(false);
+            };
+
+            socket.on('order_created', handleUpdate);
+            socket.on('order_updated', handleUpdate);
+            socket.on('connect', onConnect);
+            socket.on('disconnect', onDisconnect);
+
+            return () => {
+                socket.off('order_created', handleUpdate);
+                socket.off('order_updated', handleUpdate);
+                socket.off('connect', onConnect);
+                socket.off('disconnect', onDisconnect);
+            };
+        }, [fetchOrders])
+    );
 
     const onRefresh = () => {
         setRefreshing(true);
@@ -107,9 +131,7 @@ export default function OrdersScreen() {
             case 'READY':
                 return <View style={[styles.statusBadge, { backgroundColor: '#81C784' }]}><Text style={styles.statusText}>Pronto</Text></View>;
             case 'COMPLETED':
-                return <View style={[styles.statusBadge, { backgroundColor: '#E0E0E0' }]}><Text style={[styles.statusText, { color: '#666' }]}>Finalizado</Text></View>;
-            case 'DELIVERED':
-                return <View style={[styles.statusBadge, { backgroundColor: '#E0E0E0' }]}><Text style={[styles.statusText, { color: '#666' }]}>Entregue</Text></View>;
+                return <View style={[styles.statusBadge, { backgroundColor: '#E0E0E0' }]}><Text style={[styles.statusText, { color: '#666' }]}>Finalizado/Entregue</Text></View>;
             case 'CANCELLED':
                 return <View style={[styles.statusBadge, { backgroundColor: '#E57373' }]}><Text style={styles.statusText}>Cancelado</Text></View>;
             default:
@@ -122,7 +144,7 @@ export default function OrdersScreen() {
             if (filter === 'ACTIVE') {
                 return ['PENDING', 'PREPARING', 'READY'].includes(order.status);
             }
-            return ['COMPLETED', 'DELIVERED', 'CANCELLED'].includes(order.status);
+            return ['COMPLETED', 'CANCELLED'].includes(order.status);
         });
 
         // Ordena: Em Andamento (Mais antigo primeiro), Histórico (Mais recente primeiro)
@@ -144,7 +166,13 @@ export default function OrdersScreen() {
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <Text style={styles.title}>Meus Pedidos</Text>
+                <View style={styles.headerContent}>
+                    <Text style={styles.title}>Meus Pedidos</Text>
+                    <View style={[styles.connectionBadge, isConnected ? styles.onlineBadge : styles.offlineBadge]}>
+                        {isConnected ? <Wifi size={14} color="#4CAF50" /> : <WifiOff size={14} color="#F44336" />}
+                        <Text style={styles.connectionText}>{isConnected ? 'Online' : 'Offline'}</Text>
+                    </View>
+                </View>
             </View>
 
             <View style={styles.filterContainer}>
@@ -236,7 +264,7 @@ export default function OrdersScreen() {
                                             'Entregar ao Cliente',
                                             `Confirmar a entrega do pedido #${item.id} ao cliente?`,
                                             'success',
-                                            () => handleUpdateStatus(item.id, 'DELIVERED')
+                                            () => handleUpdateStatus(item.id, 'COMPLETED')
                                         )}
                                     >
                                         <Text style={styles.deliverText}>Entregar</Text>
@@ -255,13 +283,6 @@ export default function OrdersScreen() {
                 onConfirm={confirmModal.action}
                 onCancel={closeConfirmModal}
             />
-
-            {/* Global Toast */}
-            {toastMessage && (
-                <View style={[styles.globalToast, toastMessage.type === 'error' && styles.globalToastError]}>
-                    <Text style={styles.globalToastText}>{toastMessage.text}</Text>
-                </View>
-            )}
         </View>
     );
 }
@@ -282,7 +303,34 @@ const styles = StyleSheet.create({
         paddingTop: verticalScale(60),
         paddingBottom: verticalScale(20),
         backgroundColor: '#223c0e',
-        borderBottomWidth: 0,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    headerContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: scale(12),
+    },
+    connectionBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 12,
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    },
+    onlineBadge: {
+        backgroundColor: 'rgba(76, 175, 80, 0.2)',
+    },
+    offlineBadge: {
+        backgroundColor: 'rgba(244, 67, 54, 0.2)',
+    },
+    connectionText: {
+        fontSize: fontScale(12),
+        fontWeight: '600',
+        color: 'white',
     },
     title: {
         fontSize: fontScale(28),
@@ -451,29 +499,5 @@ const styles = StyleSheet.create({
     deliverText: {
         color: '#FFFFFF',
         fontWeight: 'bold',
-    },
-    globalToast: {
-        position: 'absolute',
-        bottom: verticalScale(40),
-        alignSelf: 'center',
-        backgroundColor: '#059669', // Success green
-        paddingVertical: verticalScale(12),
-        paddingHorizontal: scale(24),
-        borderRadius: scale(24),
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: verticalScale(2) },
-        shadowOpacity: 0.15,
-        shadowRadius: scale(4),
-        elevation: 5,
-        zIndex: 9999,
-    },
-    globalToastError: {
-        backgroundColor: '#EF4444', // Error red
-    },
-    globalToastText: {
-        color: '#fff',
-        fontSize: fontScale(14),
-        fontWeight: 'bold',
-        textAlign: 'center',
     }
 });

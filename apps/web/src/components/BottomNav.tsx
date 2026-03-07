@@ -13,7 +13,6 @@ export default function BottomNav() {
     const mainItems = [
         { name: 'Caixa', path: '/', icon: ShoppingCart },
         { name: 'Pedidos', path: '/orders', icon: Clock },
-        { name: 'Cozinha', path: '/kitchen', icon: ClipboardList },
     ];
 
     const adminItems = [

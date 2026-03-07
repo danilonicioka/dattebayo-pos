@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { ShoppingCart, Settings, Grid, Plus, Minus, Tag, Check, X, ArrowLeft, Trash2 } from 'lucide-react';
+import { ShoppingCart, Settings, Grid, Plus, Minus, Tag, Check, X, ArrowLeft, Trash2, ChefHat } from 'lucide-react';
 import { api } from '@/services/api';
 import { formatProductNameWithVariations } from '@/utils/formatters';
 import './Cashier.css';
@@ -212,11 +212,14 @@ export default function CashierPage() {
 
       await api.post('/orders', orderData);
 
+      setCart([]);
+      setIsCartOpen(false);
+      setCustomerName('');
+      setAmountReceived('');
+
       setToastMessage({ text: 'Pedido realizado com sucesso! 🎉', type: 'success' });
       setTimeout(() => setToastMessage(null), 3500);
 
-      setCart([]);
-      setIsCartOpen(false);
     } catch (error) {
       console.error('Erro ao finalizar pedido:', error);
       setToastMessage({ text: 'Erro ao finalizar pedido.', type: 'error' });
@@ -240,6 +243,9 @@ export default function CashierPage() {
           <div className="header-left">
             <button className="management-btn" onClick={() => window.location.href = '/admin/products/edit'}>
               <Settings size={22} className="icon-white" />
+            </button>
+            <button className="management-btn" onClick={() => window.location.href = '/kitchen'}>
+              <ChefHat size={22} className="icon-white" />
             </button>
             <div className="title-stack">
               <span className="greeting">Olá, Atendente</span>
@@ -357,6 +363,7 @@ export default function CashierPage() {
                 className="amount-input"
                 style={{ textAlign: 'left', width: '140px' }}
                 placeholder="Opcional"
+                onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)}
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
               />
@@ -368,6 +375,7 @@ export default function CashierPage() {
                 type="text"
                 className="amount-input"
                 placeholder="R$ 0,00"
+                onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)}
                 value={amountReceived}
                 onChange={(e) => setAmountReceived(e.target.value.replace(',', '.'))}
               />

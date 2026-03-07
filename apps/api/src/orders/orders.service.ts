@@ -6,10 +6,14 @@ import {
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { OrdersGateway } from './orders.gateway';
 
 @Injectable()
 export class OrdersService {
-  constructor(private prisma: PrismaService) { }
+  constructor(
+    private prisma: PrismaService,
+    private ordersGateway: OrdersGateway,
+  ) { }
 
   async create(createOrderDto: CreateOrderDto) {
     // 1. Mapear itens para o formato do Prisma
@@ -30,9 +34,9 @@ export class OrdersService {
     }));
 
     // 2. Executar criação e baixa de estoque em uma transação
-    return this.prisma.$transaction(async (tx) => {
+    const order = await this.prisma.$transaction(async (tx) => {
       // Criar o pedido
-      const order = await tx.order.create({
+      const orderData = await tx.order.create({
         data: {
           tableNumber: createOrderDto.tableNumber,
           notes: createOrderDto.notes,
@@ -103,8 +107,11 @@ export class OrdersService {
         }
       }
 
-      return order;
+      return orderData;
     });
+
+    this.ordersGateway.emitOrderCreated(order);
+    return order;
   }
 
   findAll() {
@@ -118,7 +125,7 @@ export class OrdersService {
     // Buscar TODOS os pedidos entregues para faturamento e ticket médio (Sem filtro de data)
     const deliveredOrders = await this.prisma.order.findMany({
       where: {
-        status: 'DELIVERED',
+        status: 'COMPLETED',
       },
       include: {
         items: {
@@ -182,7 +189,7 @@ export class OrdersService {
 
   async clearCashier() {
     return this.prisma.order.deleteMany({
-      where: { status: 'DELIVERED' },
+      where: { status: 'COMPLETED' },
     });
   }
 
@@ -194,8 +201,8 @@ export class OrdersService {
   }
 
   async update(id: number, updateOrderDto: UpdateOrderDto) {
-    if (updateOrderDto.status === 'CANCELLED') {
-      return this.prisma.$transaction(async (tx) => {
+    const updatedOrder = await (updateOrderDto.status === 'CANCELLED'
+      ? this.prisma.$transaction(async (tx) => {
         const order = await tx.order.findUnique({
           where: { id },
           include: {
@@ -220,7 +227,8 @@ export class OrdersService {
             if (!menuItem) continue;
 
             const hasVariationsInDb = menuItem.variations.length > 0;
-            const hasVariationsInOrder = item.variations && item.variations.length > 0;
+            const hasVariationsInOrder =
+              item.variations && item.variations.length > 0;
 
             // Se tem variações no DB, o estoque do produto pai NÃO é estornado
             let deductBaseStock = !hasVariationsInDb;
@@ -257,13 +265,14 @@ export class OrdersService {
           where: { id },
           data: updateOrderDto as any,
         });
-      });
-    }
+      })
+      : this.prisma.order.update({
+        where: { id },
+        data: updateOrderDto as any,
+      }));
 
-    return this.prisma.order.update({
-      where: { id },
-      data: updateOrderDto as any,
-    });
+    this.ordersGateway.emitOrderUpdated(updatedOrder);
+    return updatedOrder;
   }
 
   remove(id: number) {

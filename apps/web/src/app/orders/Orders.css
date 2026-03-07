@@ -125,7 +125,6 @@
     background-color: #81C784;
 }
 
-.status-badge.DELIVERED,
 .status-badge.COMPLETED {
     background-color: #E0E0E0;
     color: #666;

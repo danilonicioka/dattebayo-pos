@@ -6,7 +6,7 @@ WORKDIR /usr/src/app
 RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 # Copiar tudo para aproveitar a estrutura do NPM Workspaces
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json tsconfig.base.json tsconfig.json ./
 COPY apps/api/package.json ./apps/api/
 COPY packages/core/package.json ./packages/core/
 COPY apps/mobile/package.json ./apps/mobile/

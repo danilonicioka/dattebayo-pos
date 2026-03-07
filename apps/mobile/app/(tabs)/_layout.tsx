@@ -36,13 +36,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="kitchen"
-        options={{
-          title: 'Cozinha',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="list.bullet" color={color} />,
-        }}
-      />
-      <Tabs.Screen
         name="explore"
         options={{
           href: null,

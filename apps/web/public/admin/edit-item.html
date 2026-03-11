@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Editar Produto — Dattebayo POS</title>
+  <link rel="stylesheet" href="/css/global.css" />
+  <link rel="stylesheet" href="/css/admin-edit-item.css" />
+</head>
+<body>
+  <div class="app-container">
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="edit-item-container">
+        <!-- Header is injected by nav.js on mobile, but we need one for desktop too. We'll add it directly here to match the mobile app's edit screen which is just a single view -->
+        
+        <div class="scroll-area" id="form-container" style="display: none;">
+          <h1 class="page-title" id="page-title">Novo Produto</h1>
+          <p class="hint">Preencha as informações do cardápio logo abaixo:</p>
+
+          <form id="product-form">
+            <div class="form-group">
+              <label class="form-label">Nome do Item <span class="asterisk">*</span></label>
+              <input type="text" class="form-input" id="field-name" required placeholder="Ex: X-Salada com Bacon" />
+            </div>
+
+            <div style="display:flex;gap:12px;margin-bottom:16px;">
+              <div class="form-group" style="flex:1;margin-bottom:0;">
+                <label class="form-label">Preço Fixo (R$) <span class="asterisk">*</span></label>
+                <input type="number" step="0.01" class="form-input" id="field-price" required placeholder="25,00" />
+              </div>
+              <div class="form-group" style="flex:1;margin-bottom:0;">
+                <label class="form-label">Categoria <span class="asterisk">*</span></label>
+                <select class="form-input" id="field-category">
+                  <option value="Comidas">Comidas</option>
+                  <option value="Bebidas">Bebidas</option>
+                  <option value="Sobremesas">Sobremesas</option>
+                  <option value="Combos">Combos</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Estoque Principal</label>
+              <input type="number" class="form-input" id="field-stock" placeholder="Ilimitado" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Descrição (Opcional)</label>
+              <textarea class="form-textarea" id="field-desc" rows="3" placeholder="Ingredientes e detalhes..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <div class="switch-wrapper">
+                <div class="switch-text-container">
+                  <label class="form-label">Habilitar Preço Manual</label>
+                  <p class="hint-text">Definir outro preço para este item</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="field-manual-price-enabled" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <div id="manual-price-group" style="display:none;margin-top:12px;">
+                <label class="form-label">Preço com Desconto/Manual (R$)</label>
+                <input type="number" step="0.01" class="form-input" id="field-manual-price" placeholder="0,00" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="switch-wrapper">
+                <div class="switch-text-container">
+                  <label class="form-label">Disponível para Venda</label>
+                  <p class="hint-text">Ocultar item se estiver em falta</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="field-available" checked />
+                  <span class="slider green"></span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Variações -->
+            <div class="variation-header">
+              <label class="form-label">Variações (Ex: Tamanhos, Sabores)</label>
+              <button type="button" class="add-variation-btn" id="btn-add-variation">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ee8b1b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span class="add-variation-text">Adicionar</span>
+              </button>
+            </div>
+            
+            <div id="variations-list" class="variation-list">
+              <!-- Rendered via JS -->
+            </div>
+
+            <button type="submit" class="save-button" id="btn-save">
+              <span class="save-text" id="save-text">Criar Item</span>
+            </button>
+
+            <button type="button" class="delete-button" id="btn-delete" style="display:none;">
+              <span class="delete-text">Excluir Produto</span>
+            </button>
+            <div style="height: 60px;"></div> <!-- Keyboard spacer -->
+          </form>
+        </div>
+        
+        <div id="loading-state" class="center-loading">
+          <p>Lendo Dados do Produto...</p>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+<script>
+  window.API_URL = '%%API_URL%%';
+</script>
+<script src="/js/utils.js?v=2"></script>
+<script src="/js/admin-edit-item.js?v=2"></script>
+<script src="/js/nav.js?v=2"></script>
+</body>
+</html>

@@ -15,6 +15,7 @@ export default function HomeScreen() {
 
   const [selectedItemForVariations, setSelectedItemForVariations] = useState<MenuItem | null>(null);
   const [selectedVariations, setSelectedVariations] = useState<number[]>([]);
+  const [selectedQuantity, setSelectedQuantity] = useState<number>(1);
 
   const cartItems = useCartStore((state) => state.items);
   const addOrderItem = useCartStore((state) => state.addOrderItem);
@@ -63,9 +64,10 @@ export default function HomeScreen() {
       price: item.manualPriceEnabled && item.manualPrice != null ? item.manualPrice : item.price
     };
 
-    if (item.variations && item.variations.length > 0) {
-      setSelectedItemForVariations(finalItem);
+    setSelectedItemForVariations(finalItem);
+    setSelectedQuantity(1);
 
+    if (item.variations && item.variations.length > 0) {
       // Se for rádio (mais de uma variação SINGLE), pré-seleciona a primeira disponível
       const isRadio = item.variations.length > 1 && item.variations[0].type === 'SINGLE';
       if (isRadio) {
@@ -81,7 +83,7 @@ export default function HomeScreen() {
         setSelectedVariations([]);
       }
     } else {
-      addOrderItem(finalItem);
+      setSelectedVariations([]);
     }
   };
 
@@ -169,11 +171,15 @@ export default function HomeScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Opções para {selectedItemForVariations?.name}</Text>
+            <Text style={styles.modalTitle}>
+              {selectedItemForVariations?.variations?.length ? `Opções para ${selectedItemForVariations?.name}` : `Adicionar ${selectedItemForVariations?.name}`}
+            </Text>
             <ScrollView style={styles.variationsList}>
               {selectedItemForVariations?.variations?.map(v => {
+                const variationCartCount = cartItems.reduce((acc, item) => acc + (item.variations?.some((cartVar: any) => String(cartVar.menuItemVariationId || cartVar.id) === String(v.id)) ? item.quantity : 0), 0);
+                const effectiveStock = v.stockQuantity !== null && v.stockQuantity !== undefined ? v.stockQuantity - variationCartCount : null;
                 const isSelected = selectedVariations.includes(v.id!);
-                const isOutOfStock = v.stockQuantity !== null && v.stockQuantity !== undefined && v.stockQuantity <= 0;
+                const isOutOfStock = effectiveStock !== null && effectiveStock <= 0;
 
                 return (
                   <TouchableOpacity
@@ -199,9 +205,16 @@ export default function HomeScreen() {
                     }}
                   >
                     <View>
-                      <Text style={[styles.variationName, isOutOfStock && styles.variationDisabledText]}>
-                        {v.name} {isOutOfStock && "(Esgotado)"}
-                      </Text>
+                      <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                        <Text style={[styles.variationName, isOutOfStock && styles.variationDisabledText]}>
+                          {v.name}
+                        </Text>
+                        {isOutOfStock ? (
+                          <Text style={{ fontSize: 13, color: '#EF4444', fontWeight: 'bold', marginLeft: 6 }}>(Esgotado)</Text>
+                        ) : ( effectiveStock !== null && (
+                          <Text style={{ fontSize: 13, color: '#F59E0B', fontWeight: 'bold', marginLeft: 6 }}>({effectiveStock} unid.)</Text>
+                        ))}
+                      </View>
                       {v.additionalPrice > 0 && (
                         <Text style={[styles.variationPrice, isOutOfStock && styles.variationDisabledText]}>
                           + R$ {v.additionalPrice.toFixed(2).replace('.', ',')}
@@ -221,8 +234,8 @@ export default function HomeScreen() {
             </ScrollView>
 
             {(() => {
-              const isMandatoryRadio = selectedItemForVariations && selectedItemForVariations.variations!.length > 1 && selectedItemForVariations.variations![0].type === 'SINGLE';
-              const isMandatoryMulti = selectedItemForVariations && selectedItemForVariations.variations![0].type === 'MULTIPLE';
+              const isMandatoryRadio = selectedItemForVariations && selectedItemForVariations.variations && selectedItemForVariations.variations.length > 1 && selectedItemForVariations.variations[0].type === 'SINGLE';
+              const isMandatoryMulti = selectedItemForVariations && selectedItemForVariations.variations && selectedItemForVariations.variations[0]?.type === 'MULTIPLE';
               const isMissingMandatory = (isMandatoryRadio || isMandatoryMulti) && selectedVariations.length === 0;
               if (isMissingMandatory) {
                 return (
@@ -234,6 +247,26 @@ export default function HomeScreen() {
               return null;
             })()}
 
+            <View style={styles.modalQtyContainer}>
+              <Text style={styles.modalQtyLabel}>Quantidade:</Text>
+              <View style={styles.modalQtyControls}>
+                <TouchableOpacity
+                  style={[styles.modalQtyBtn, selectedQuantity <= 1 && styles.modalQtyBtnDisabled]}
+                  disabled={selectedQuantity <= 1}
+                  onPress={() => setSelectedQuantity(Math.max(1, selectedQuantity - 1))}
+                >
+                  <Text style={[styles.modalQtyBtnText, selectedQuantity <= 1 && styles.modalQtyBtnTextDisabled]}>-</Text>
+                </TouchableOpacity>
+                <Text style={styles.modalQtyValue}>{selectedQuantity}</Text>
+                <TouchableOpacity
+                  style={styles.modalQtyBtn}
+                  onPress={() => setSelectedQuantity(selectedQuantity + 1)}
+                >
+                  <Text style={styles.modalQtyBtnText}>+</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
             <View style={styles.modalActions}>
               <TouchableOpacity style={styles.cancelBtn} onPress={() => setSelectedItemForVariations(null)}>
                 <Text style={styles.cancelBtnText}>Cancelar</Text>
@@ -242,16 +275,16 @@ export default function HomeScreen() {
                 style={[
                   styles.confirmBtn,
                   (() => {
-                    const isMandatoryRadio = selectedItemForVariations && selectedItemForVariations.variations!.length > 1 && selectedItemForVariations.variations![0].type === 'SINGLE';
-                    const isMandatoryMulti = selectedItemForVariations && selectedItemForVariations.variations![0].type === 'MULTIPLE';
+                    const isMandatoryRadio = selectedItemForVariations && selectedItemForVariations.variations && selectedItemForVariations.variations.length > 1 && selectedItemForVariations.variations[0].type === 'SINGLE';
+                    const isMandatoryMulti = selectedItemForVariations && selectedItemForVariations.variations && selectedItemForVariations.variations[0]?.type === 'MULTIPLE';
                     const isMissingMandatory = (isMandatoryRadio || isMandatoryMulti) && selectedVariations.length === 0;
                     return isMissingMandatory ? { backgroundColor: '#9CA3AF' } : null;
                   })()
                 ]}
                 onPress={() => {
                   if (selectedItemForVariations) {
-                    const isMandatoryRadio = selectedItemForVariations.variations!.length > 1 && selectedItemForVariations.variations![0].type === 'SINGLE';
-                    const isMandatoryMulti = selectedItemForVariations.variations![0].type === 'MULTIPLE';
+                    const isMandatoryRadio = selectedItemForVariations.variations && selectedItemForVariations.variations.length > 1 && selectedItemForVariations.variations[0].type === 'SINGLE';
+                    const isMandatoryMulti = selectedItemForVariations.variations && selectedItemForVariations.variations[0]?.type === 'MULTIPLE';
                     const isMissingMandatory = (isMandatoryRadio || isMandatoryMulti) && selectedVariations.length === 0;
 
                     if (isMissingMandatory) return;
@@ -261,7 +294,7 @@ export default function HomeScreen() {
                       name: v.name,
                       additionalPrice: v.additionalPrice
                     })) || [];
-                    addOrderItem(selectedItemForVariations, 1, varsToApply);
+                    addOrderItem(selectedItemForVariations, selectedQuantity, varsToApply);
                     setSelectedItemForVariations(null);
                   }
                 }}>
@@ -489,5 +522,60 @@ const styles = StyleSheet.create({
   checkboxDisabled: {
     backgroundColor: '#E5E7EB',
     borderColor: '#D1D5DB',
+  },
+  modalQtyContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: verticalScale(16),
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
+    marginBottom: verticalScale(24),
+  },
+  modalQtyLabel: {
+    fontSize: fontScale(16),
+    fontWeight: '500',
+    color: '#1A1A1A',
+  },
+  modalQtyControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: scale(16),
+    backgroundColor: '#F9FAFB',
+    paddingHorizontal: scale(8),
+    paddingVertical: verticalScale(6),
+    borderRadius: scale(12),
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  modalQtyBtn: {
+    width: scale(36),
+    height: scale(36),
+    borderRadius: scale(18),
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalQtyBtnDisabled: {
+    backgroundColor: '#F3F4F6',
+    borderColor: '#E5E7EB',
+  },
+  modalQtyBtnText: {
+    fontSize: fontScale(20),
+    color: '#EE8B1B',
+    fontWeight: 'bold',
+    lineHeight: fontScale(22),
+  },
+  modalQtyBtnTextDisabled: {
+    color: '#9CA3AF',
+  },
+  modalQtyValue: {
+    fontSize: fontScale(18),
+    fontWeight: 'bold',
+    color: '#1A1A1A',
+    minWidth: scale(24),
+    textAlign: 'center',
   }
 });

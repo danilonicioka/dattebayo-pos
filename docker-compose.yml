@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # O Backend da aplicação construído no NestJS
+  # Backend da aplicação — Hono (Node.js leve)
   api:
     build:
       context: .
@@ -9,14 +9,13 @@ services:
     container_name: dattebayo_api
     restart: unless-stopped
     ports:
-      # Expõe a porta 3000 do Nest para o hospedeiro local
       - "3000:3000"
     environment:
-      - NODE_ENV=development
-      # O banco de dados do Prisma agora usará o PostgreSQL
+      - NODE_ENV=production
       - DATABASE_URL=postgresql://dattebayo:dattebayo_password@db:5432/dattebayo_db?schema=public
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - app_network
 
@@ -32,24 +31,25 @@ services:
       - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dattebayo -d dattebayo_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     networks:
       - app_network
 
-  # Front-end da Aplicação Web em Next.js
+  # Front-end — Caddy servindo HTML/CSS/JS estático (muito mais leve que Next.js)
   web:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
-        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+        - API_URL=${API_URL}
     container_name: dattebayo_web
     restart: unless-stopped
     ports:
-      # Expõe a porta 80 para acesso no navegador
-      - "80:3000"
-    environment:
-      - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+      - "80:80"
     depends_on:
       - api
     networks:
@@ -61,3 +61,4 @@ networks:
 
 volumes:
   pgdata:
+

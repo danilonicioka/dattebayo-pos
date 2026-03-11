@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Caixa — Dattebayo POS</title>
+  <meta name="description" content="Painel de caixa do sistema Dattebayo POS" />
+  <link rel="stylesheet" href="/css/global.css" />
+  <link rel="stylesheet" href="/css/cashier.css" />
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-icon">D</div>
+        <span class="logo-text">Dattebayo</span>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="/index.html" class="nav-item active" id="nav-cashier">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+          <span>Caixa</span>
+        </a>
+        <a href="/kitchen.html" class="nav-item" id="nav-kitchen">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"></path><line x1="6" y1="17" x2="18" y2="17"></line></svg>
+          <span>Cozinha</span>
+        </a>
+        <a href="/orders.html" class="nav-item" id="nav-orders">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          <span>Pedidos</span>
+        </a>
+        
+        <div style="margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+          <p style="color: rgba(255,255,255,0.4); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; padding: 0 16px;">Administração</p>
+          <a href="/admin/products.html" class="nav-item" id="nav-admin-products">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+            <span>Cardápio</span>
+          </a>
+          <a href="/admin/summary.html" class="nav-item" id="nav-admin-summary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+            <span>Resumo</span>
+          </a>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="cashier-container">
+        <!-- Catalog Section -->
+        <div class="catalog-section">
+          <header class="catalog-header">
+            <div class="header-left">
+              <div class="title-stack">
+                <span class="greeting">Olá, Atendente</span>
+                <h1 class="title-large">Caixa</h1>
+              </div>
+            </div>
+            <button class="cart-btn mobile-only" id="btn-open-cart">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+              <span class="badge" id="cart-badge" style="display:none"><span class="badge-text" id="cart-count">0</span></span>
+            </button>
+          </header>
+
+          <div class="categories-wrapper desktop-only">
+            <div class="categories-list" id="categories-list"></div>
+          </div>
+
+          <div class="products-grid" id="products-grid">
+            <div class="loading-state"><div class="loading-spinner"></div><p>Carregando cardápio...</p></div>
+          </div>
+        </div>
+
+        <!-- Cart Sidebar -->
+        <aside class="cart-sidebar" id="cart-sidebar">
+          <div class="cart-header">
+            <div class="cart-header-left">
+              <button class="close-cart-btn mobile-only" id="btn-close-cart">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              <h2 class="title-3">Pedido Atual</h2>
+            </div>
+            <button class="clear-cart-btn" id="btn-clear-cart">Limpar</button>
+          </div>
+          <div class="cart-items" id="cart-items">
+            <div class="cart-empty">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="cart-empty-icon"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+              <p class="title-3" style="margin-bottom:8px">Carrinho Vazio</p>
+              <p class="cart-empty-sub">Adicione itens para começar</p>
+            </div>
+          </div>
+          <div class="cart-footer">
+            <div class="payment-section">
+              <div class="payment-input-row" style="margin-bottom:12px">
+                <span class="payment-label">Nome do Cliente</span>
+                <input type="text" class="amount-input" id="customer-name" style="text-align:left;width:140px" placeholder="Opcional" />
+              </div>
+              <div class="payment-input-row">
+                <span class="payment-label">Valor Recebido</span>
+                <input type="text" class="amount-input" id="amount-received" placeholder="R$ 0,00" />
+              </div>
+              <div class="change-row" id="change-row" style="display:none">
+                <span class="change-label">Troco</span>
+                <span class="change-value" id="change-value">R$ 0,00</span>
+              </div>
+            </div>
+            <div class="total-row">
+              <span class="total-label">Subtotal</span>
+              <span class="total-value" id="cart-total">R$ 0,00</span>
+            </div>
+            <button class="checkout-btn" id="btn-checkout" disabled>Confirmar Pedido</button>
+            <button class="continue-shopping-btn mobile-only" id="btn-continue-shopping">Voltar ao Cardápio</button>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <!-- Variation Modal -->
+  <div class="modal-overlay" id="variation-modal" style="display:none">
+    <div class="modal-content">
+      <h2 class="modal-title" id="variation-modal-title">Opções</h2>
+      <div class="variations-list" id="variations-list"></div>
+      <p id="variation-mandatory-msg" style="color:#D32F2F;font-size:13px;text-align:center;margin:0 0 16px;font-weight:500;display:none">* Seleção obrigatória</p>
+      
+      <div class="modal-qty-container">
+        <span class="modal-qty-label">Quantidade:</span>
+        <div class="modal-qty-controls">
+          <button class="modal-qty-btn" id="btn-modal-qty-minus" onclick="updateModalQty(-1)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <span class="modal-qty-value" id="modal-qty-value">1</span>
+          <button class="modal-qty-btn" id="btn-modal-qty-plus" onclick="updateModalQty(1)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="cancel-btn" id="btn-variation-cancel">Cancelar</button>
+        <button class="confirm-btn" id="btn-variation-confirm">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Set API URL (overridden at container runtime by Caddy env substitution)
+    window.API_URL = '%%API_URL%%';
+  </script>
+  <script src="/js/utils.js?v=4"></script>
+  <script src="/js/cashier.js?v=4"></script>
+  <script src="/js/nav.js?v=4"></script>
+</body>
+</html>

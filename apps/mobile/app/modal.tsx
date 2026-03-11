@@ -71,7 +71,13 @@ export default function ModalScreen() {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
     >
       <View style={styles.container}>
-        <Text style={styles.title}>Resumo do Pedido</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginHorizontal: scale(24), marginTop: verticalScale(24), marginBottom: verticalScale(16) }}>
+          <Text style={[styles.title, { marginHorizontal: 0, marginTop: 0, marginBottom: 0 }]}>Resumo do Pedido</Text>
+          <TouchableOpacity onPress={() => clearCart()} style={{ flexDirection: 'row', alignItems: 'center', gap: scale(6), backgroundColor: '#FEE2E2', paddingHorizontal: scale(12), paddingVertical: verticalScale(6), borderRadius: scale(16) }}>
+            <Trash2 color="#EF4444" size={scale(16)} />
+            <Text style={{ color: '#EF4444', fontWeight: 'bold', fontSize: fontScale(14) }}>Limpar</Text>
+          </TouchableOpacity>
+        </View>
 
         <FlatList
           data={items}

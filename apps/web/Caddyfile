@@ -1,0 +1,25 @@
+:80 {
+    root * /srv
+    
+    # Replace placeholder with actual API URL at startup
+    encode gzip
+    
+    # Serve index.html for the root
+    file_server {
+        index index.html
+    }
+
+    # Handle HTML extension-less routes
+    @html {
+        not file
+        path_regexp html ^(.+)$
+    }
+    rewrite @html {re.html.1}.html
+
+    # SPA-style: if file not found, try .html variant
+    try_files {path} {path}.html /index.html
+    
+    handle_errors {
+        respond "{err.status_code} {err.status_text}" {err.status_code}
+    }
+}

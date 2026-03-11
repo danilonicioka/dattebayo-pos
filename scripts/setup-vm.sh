@@ -1,23 +1,24 @@
 #!/bin/bash
 
 # Dattebayo POS - VM Setup Script
-# This script installs Docker and starts the project services.
+# Este script instala o Docker e inicia os serviços do projeto.
 
-# Exit on error
 set -e
 
-echo "🔄 Updating package list..."
+# Vai para a raiz do projeto (dois níveis acima de scripts/)
+PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+
+echo "🔄 Atualizando lista de pacotes..."
 sudo apt-get update
 
-echo "📦 Installing prerequisites..."
-# Add Docker's official GPG key:
+echo "📦 Instalando pré-requisitos..."
 sudo apt update
-sudo apt install ca-certificates curl
+sudo apt install -y ca-certificates curl
 sudo install -m 0755 -d /etc/apt/keyrings
 sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
 sudo chmod a+r /etc/apt/keyrings/docker.asc
 
-# Add the repository to Apt sources:
+# Adiciona o repositório Docker
 sudo tee /etc/apt/sources.list.d/docker.sources <<EOF
 Types: deb
 URIs: https://download.docker.com/linux/debian
@@ -28,16 +29,15 @@ EOF
 
 sudo apt update
 
-echo "🐳 Installing Docker Engine, CLI, and Compose..."
+echo "🐳 Instalando Docker Engine, CLI e Compose..."
 sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
+echo "👤 Adicionando usuário atual ao grupo 'docker'..."
+sudo usermod -aG docker "$USER"
 
-echo "👤 Adding current user to the 'docker' group..."
-sudo usermod -aG docker $USER
-
-echo "🚀 Starting services..."
-./restart-services.sh
+echo "🚀 Iniciando os serviços..."
+bash "$PROJECT_ROOT/scripts/restart-services.sh"
 
 echo ""
-echo "✅ Setup complete!"
-echo "⚠️ IMPORTANT: Run 'newgrp docker' to apply group changes to your current shell."
+echo "✅ Setup concluído!"
+echo "⚠️  IMPORTANTE: Execute 'newgrp docker' para aplicar as mudanças de grupo na sessão atual."

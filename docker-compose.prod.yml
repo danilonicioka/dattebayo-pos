@@ -1,0 +1,57 @@
+services:
+  # Backend da aplicação — Hono
+  api:
+    image: danilonicioka/dattebayo-api:latest
+    container_name: dattebayo_api
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://dattebayo:dattebayo_password@db:5432/dattebayo_db?schema=public
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app_network
+
+  # Banco de Dados
+  db:
+    image: postgres:15-alpine
+    container_name: dattebayo_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: dattebayo
+      POSTGRES_PASSWORD: dattebayo_password
+      POSTGRES_DB: dattebayo_db
+    ports:
+      # Exposto localmente caso precise investigar algo na mão na VM
+      - "5433:5432"
+    volumes:
+      - pgdata_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dattebayo -d dattebayo_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - app_network
+
+  # Front-end — Caddy
+  web:
+    image: danilonicioka/dattebayo-web:latest
+    container_name: dattebayo_web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  pgdata_prod:

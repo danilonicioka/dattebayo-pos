@@ -36,7 +36,7 @@ echo "👤 Adicionando usuário atual ao grupo 'docker'..."
 sudo usermod -aG docker "$USER"
 
 echo "🚀 Iniciando os serviços..."
-bash "$PROJECT_ROOT/scripts/restart-services.sh"
+bash "$PROJECT_ROOT/scripts/deploy-prod.sh"
 
 echo ""
 echo "✅ Setup concluído!"

@@ -194,7 +194,7 @@ async function handleCheckout() {
         name: i.name,
         price: i.price,
         quantity: i.quantity,
-        variations: i.variations.map(v => ({ menuItemVariationId: v.menuItemVariationId, name: v.name, additionalPrice: v.additionalPrice })),
+        variations: i.variations.map(v => ({ menuItemVariationId: parseInt(v.menuItemVariationId), name: v.name, additionalPrice: v.additionalPrice })),
       })),
     };
     await api.post('/orders', orderData);

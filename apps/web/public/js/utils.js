@@ -92,3 +92,21 @@ function fmtPrice(n) {
 function fmtTime(dateStr) {
   return new Date(dateStr).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 }
+
+function formatItemNameWithVariations(itemName, variations) {
+  if (!variations || variations.length === 0) return itemName;
+
+  const varNames = variations.map(v => v.name.trim());
+  const lowerItemName = itemName.toLowerCase();
+  const isPastel = lowerItemName.includes('pastel');
+
+  let formattedVariations = [...varNames];
+  if (isPastel && formattedVariations.length > 0) {
+    if (!formattedVariations[0].toLowerCase().startsWith('de ')) {
+      formattedVariations[0] = 'de ' + formattedVariations[0];
+    }
+  }
+
+  const variationsString = formattedVariations.join(' + ');
+  return `${itemName} ${variationsString}`;
+}

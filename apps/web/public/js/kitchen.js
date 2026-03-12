@@ -85,14 +85,17 @@ function orderCardHTML(order, isOldest) {
     </div>
     <div class="order-time">${fmtTime(order.createdAt)}</div>
     <div class="items-list-box">
-      ${order.items.map(item => `
+      ${order.items.map(item => {
+        const displayName = formatItemNameWithVariations(item.name, item.variations);
+        return `
         <div class="order-item-row">
           <span class="item-qty">${item.quantity}x</span>
           <div style="flex:1">
-            <span class="item-name">${item.name}</span>
+            <span class="item-name">${displayName}</span>
             ${item.specialInstructions ? `<div class="item-notes">Obs: ${item.specialInstructions}</div>` : ''}
           </div>
-        </div>`).join('')}
+        </div>`;
+      }).join('')}
     </div>
     ${order.notes ? `<div class="general-notes"><div class="general-notes-text">Nota: ${order.notes}</div></div>` : ''}
     ${actionBtn}

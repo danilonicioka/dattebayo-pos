@@ -68,12 +68,13 @@ export default function HomeScreen() {
     setSelectedQuantity(1);
 
     if (item.variations && item.variations.length > 0) {
-      // Se for rádio (mais de uma variação SINGLE), pré-seleciona a primeira disponível
-      const isRadio = item.variations.length > 1 && item.variations[0].type === 'SINGLE';
+      const isRadio = item.variations.some(v => v.type === 'SINGLE');
       if (isRadio) {
-        const firstAvailable = item.variations.find(v =>
-          !(v.stockQuantity !== null && v.stockQuantity !== undefined && v.stockQuantity <= 0)
-        );
+        const firstAvailable = item.variations.find(v => {
+          const variationCartCount = cartItems.reduce((acc, cartItem) => acc + (cartItem.variations?.some((cartVar: any) => String(cartVar.menuItemVariationId || cartVar.id) === String(v.id)) ? cartItem.quantity : 0), 0);
+          const effectiveStock = v.stockQuantity !== null && v.stockQuantity !== undefined ? v.stockQuantity - variationCartCount : null;
+          return !(effectiveStock !== null && effectiveStock <= 0);
+        });
         if (firstAvailable) {
           setSelectedVariations([firstAvailable.id!]);
         } else {
@@ -187,7 +188,7 @@ export default function HomeScreen() {
                     style={[styles.variationOption, isOutOfStock && styles.variationDisabled]}
                     disabled={isOutOfStock}
                     onPress={() => {
-                      const isRadio = selectedItemForVariations && selectedItemForVariations.variations!.length > 1 && v.type === 'SINGLE';
+                      const isRadio = selectedItemForVariations && selectedItemForVariations.variations!.some(varItem => varItem.type === 'SINGLE');
 
                       if (isRadio) {
                         // Comportamento de Rádio: Sempre seleciona apenas este
@@ -234,9 +235,8 @@ export default function HomeScreen() {
             </ScrollView>
 
             {(() => {
-              const isMandatoryRadio = selectedItemForVariations && selectedItemForVariations.variations && selectedItemForVariations.variations.length > 1 && selectedItemForVariations.variations[0].type === 'SINGLE';
-              const isMandatoryMulti = selectedItemForVariations && selectedItemForVariations.variations && selectedItemForVariations.variations[0]?.type === 'MULTIPLE';
-              const isMissingMandatory = (isMandatoryRadio || isMandatoryMulti) && selectedVariations.length === 0;
+              const hasVariations = selectedItemForVariations && selectedItemForVariations.variations && selectedItemForVariations.variations.length > 0;
+              const isMissingMandatory = hasVariations && selectedVariations.length === 0;
               if (isMissingMandatory) {
                 return (
                   <Text style={{ color: '#D32F2F', fontSize: 13, textAlign: 'center', marginVertical: 8, fontWeight: '500' }}>
@@ -275,17 +275,15 @@ export default function HomeScreen() {
                 style={[
                   styles.confirmBtn,
                   (() => {
-                    const isMandatoryRadio = selectedItemForVariations && selectedItemForVariations.variations && selectedItemForVariations.variations.length > 1 && selectedItemForVariations.variations[0].type === 'SINGLE';
-                    const isMandatoryMulti = selectedItemForVariations && selectedItemForVariations.variations && selectedItemForVariations.variations[0]?.type === 'MULTIPLE';
-                    const isMissingMandatory = (isMandatoryRadio || isMandatoryMulti) && selectedVariations.length === 0;
+                    const hasVariations = selectedItemForVariations && selectedItemForVariations.variations && selectedItemForVariations.variations.length > 0;
+                    const isMissingMandatory = hasVariations && selectedVariations.length === 0;
                     return isMissingMandatory ? { backgroundColor: '#9CA3AF' } : null;
                   })()
                 ]}
                 onPress={() => {
                   if (selectedItemForVariations) {
-                    const isMandatoryRadio = selectedItemForVariations.variations && selectedItemForVariations.variations.length > 1 && selectedItemForVariations.variations[0].type === 'SINGLE';
-                    const isMandatoryMulti = selectedItemForVariations.variations && selectedItemForVariations.variations[0]?.type === 'MULTIPLE';
-                    const isMissingMandatory = (isMandatoryRadio || isMandatoryMulti) && selectedVariations.length === 0;
+                    const hasVariations = selectedItemForVariations.variations && selectedItemForVariations.variations.length > 0;
+                    const isMissingMandatory = hasVariations && selectedVariations.length === 0;
 
                     if (isMissingMandatory) return;
 

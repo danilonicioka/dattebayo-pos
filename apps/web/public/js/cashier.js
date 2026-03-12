@@ -137,8 +137,7 @@ function renderCart() {
 
   cartEl.innerHTML = `<div style="padding:12px;display:flex;flex-direction:column;gap:12px">` +
     cart.map(item => {
-      const varNames = item.variations.map(v => v.name).join(', ');
-      const displayName = varNames ? `${item.name} (${varNames})` : item.name;
+      const displayName = formatItemNameWithVariations(item.name, item.variations);
       return `<div class="cart-item-card" style="background:#fff;border-radius:12px;padding:12px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 1px 4px rgba(0,0,0,0.06);border:1px solid #F3F4F6">
         <div class="cart-item-info" style="flex:1">
           <div class="cart-item-name">${displayName}</div>
@@ -212,8 +211,27 @@ async function handleCheckout() {
 // ---- Variation Modal ----
 function openVariationModal() {
   if (!selectedItemForVariations) return;
-  document.getElementById('variation-modal-title').textContent = selectedItemForVariations.variations?.length ? `Opções para ${selectedItemForVariations.name}` : `Adicionar ${selectedItemForVariations.name}`;
+  const vars = selectedItemForVariations.variations || [];
+  
+  document.getElementById('variation-modal-title').textContent = vars.length ? `Opções para ${selectedItemForVariations.name}` : `Adicionar ${selectedItemForVariations.name}`;
   selectedQuantity = 1;
+  selectedVariations = [];
+
+  // Pre-seleção para tipo SINGLE (Radio)
+  if (vars.length > 0) {
+    const isRadio = vars.some(v => v.type === 'SINGLE');
+    if (isRadio) {
+      const firstAvailable = vars.find(v => {
+        const variationCartCount = cart.reduce((acc, item) => acc + (item.variations.some(cartVar => String(cartVar.menuItemVariationId) === String(v.id)) ? item.quantity : 0), 0);
+        const effectiveStock = v.stockQuantity !== null && v.stockQuantity !== undefined ? v.stockQuantity - variationCartCount : null;
+        return !(effectiveStock !== null && effectiveStock <= 0);
+      });
+      if (firstAvailable) {
+        selectedVariations = [String(firstAvailable.id)];
+      }
+    }
+  }
+
   updateModalQtyDisplay();
   renderVariations();
   document.getElementById('variation-modal').style.display = 'flex';
@@ -246,8 +264,9 @@ function renderVariations() {
     return;
   }
 
-  const isRadio = vars.length > 1 && vars[0].type === 'SINGLE';
-  const isMandatory = (isRadio || vars[0]?.type === 'MULTIPLE') && selectedVariations.length === 0;
+  const isRadio = vars.some(v => v.type === 'SINGLE');
+  const isMandatory = vars.length > 0 && selectedVariations.length === 0;
+  
   document.getElementById('btn-variation-confirm').disabled = isMandatory;
   document.getElementById('variation-mandatory-msg').style.display = isMandatory ? 'block' : 'none';
 
@@ -289,8 +308,7 @@ function handleConfirmVariations() {
   const vars = selectedItemForVariations.variations || [];
   
   if (vars.length > 0) {
-    const isRadio = vars.length > 1 && vars[0].type === 'SINGLE';
-    const isMandatory = (isRadio || vars[0]?.type === 'MULTIPLE') && selectedVariations.length === 0;
+    const isMandatory = selectedVariations.length === 0;
     if (isMandatory) return;
   }
 

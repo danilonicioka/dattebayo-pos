@@ -75,7 +75,10 @@ function render() {
       </div>
       <div class="divider"></div>
       <div class="order-items">
-        ${order.items.map(i => `<div class="item-row"><span class="item-qty">${i.quantity}x</span><span class="item-name">${i.name}</span></div>`).join('')}
+        ${order.items.map(i => {
+          const displayName = formatItemNameWithVariations(i.name, i.variations);
+          return `<div class="item-row"><span class="item-qty">${i.quantity}x</span><span class="item-name">${displayName}</span></div>`;
+        }).join('')}
       </div>
       <div class="divider"></div>
       <div class="total-row">

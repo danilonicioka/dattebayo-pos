@@ -56,6 +56,32 @@ export function ordersRoutes(prisma: PrismaClient) {
             throw new Error(`O item ${menuItem.name} requer pelo menos uma variação.`);
           }
 
+          // Caso especial: Camarão Milanesa (id 10)
+          // Deduz do estoque do item pai (unidade: 1, porção: 5)
+          if (menuItem.id === 10) {
+            let unitsToDeduct = 0;
+            if (item.variations && item.variations.length > 0) {
+              for (const vSelected of item.variations) {
+                if (vSelected.menuItemVariationId === 19) {
+                  unitsToDeduct += item.quantity * 1;
+                } else if (vSelected.menuItemVariationId === 20) {
+                  unitsToDeduct += item.quantity * 5;
+                }
+              }
+            } else {
+              unitsToDeduct = item.quantity;
+            }
+
+            if (menuItem.stockQuantity !== null) {
+              const newStock = Math.max(0, menuItem.stockQuantity - unitsToDeduct);
+              await tx.menuItem.update({
+                where: { id: menuItem.id },
+                data: { stockQuantity: newStock },
+              });
+            }
+            continue;
+          }
+
           const deductBaseStock = !hasVariationsInDb;
 
           if (item.variations && item.variations.length > 0) {

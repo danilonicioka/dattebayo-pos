@@ -31,7 +31,7 @@ export default function ModalScreen() {
           price: item.price,
           specialInstructions: item.specialInstructions || '',
           variations: item.variations.map((v: any) => ({
-            menuItemVariationId: v.menuItemVariationId || v.id,
+            menuItemVariationId: parseInt(v.menuItemVariationId || v.id, 10),
             name: v.name,
             additionalPrice: v.additionalPrice,
           }))

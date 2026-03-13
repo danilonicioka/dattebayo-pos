@@ -6,11 +6,32 @@ let selectedItemForVariations = null;
 let selectedVariations = [];
 let selectedQuantity = 1;
 
+const CART_STORAGE_KEY = 'dattebayo-cart';
+
+function saveCart() {
+  console.log('Saving cart to localStorage:', cart);
+  localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+}
+
+function loadCart() {
+  const saved = localStorage.getItem(CART_STORAGE_KEY);
+  console.log('Loaded cart from localStorage string:', saved);
+  if (saved) {
+    try {
+      cart = JSON.parse(saved);
+      console.log('Parsed cart after loading:', cart);
+    } catch (e) {
+      console.error('Error loading cart:', e);
+      cart = [];
+    }
+  }
+}
+
 // ---- Init ----
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-open-cart')?.addEventListener('click', () => openCart());
   document.getElementById('btn-close-cart')?.addEventListener('click', () => closeCart());
-  document.getElementById('btn-clear-cart')?.addEventListener('click', () => { cart = []; renderCart(); });
+  document.getElementById('btn-clear-cart')?.addEventListener('click', () => { cart = []; saveCart(); renderCart(); });
   document.getElementById('btn-checkout')?.addEventListener('click', handleCheckout);
   document.getElementById('btn-continue-shopping')?.addEventListener('click', closeCart);
   document.getElementById('amount-received')?.addEventListener('input', updateChange);
@@ -18,6 +39,8 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-variation-confirm')?.addEventListener('click', handleConfirmVariations);
 
   fetchMenu();
+  loadCart();
+  renderCart();
 });
 
 // ---- Fetch ----
@@ -105,6 +128,7 @@ function addToCart(product, quantity, vars) {
       variations: vars,
     });
   }
+  saveCart();
   renderCart();
 }
 
@@ -157,9 +181,10 @@ function renderCart() {
     }).join('') + '</div>';
 }
 
-function removeFromCart(id) { cart = cart.filter(i => i.id !== id); renderCart(); }
+function removeFromCart(id) { cart = cart.filter(i => i.id !== id); saveCart(); renderCart(); }
 function updateQty(id, delta) {
   cart = cart.map(i => i.id === id ? { ...i, quantity: Math.max(0, i.quantity + delta) } : i).filter(i => i.quantity > 0);
+  saveCart();
   renderCart();
 }
 
@@ -198,6 +223,7 @@ async function handleCheckout() {
     };
     await api.post('/orders', orderData);
     cart = [];
+    saveCart();
     document.getElementById('customer-name').value = '';
     document.getElementById('amount-received').value = '';
     closeCart();

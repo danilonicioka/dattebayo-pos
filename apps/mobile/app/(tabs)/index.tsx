@@ -176,9 +176,37 @@ export default function HomeScreen() {
               {selectedItemForVariations?.variations?.length ? `Opções para ${selectedItemForVariations?.name}` : `Adicionar ${selectedItemForVariations?.name}`}
             </Text>
             <ScrollView style={styles.variationsList}>
-              {selectedItemForVariations?.variations?.map(v => {
+              {selectedItemForVariations?.variations?.map((v: any) => {
                 const variationCartCount = cartItems.reduce((acc, item) => acc + (item.variations?.some((cartVar: any) => String(cartVar.menuItemVariationId || cartVar.id) === String(v.id)) ? item.quantity : 0), 0);
-                const effectiveStock = v.stockQuantity !== null && v.stockQuantity !== undefined ? v.stockQuantity - variationCartCount : null;
+                
+                let effectiveStock = null;
+                // Caso especial Camarão Milanesa (ID 10)
+                if (selectedItemForVariations.id === 10) {
+                  const camaraoCartConsumption = cartItems.reduce((acc, item) => {
+                    if (item.id === 10 || (item as any).productId === 10) {
+                      const units = item.variations?.reduce((u: number, v: any) => {
+                        const vId = Number(v.menuItemVariationId || v.id);
+                        if (vId === 19) return u + 1; // Unidade
+                        if (vId === 20) return u + 5; // Porção
+                        return u;
+                      }, 0) || 0;
+                      return acc + (units * item.quantity);
+                    }
+                    return acc;
+                  }, 0);
+
+                  if (selectedItemForVariations.stockQuantity !== null) {
+                    if (v.id === 19) { // Unidade
+                      effectiveStock = selectedItemForVariations.stockQuantity - camaraoCartConsumption;
+                    } else if (v.id === 20) { // Porção
+                      effectiveStock = Math.floor((selectedItemForVariations.stockQuantity - camaraoCartConsumption) / 5);
+                    }
+                  }
+                } else {
+                  const variationCartCount = cartItems.reduce((acc, item) => acc + (item.variations?.some((cartVar: any) => String(cartVar.menuItemVariationId || cartVar.id) === String(v.id)) ? item.quantity : 0), 0);
+                  effectiveStock = v.stockQuantity !== null && v.stockQuantity !== undefined ? v.stockQuantity - variationCartCount : null;
+                }
+
                 const isSelected = selectedVariations.includes(v.id!);
                 const isOutOfStock = effectiveStock !== null && effectiveStock <= 0;
 

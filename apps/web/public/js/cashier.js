@@ -221,9 +221,33 @@ function openVariationModal() {
   if (vars.length > 0) {
     const isRadio = vars.some(v => v.type === 'SINGLE');
     if (isRadio) {
+      // Cálculo de consumo total no carrinho para o Camarão Milanesa (ID 10)
+      let camaraoCartConsumption = 0;
+      if (selectedItemForVariations.id === 10) {
+        camaraoCartConsumption = cart.reduce((acc, item) => {
+          if (item.productId === 10) {
+            const units = item.variations.reduce((u, v) => {
+              if (v.menuItemVariationId === 19) return u + 1; // Unidade
+              if (v.menuItemVariationId === 20) return u + 5; // Porção
+              return u;
+            }, 0);
+            return acc + (units * item.quantity);
+          }
+          return acc;
+        }, 0);
+      }
+
       const firstAvailable = vars.find(v => {
-        const variationCartCount = cart.reduce((acc, item) => acc + (item.variations.some(cartVar => String(cartVar.menuItemVariationId) === String(v.id)) ? item.quantity : 0), 0);
-        const effectiveStock = v.stockQuantity !== null && v.stockQuantity !== undefined ? v.stockQuantity - variationCartCount : null;
+        let effectiveStock = null;
+        if (selectedItemForVariations.id === 10) {
+          if (selectedItemForVariations.stockQuantity !== null) {
+            if (v.id === 19) effectiveStock = selectedItemForVariations.stockQuantity - camaraoCartConsumption;
+            else if (v.id === 20) effectiveStock = Math.floor((selectedItemForVariations.stockQuantity - camaraoCartConsumption) / 5);
+          }
+        } else {
+          const variationCartCount = cart.reduce((acc, item) => acc + (item.variations.some(cartVar => String(cartVar.menuItemVariationId) === String(v.id)) ? item.quantity : 0), 0);
+          effectiveStock = v.stockQuantity !== null && v.stockQuantity !== undefined ? v.stockQuantity - variationCartCount : null;
+        }
         return !(effectiveStock !== null && effectiveStock <= 0);
       });
       if (firstAvailable) {
@@ -271,8 +295,35 @@ function renderVariations() {
   document.getElementById('variation-mandatory-msg').style.display = isMandatory ? 'block' : 'none';
 
   document.getElementById('variations-list').innerHTML = vars.map(v => {
-    const variationCartCount = cart.reduce((acc, item) => acc + (item.variations.some(cartVar => String(cartVar.menuItemVariationId) === String(v.id)) ? item.quantity : 0), 0);
-    const effectiveStock = v.stockQuantity !== null && v.stockQuantity !== undefined ? v.stockQuantity - variationCartCount : null;
+    let effectiveStock = null;
+    
+    // Caso especial Camarão Milanesa (ID 10)
+    if (selectedItemForVariations.id === 10) {
+      const camaraoCartConsumption = cart.reduce((acc, item) => {
+        if (item.productId === 10) {
+          const units = item.variations.reduce((u, v) => {
+            if (String(v.menuItemVariationId) === '19') return u + 1; // Unidade
+            if (String(v.menuItemVariationId) === '20') return u + 5; // Porção
+            return u;
+          }, 0);
+          return acc + (units * item.quantity);
+        }
+        return acc;
+      }, 0);
+
+      if (selectedItemForVariations.stockQuantity !== null) {
+        // Deduz do estoque do item pai considerando TUDO do camarão no carrinho
+        if (v.id === 19) { // Unidade
+          effectiveStock = selectedItemForVariations.stockQuantity - camaraoCartConsumption;
+        } else if (v.id === 20) { // Porção com 5
+          effectiveStock = Math.floor((selectedItemForVariations.stockQuantity - camaraoCartConsumption) / 5);
+        }
+      }
+    } else {
+      const variationCartCount = cart.reduce((acc, item) => acc + (item.variations.some(cartVar => String(cartVar.menuItemVariationId) === String(v.id)) ? item.quantity : 0), 0);
+      effectiveStock = v.stockQuantity !== null && v.stockQuantity !== undefined ? v.stockQuantity - variationCartCount : null;
+    }
+
     const isSelected = selectedVariations.includes(String(v.id));
     const outOfStock = effectiveStock !== null && effectiveStock <= 0;
     const checkIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>`;

@@ -127,11 +127,10 @@ export function ordersRoutes(prisma: PrismaClient) {
     return c.json(orders);
   });
 
-  // GET /orders/summary  — must be before :id
   app.get('/summary', async (c) => {
     const deliveredOrders = await prisma.order.findMany({
       where: { status: 'COMPLETED' },
-      include: { items: { include: { menuItem: true, variations: true } } },
+      include: { items: { include: { variations: true } } },
     });
 
     const openOrdersCount = await prisma.order.count({
@@ -241,7 +240,46 @@ export function ordersRoutes(prisma: PrismaClient) {
 
               return tx.order.update({ where: { id }, data: updateData });
             })
-          : await prisma.order.update({ where: { id }, data: updateData });
+          : await prisma.$transaction(async (tx) => {
+              // 1. Fetch current order with items/variations BEFORE updating status
+              const order = await tx.order.findUnique({
+                where: { id },
+                include: { items: { include: { variations: true } } },
+              });
+              if (!order) throw new Error('Pedido não encontrado');
+
+              // 2. Prepare status update
+              const wasAlreadyCompleted = order.status === 'COMPLETED';
+              const becomingCompleted = updateData.status === 'COMPLETED';
+
+              const updatedOrder = await tx.order.update({ where: { id }, data: updateData });
+
+              // 3. Special Inventory Logic for Camarão Milanesa (ID 10)
+              // Only deduct if it's moving TO COMPLETED for the first time
+              if (!wasAlreadyCompleted && becomingCompleted) {
+                let totalUnitsToDeduct = 0;
+                for (const item of order.items) {
+                  if (item.menuItemId === 10) {
+                    for (const v of item.variations) {
+                      if (v.menuItemVariationId === 19) { // Unidade
+                        totalUnitsToDeduct += item.quantity;
+                      } else if (v.menuItemVariationId === 20) { // Porção
+                        totalUnitsToDeduct += item.quantity * 5;
+                      }
+                    }
+                  }
+                }
+
+                if (totalUnitsToDeduct > 0) {
+                  await tx.menuItem.update({
+                    where: { id: 10 },
+                    data: { stockQuantity: { decrement: totalUnitsToDeduct } },
+                  });
+                }
+              }
+
+              return updatedOrder;
+            });
 
       io.emit('order_updated', updatedOrder);
       return c.json(updatedOrder);

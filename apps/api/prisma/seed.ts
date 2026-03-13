@@ -3,186 +3,83 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-    console.log('Iniciando o Seed do Banco de Dados com os itens Originais V1...');
+  console.log('🚀 Iniciando sincronização do banco de dados (ID Enforcement)...');
 
-    const count = await prisma.menuItem.count();
-    if (count > 0) {
-        console.log('O banco de dados já possui itens. Pulando o seed para evitar perda de dados.');
-        return;
-    }
+  console.log('0. Limpando variações existentes para evitar duplicatas...');
+  await prisma.menuItemVariation.deleteMany();
 
-    console.log('Banco de dados vazio. Populando itens iniciais...');
-    await prisma.menuItemVariation.deleteMany();
-    await prisma.menuItem.deleteMany();
+  const menuItems = [
+    { id: 1, name: "Tempurá", description: "Tempura de legumes com ou sem camarão", price: 10, category: "Comidas" },
+    { id: 2, name: "Takoyaki", description: "Bolinho de com recheio de polvo", price: 23, category: "Comidas" },
+    { id: 3, name: "Temaki", description: "Temaki de salmão ou camarão", price: 20, category: "Comidas" },
+    { id: 4, name: "Gyoza", description: "Gyoza de carne bovina com legumes", price: 18, category: "Comidas" },
+    { id: 5, name: "Hot Ball", description: "Bolinho de sushi (salmão ou camarão) com queijo empanado e frito", price: 12, category: "Comidas" },
+    { id: 6, name: "Hot Coreano", description: "Espeto de salmão ou camarão com queijo empanado com massa estilo coreano", price: 20, category: "Comidas" },
+    { id: 7, name: "Yakisoba", description: "Yakisoba de carne e frango com ou sem camarão", price: 22, category: "Comidas" },
+    { id: 8, name: "Hot Sushi", description: "Hot Sushi de salmão ou camarão", price: 35, category: "Comidas" },
+    { id: 9, name: "Pastel", description: "Pastel de vento com diferentes recheios", price: 6, category: "Comidas" },
+    { id: 10, name: "Camarão Milanesa", description: "Camarão rosa empanado e frito", price: 0, category: "Comidas" },
+    { id: 11, name: "Polvo no Espeto", description: "Polvo no espeto frito na chapa acompanhado de arroz", price: 20, category: "Comidas" },
+    { id: 12, name: "Bubble", description: "Suco com bolinhas saborizadas (300 ml)", price: 15, category: "Bebidas" },
+  ];
 
-    // Helper para criar item com variações
-    async function createItemWithVariations(
-        name: string,
-        description: string,
-        price: number,
-        category: string,
-        variations: { name: string; type: string; additionalPrice: number }[]
-    ) {
-        const createdItem = await prisma.menuItem.create({
-            data: {
-                name,
-                description,
-                price,
-                category,
-                available: true,
-                variations: {
-                    create: variations,
-                },
-            },
-        });
-        console.log(`Criado: ${createdItem.name} com ${variations.length} variações.`);
-        return createdItem;
-    }
+  const variations = [
+    { id: 25, menuItemId: 1, name: "De Legumes", type: "SINGLE", additionalPrice: 0 },
+    { id: 26, menuItemId: 1, name: "Com Camarão", type: "SINGLE", additionalPrice: 2 },
+    { id: 3, menuItemId: 3, name: "De Salmão", type: "SINGLE", additionalPrice: 0 },
+    { id: 4, menuItemId: 3, name: "De Camarão", type: "SINGLE", additionalPrice: 0 },
+    { id: 5, menuItemId: 5, name: "De Salmão", type: "SINGLE", additionalPrice: 0 },
+    { id: 6, menuItemId: 5, name: "De Camarão", type: "SINGLE", additionalPrice: 0 },
+    { id: 7, menuItemId: 6, name: "De Salmão", type: "SINGLE", additionalPrice: 0 },
+    { id: 8, menuItemId: 6, name: "De Camarão", type: "SINGLE", additionalPrice: 0 },
+    { id: 9, menuItemId: 7, name: "Simples", type: "SINGLE", additionalPrice: 0 },
+    { id: 10, menuItemId: 7, name: "Com Camarão", type: "SINGLE", additionalPrice: 5 },
+    { id: 11, menuItemId: 8, name: "De Salmão", type: "MULTIPLE", additionalPrice: 0 },
+    { id: 12, menuItemId: 8, name: "De Camarão", type: "MULTIPLE", additionalPrice: 0 },
+    { id: 13, menuItemId: 9, name: "Queijo", type: "MULTIPLE", additionalPrice: 2 },
+    { id: 14, menuItemId: 9, name: "Frango", type: "MULTIPLE", additionalPrice: 2 },
+    { id: 15, menuItemId: 9, name: "Carne", type: "MULTIPLE", additionalPrice: 2 },
+    { id: 16, menuItemId: 9, name: "Calabresa", type: "MULTIPLE", additionalPrice: 2 },
+    { id: 17, menuItemId: 9, name: "Catupiry", type: "MULTIPLE", additionalPrice: 2 },
+    { id: 18, menuItemId: 9, name: "Paraense (com camarão, jambu, queijo e catupiry)", type: "MULTIPLE", additionalPrice: 9 },
+    { id: 19, menuItemId: 10, name: "Unidade", type: "SINGLE", additionalPrice: 6 },
+    { id: 20, menuItemId: 10, name: "Porção com 5 unidades", type: "SINGLE", additionalPrice: 25 },
+  ];
 
-    // 1. Tempurá
-    await createItemWithVariations(
-        'Tempurá',
-        'Tempura de legumes com ou sem camarão',
-        10.0,
-        'Comidas',
-        [
-            { name: 'De Legumes', type: 'SINGLE', additionalPrice: 0.0 },
-            { name: 'Com Camarão', type: 'SINGLE', additionalPrice: 2.0 }
-        ]
-    );
+  console.log('1. Garantindo itens do menu...');
+  for (const item of menuItems) {
+    await prisma.menuItem.upsert({
+      where: { id: item.id },
+      update: item,
+      create: item,
+    });
+  }
 
-    // 2. Takoyaki
-    await createItemWithVariations(
-        'Takoyaki',
-        'Bolinho de com recheio de polvo',
-        23.0,
-        'Comidas',
-        []
-    );
+  console.log('2. Garantindo variações...');
+  for (const v of variations) {
+    await prisma.menuItemVariation.upsert({
+      where: { id: v.id },
+      update: v,
+      create: v,
+    });
+  }
 
-    // 3. Temaki
-    await createItemWithVariations(
-        'Temaki',
-        'Temaki de salmão ou camarão',
-        20.0,
-        'Comidas',
-        [
-            { name: 'De Salmão', type: 'SINGLE', additionalPrice: 0.0 },
-            { name: 'De Camarão', type: 'SINGLE', additionalPrice: 0.0 },
-        ]
-    );
+  console.log('3. Sincronizando sequências do banco (Postgres)...');
+  try {
+    await prisma.$executeRaw`SELECT setval(pg_get_serial_sequence('"MenuItem"', 'id'), coalesce(max(id), 0) + 1, false) FROM "MenuItem";`;
+    await prisma.$executeRaw`SELECT setval(pg_get_serial_sequence('"MenuItemVariation"', 'id'), coalesce(max(id), 0) + 1, false) FROM "MenuItemVariation";`;
+  } catch (e: any) {
+    console.warn('Aviso: Não foi possível atualizar sequencias (pode ser esperado em SQLite):', e.message);
+  }
 
-    // 4. Gyoza
-    await createItemWithVariations(
-        'Gyoza',
-        'Gyoza de carne bovina com legumes',
-        18.0,
-        'Comidas',
-        []
-    );
-
-    // 5. Hot Ball
-    await createItemWithVariations(
-        'Hot Ball',
-        'Bolinho de sushi (salmão ou camarão) com queijo empanado e frito',
-        12.0,
-        'Comidas',
-        [
-            { name: 'De Salmão', type: 'SINGLE', additionalPrice: 0.0 },
-            { name: 'De Camarão', type: 'SINGLE', additionalPrice: 0.0 },
-        ]
-    );
-
-    // 6. Hot Coreano
-    await createItemWithVariations(
-        'Hot Coreano',
-        'Espeto de salmão ou camarão com queijo empanado com massa estilo coreano',
-        20.0,
-        'Comidas',
-        [
-            { name: 'De Salmão', type: 'SINGLE', additionalPrice: 0.0 },
-            { name: 'De Camarão', type: 'SINGLE', additionalPrice: 0.0 },
-        ]
-    );
-
-    // 7. Yakisoba
-    await createItemWithVariations(
-        'Yakisoba',
-        'Yakisoba de carne e frango com ou sem camarão',
-        22.0,
-        'Comidas',
-        [
-            { name: 'Simples', type: 'SINGLE', additionalPrice: 0.0 },
-            { name: 'Com Camarão', type: 'SINGLE', additionalPrice: 5.0 }
-        ]
-    );
-
-    // 8. Hot Sushi
-    await createItemWithVariations(
-        'Hot Sushi',
-        'Hot Sushi de salmão ou camarão',
-        35.0,
-        'Comidas',
-        [
-            { name: 'De Salmão', type: 'MULTIPLE', additionalPrice: 0.0 },
-            { name: 'De Camarão', type: 'MULTIPLE', additionalPrice: 0.0 },
-        ]
-    );
-
-    // 9. Pastel
-    await createItemWithVariations(
-        'Pastel',
-        'Pastel de vento com diferentes recheios',
-        6.0,
-        'Comidas',
-        [
-            { name: 'Queijo', type: 'MULTIPLE', additionalPrice: 2.0 },
-            { name: 'Frango', type: 'MULTIPLE', additionalPrice: 2.0 },
-            { name: 'Carne', type: 'MULTIPLE', additionalPrice: 2.0 },
-            { name: 'Calabresa', type: 'MULTIPLE', additionalPrice: 2.0 },
-            { name: 'Catupiry', type: 'MULTIPLE', additionalPrice: 2.0 },
-            { name: 'Paraense (com camarão, jambu, queijo e catupiry)', type: 'MULTIPLE', additionalPrice: 9.0 },
-        ]
-    );
-
-    // 10. Camarão Milanesa
-    await createItemWithVariations(
-        'Camarão Milanesa',
-        'Camarão rosa empanado e frito',
-        0.0,
-        'Comidas',
-        [
-            { name: 'Unidade', type: 'SINGLE', additionalPrice: 6.0 },
-            { name: 'Porção com 5 unidades', type: 'SINGLE', additionalPrice: 25.0 }
-        ]
-    );
-
-    // 11. Polvo no Espeto
-    await createItemWithVariations(
-        'Polvo no Espeto',
-        'Polvo no espeto frito na chapa acompanhado de arroz',
-        20.0,
-        'Comidas',
-        []
-    );
-
-    // 12. Bubble
-    await createItemWithVariations(
-        'Bubble',
-        'Suco com bolinhas saborizadas (300 ml)',
-        15.0,
-        'Bebidas',
-        []
-    );
-
-    console.log('Seed do banco de dados concluído com sucesso!');
+  console.log('✅ Banco de dados sincronizado com sucesso!');
 }
 
 main()
-    .catch((e) => {
-        console.error(e);
-        process.exit(1);
-    })
-    .finally(async () => {
-        await prisma.$disconnect();
-    });
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

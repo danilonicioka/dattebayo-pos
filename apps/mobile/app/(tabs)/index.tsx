@@ -70,9 +70,40 @@ export default function HomeScreen() {
     if (item.variations && item.variations.length > 0) {
       const isRadio = item.variations.some(v => v.type === 'SINGLE');
       if (isRadio) {
-        const firstAvailable = item.variations.find(v => {
-          const variationCartCount = cartItems.reduce((acc, cartItem) => acc + (cartItem.variations?.some((cartVar: any) => String(cartVar.menuItemVariationId || cartVar.id) === String(v.id)) ? cartItem.quantity : 0), 0);
-          const effectiveStock = v.stockQuantity !== null && v.stockQuantity !== undefined ? v.stockQuantity - variationCartCount : null;
+        // Cálculo de consumo total no carrinho para o Camarão Milanesa
+        let camaraoCartConsumption = 0;
+        const itemName = (item.name || '').toLowerCase();
+        const isCamarao = item.id === 10 || itemName.includes('camarão milanesa');
+
+        if (isCamarao) {
+          camaraoCartConsumption = cartItems.reduce((acc, cartItem) => {
+            const cItemName = (cartItem.menuItem.name || '').toLowerCase();
+            if (cartItem.menuItem.id === 10 || cItemName.includes('camarão milanesa')) {
+              const units = cartItem.variations?.reduce((u: number, v: any) => {
+                const vId = Number(v.menuItemVariationId || v.id);
+                const vName = (v.name || '').toLowerCase();
+                if (vId === 19 || vName === 'unidade') return u + 1; // Unidade
+                if (vId === 20 || vName.includes('porção')) return u + 5; // Porção
+                return u;
+              }, 0) || 0;
+              return acc + (units * cartItem.quantity);
+            }
+            return acc;
+          }, 0);
+        }
+
+        const firstAvailable = item.variations!.find(v => {
+          let effectiveStock = null;
+          if (isCamarao) {
+            if (item.stockQuantity !== null && item.stockQuantity !== undefined) {
+              const vName = (v.name || '').toLowerCase();
+              if (v.id === 19 || vName === 'unidade') effectiveStock = item.stockQuantity - camaraoCartConsumption;
+              else if (v.id === 20 || vName.includes('porção')) effectiveStock = Math.floor((item.stockQuantity - camaraoCartConsumption) / 5);
+            }
+          } else {
+            const variationCartCount = cartItems.reduce((acc, cartItem) => acc + (cartItem.variations?.some((cartVar: any) => String(cartVar.menuItemVariationId || cartVar.id) === String(v.id)) ? cartItem.quantity : 0), 0);
+            effectiveStock = v.stockQuantity !== null && v.stockQuantity !== undefined ? v.stockQuantity - variationCartCount : null;
+          }
           return !(effectiveStock !== null && effectiveStock <= 0);
         });
         if (firstAvailable) {
@@ -180,14 +211,19 @@ export default function HomeScreen() {
                 const variationCartCount = cartItems.reduce((acc, item) => acc + (item.variations?.some((cartVar: any) => String(cartVar.menuItemVariationId || cartVar.id) === String(v.id)) ? item.quantity : 0), 0);
                 
                 let effectiveStock = null;
-                // Caso especial Camarão Milanesa (ID 10)
-                if (selectedItemForVariations.id === 10) {
+                // Caso especial Camarão Milanesa
+                const itemName = (selectedItemForVariations?.name || '').toLowerCase();
+                const isCamarao = selectedItemForVariations?.id === 10 || itemName.includes('camarão milanesa');
+
+                if (isCamarao) {
                   const camaraoCartConsumption = cartItems.reduce((acc, item) => {
-                    if (item.id === 10 || (item as any).productId === 10) {
+                    const cItemName = (item.menuItem?.name || (item as any).name || '').toLowerCase();
+                    if (item.id === 10 || (item as any).productId === 10 || cItemName.includes('camarão milanesa')) {
                       const units = item.variations?.reduce((u: number, v: any) => {
                         const vId = Number(v.menuItemVariationId || v.id);
-                        if (vId === 19) return u + 1; // Unidade
-                        if (vId === 20) return u + 5; // Porção
+                        const vName = (v.name || '').toLowerCase();
+                        if (vId === 19 || vName === 'unidade') return u + 1; // Unidade
+                        if (vId === 20 || vName.includes('porção')) return u + 5; // Porção
                         return u;
                       }, 0) || 0;
                       return acc + (units * item.quantity);
@@ -195,11 +231,12 @@ export default function HomeScreen() {
                     return acc;
                   }, 0);
 
-                  if (selectedItemForVariations.stockQuantity !== null) {
-                    if (v.id === 19) { // Unidade
-                      effectiveStock = selectedItemForVariations.stockQuantity - camaraoCartConsumption;
-                    } else if (v.id === 20) { // Porção
-                      effectiveStock = Math.floor((selectedItemForVariations.stockQuantity - camaraoCartConsumption) / 5);
+                  if (selectedItemForVariations!.stockQuantity !== null && selectedItemForVariations!.stockQuantity !== undefined) {
+                    const vName = (v.name || '').toLowerCase();
+                    if (v.id === 19 || vName === 'unidade') { // Unidade
+                      effectiveStock = selectedItemForVariations!.stockQuantity - camaraoCartConsumption;
+                    } else if (v.id === 20 || vName.includes('porção')) { // Porção
+                      effectiveStock = Math.floor((selectedItemForVariations!.stockQuantity - camaraoCartConsumption) / 5);
                     }
                   }
                 } else {

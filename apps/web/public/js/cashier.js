@@ -202,9 +202,46 @@ async function handleCheckout() {
     document.getElementById('amount-received').value = '';
     closeCart();
     renderCart();
+    fetchMenu(); // Atualiza estoque na tela
     showToast('Pedido realizado com sucesso! 🎉', 'success');
   } catch (e) {
     showToast('Erro ao finalizar pedido.', 'error');
+  }
+}
+
+// Helper para cálculo de estoque unificado
+function getEffectiveStock(v, item, currentCart) {
+  const itemId = Number(item.id);
+  const vId = Number(v.id);
+  const itemName = (item.name || '').toLowerCase();
+  const isCamarao = itemId === 10 || itemName.includes('camarão milanesa');
+
+  if (isCamarao) {
+    const camaraoCartConsumption = currentCart.reduce((acc, cartItem) => {
+      const cItemName = (cartItem.name || '').toLowerCase();
+      if (Number(cartItem.productId) === 10 || cItemName.includes('camarão milanesa')) {
+        const units = cartItem.variations.reduce((u, cv) => {
+          const cvId = Number(cv.menuItemVariationId || cv.id);
+          const cvName = (cv.name || '').toLowerCase();
+          if (cvId === 19 || cvName === 'unidade') return u + 1; // Unidade
+          if (cvId === 20 || cvName.includes('porção')) return u + 5; // Porção
+          return u;
+        }, 0);
+        return acc + (units * cartItem.quantity);
+      }
+      return acc;
+    }, 0);
+
+    if (item.stockQuantity !== null && item.stockQuantity !== undefined) {
+      const vName = (v.name || '').toLowerCase();
+      if (vId === 19 || vName === 'unidade') return item.stockQuantity - camaraoCartConsumption;
+      if (vId === 20 || vName.includes('porção')) return Math.floor((item.stockQuantity - camaraoCartConsumption) / 5);
+    }
+    return null;
+  } else {
+    const variationCartCount = currentCart.reduce((acc, cartItem) => 
+      acc + (cartItem.variations.some(cv => Number(cv.menuItemVariationId || cv.id) === vId) ? cartItem.quantity : 0), 0);
+    return (v.stockQuantity !== null && v.stockQuantity !== undefined) ? v.stockQuantity - variationCartCount : null;
   }
 }
 
@@ -221,33 +258,8 @@ function openVariationModal() {
   if (vars.length > 0) {
     const isRadio = vars.some(v => v.type === 'SINGLE');
     if (isRadio) {
-      // Cálculo de consumo total no carrinho para o Camarão Milanesa (ID 10)
-      let camaraoCartConsumption = 0;
-      if (selectedItemForVariations.id === 10) {
-        camaraoCartConsumption = cart.reduce((acc, item) => {
-          if (item.productId === 10) {
-            const units = item.variations.reduce((u, v) => {
-              if (v.menuItemVariationId === 19) return u + 1; // Unidade
-              if (v.menuItemVariationId === 20) return u + 5; // Porção
-              return u;
-            }, 0);
-            return acc + (units * item.quantity);
-          }
-          return acc;
-        }, 0);
-      }
-
       const firstAvailable = vars.find(v => {
-        let effectiveStock = null;
-        if (selectedItemForVariations.id === 10) {
-          if (selectedItemForVariations.stockQuantity !== null) {
-            if (v.id === 19) effectiveStock = selectedItemForVariations.stockQuantity - camaraoCartConsumption;
-            else if (v.id === 20) effectiveStock = Math.floor((selectedItemForVariations.stockQuantity - camaraoCartConsumption) / 5);
-          }
-        } else {
-          const variationCartCount = cart.reduce((acc, item) => acc + (item.variations.some(cartVar => String(cartVar.menuItemVariationId) === String(v.id)) ? item.quantity : 0), 0);
-          effectiveStock = v.stockQuantity !== null && v.stockQuantity !== undefined ? v.stockQuantity - variationCartCount : null;
-        }
+        const effectiveStock = getEffectiveStock(v, selectedItemForVariations, cart);
         return !(effectiveStock !== null && effectiveStock <= 0);
       });
       if (firstAvailable) {
@@ -295,35 +307,7 @@ function renderVariations() {
   document.getElementById('variation-mandatory-msg').style.display = isMandatory ? 'block' : 'none';
 
   document.getElementById('variations-list').innerHTML = vars.map(v => {
-    let effectiveStock = null;
-    
-    // Caso especial Camarão Milanesa (ID 10)
-    if (selectedItemForVariations.id === 10) {
-      const camaraoCartConsumption = cart.reduce((acc, item) => {
-        if (item.productId === 10) {
-          const units = item.variations.reduce((u, v) => {
-            if (String(v.menuItemVariationId) === '19') return u + 1; // Unidade
-            if (String(v.menuItemVariationId) === '20') return u + 5; // Porção
-            return u;
-          }, 0);
-          return acc + (units * item.quantity);
-        }
-        return acc;
-      }, 0);
-
-      if (selectedItemForVariations.stockQuantity !== null) {
-        // Deduz do estoque do item pai considerando TUDO do camarão no carrinho
-        if (v.id === 19) { // Unidade
-          effectiveStock = selectedItemForVariations.stockQuantity - camaraoCartConsumption;
-        } else if (v.id === 20) { // Porção com 5
-          effectiveStock = Math.floor((selectedItemForVariations.stockQuantity - camaraoCartConsumption) / 5);
-        }
-      }
-    } else {
-      const variationCartCount = cart.reduce((acc, item) => acc + (item.variations.some(cartVar => String(cartVar.menuItemVariationId) === String(v.id)) ? item.quantity : 0), 0);
-      effectiveStock = v.stockQuantity !== null && v.stockQuantity !== undefined ? v.stockQuantity - variationCartCount : null;
-    }
-
+    const effectiveStock = getEffectiveStock(v, selectedItemForVariations, cart);
     const isSelected = selectedVariations.includes(String(v.id));
     const outOfStock = effectiveStock !== null && effectiveStock <= 0;
     const checkIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>`;

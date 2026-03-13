@@ -56,15 +56,20 @@ export function ordersRoutes(prisma: PrismaClient) {
             throw new Error(`O item ${menuItem.name} requer pelo menos uma variação.`);
           }
 
-          // Caso especial: Camarão Milanesa (id 10)
+          // Caso especial: Camarão Milanesa
           // Deduz do estoque do item pai (unidade: 1, porção: 5)
-          if (menuItem.id === 10) {
+          const isCamarao = Number(menuItem.id) === 10 || menuItem.name.toLowerCase().includes('camarão milanesa');
+          
+          if (isCamarao) {
             let unitsToDeduct = 0;
             if (item.variations && item.variations.length > 0) {
               for (const vSelected of item.variations) {
-                if (vSelected.menuItemVariationId === 19) {
+                const vId = Number(vSelected.menuItemVariationId);
+                const vName = vSelected.name.toLowerCase();
+                
+                if (vId === 19 || vName === 'unidade') {
                   unitsToDeduct += item.quantity * 1;
-                } else if (vSelected.menuItemVariationId === 20) {
+                } else if (vId === 20 || vName.includes('porção')) {
                   unitsToDeduct += item.quantity * 5;
                 }
               }
@@ -255,25 +260,33 @@ export function ordersRoutes(prisma: PrismaClient) {
               const updatedOrder = await tx.order.update({ where: { id }, data: updateData });
 
               // 3. Special Inventory Logic for Camarão Milanesa (ID 10)
-              // Only deduct if it's moving TO COMPLETED for the first time
-              if (!wasAlreadyCompleted && becomingCompleted) {
-                let totalUnitsToDeduct = 0;
+              // Restore stock if CANCELLED (since it's deducted at POST)
+              const becomingCancelled = updateData.status === 'CANCELLED';
+              const wasCancelled = order.status === 'CANCELLED';
+
+              if (!wasCancelled && becomingCancelled) {
+                let totalUnitsToRestore = 0;
                 for (const item of order.items) {
-                  if (item.menuItemId === 10) {
+                  const isCamarao = Number(item.menuItemId) === 10 || item.name.toLowerCase().includes('camarão milanesa');
+                  
+                  if (isCamarao) {
                     for (const v of item.variations) {
-                      if (v.menuItemVariationId === 19) { // Unidade
-                        totalUnitsToDeduct += item.quantity;
-                      } else if (v.menuItemVariationId === 20) { // Porção
-                        totalUnitsToDeduct += item.quantity * 5;
+                      const vId = Number(v.menuItemVariationId);
+                      const vName = v.name.toLowerCase();
+                      
+                      if (vId === 19 || vName === 'unidade') { // Unidade
+                        totalUnitsToRestore += item.quantity;
+                      } else if (vId === 20 || vName.includes('porção')) { // Porção
+                        totalUnitsToRestore += item.quantity * 5;
                       }
                     }
                   }
                 }
 
-                if (totalUnitsToDeduct > 0) {
+                if (totalUnitsToRestore > 0) {
                   await tx.menuItem.update({
                     where: { id: 10 },
-                    data: { stockQuantity: { decrement: totalUnitsToDeduct } },
+                    data: { stockQuantity: { increment: totalUnitsToRestore } },
                   });
                 }
               }

@@ -1,5 +1,6 @@
 package com.dattebayo.pos.controller.api;
 
+import com.dattebayo.pos.dto.MenuBatchUpdateDTO;
 import com.dattebayo.pos.dto.MenuItemDTO;
 import com.dattebayo.pos.dto.StockBatchUpdateDTO;
 import com.dattebayo.pos.model.MenuItem;
@@ -121,6 +122,12 @@ public class MenuItemApiController {
     @PatchMapping("/batch-stock")
     public ResponseEntity<Void> batchUpdateStock(@RequestBody StockBatchUpdateDTO batchUpdate) {
         menuItemService.updateStockBatch(batchUpdate);
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/batch-update")
+    public ResponseEntity<Void> batchUpdateMenu(@RequestBody MenuBatchUpdateDTO batchUpdate) {
+        menuItemService.updateMenuBatch(batchUpdate);
         return ResponseEntity.ok().build();
     }
 }

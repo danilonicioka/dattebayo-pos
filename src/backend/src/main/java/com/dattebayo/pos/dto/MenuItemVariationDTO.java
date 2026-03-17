@@ -9,4 +9,5 @@ public class MenuItemVariationDTO {
     private String type;
     private Double additionalPrice;
     private Integer stockQuantity;
+    private Integer stockMultiplier;
 }

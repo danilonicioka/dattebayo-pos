@@ -27,6 +27,9 @@ public class MenuItemVariation {
     @Column(name = "stock_quantity")
     private Integer stockQuantity; // null means unlimited
 
+    @Column(name = "stock_multiplier", nullable = false)
+    private Integer stockMultiplier = 1;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "menu_item_id", nullable = false)
     private MenuItem menuItem;

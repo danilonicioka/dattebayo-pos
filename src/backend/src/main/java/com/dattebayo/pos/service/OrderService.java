@@ -50,23 +50,18 @@ public class OrderService {
             if (menuItem.getStockQuantity() != null) {
                 int quantityToDeduct = itemRequest.getQuantity();
 
-                // Custom logic for "Camarão Milanesa"
-                if ("Camarão Milanesa".equals(menuItem.getName()) && itemRequest.getVariations() != null) {
+                // Generic logic for stock deduction based on variation multipliers
+                if (itemRequest.getVariations() != null) {
                     for (var variationRequest : itemRequest.getVariations()) {
                         if (variationRequest.getSelected()) {
-                            // Fetch variation name to check type
                             MenuItemVariation variation = menuItemVariationRepository.findById(variationRequest.getMenuItemVariationId())
                                 .orElse(null);
                             
-                            if (variation != null) {
+                            if (variation != null && variation.getStockMultiplier() != null && variation.getStockMultiplier() > 1) {
                                 int varQty = variationRequest.getQuantity() != null ? variationRequest.getQuantity() : 1;
-                                if ("Porção com 5 unidades".equals(variation.getName())) {
-                                    quantityToDeduct = itemRequest.getQuantity() * 5 * varQty;
-                                    break;
-                                } else if ("Unidade".equals(variation.getName())) {
-                                    quantityToDeduct = itemRequest.getQuantity() * varQty;
-                                    break;
-                                }
+                                // Multiply base quantity by variation multiplier
+                                quantityToDeduct = itemRequest.getQuantity() * variation.getStockMultiplier() * varQty;
+                                break; // Found the primary stock-affecting variation
                             }
                         }
                     }
@@ -194,22 +189,16 @@ public class OrderService {
         for (OrderItem item : order.getItems()) {
             // Restore MenuItem Stock
             if (item.getMenuItem().getStockQuantity() != null) {
-                // If it's Camarão Milanesa, we need to check variations for custom deduction logic restoration
-                 if ("Camarão Milanesa".equals(item.getMenuItem().getName()) && item.getVariations() != null) {
+                 // Generic stock restoration logic using variation multipliers
+                 if (item.getVariations() != null) {
                     boolean handledCustom = false;
                     for (OrderItemVariation itemVariation : item.getVariations()) {
                          if (itemVariation.getSelected()) {
                              MenuItemVariation variation = itemVariation.getMenuItemVariation();
                              int varQty = itemVariation.getQuantity() != null ? itemVariation.getQuantity() : 1;
                              
-                             if ("Porção com 5 unidades".equals(variation.getName())) {
-                                 // It deducted 5 per item quantity * var quantity
-                                 item.getMenuItem().setStockQuantity(item.getMenuItem().getStockQuantity() + (item.getQuantity() * 5 * varQty));
-                                 menuItemRepository.save(item.getMenuItem());
-                                 handledCustom = true;
-                                 break;
-                             } else if ("Unidade".equals(variation.getName())) {
-                                 item.getMenuItem().setStockQuantity(item.getMenuItem().getStockQuantity() + (item.getQuantity() * varQty));
+                             if (variation.getStockMultiplier() != null && variation.getStockMultiplier() > 1) {
+                                 item.getMenuItem().setStockQuantity(item.getMenuItem().getStockQuantity() + (item.getQuantity() * variation.getStockMultiplier() * varQty));
                                  menuItemRepository.save(item.getMenuItem());
                                  handledCustom = true;
                                  break;
@@ -217,7 +206,6 @@ public class OrderService {
                          }
                     }
                     if (!handledCustom) {
-                        // Fallback logic
                         item.getMenuItem().setStockQuantity(item.getMenuItem().getStockQuantity() + item.getQuantity());
                         menuItemRepository.save(item.getMenuItem());
                     }
@@ -282,72 +270,24 @@ public class OrderService {
                     })
                     .collect(Collectors.toList());
 
+            // Enforce variation selection if variations are defined for the item
+            if (!item.getMenuItem().getVariations().isEmpty() && selectedVariationNames.isEmpty()) {
+                throw new RuntimeException("Selection mandatory for: " + item.getMenuItem().getName());
+            }
+
             String displayName;
             // Default quantity and price
             int displayQuantity = item.getQuantity();
             double displayPrice = item.getPrice();
-
-            if ("Comidas".equals(item.getMenuItem().getCategory()) && "Tempurá".equals(item.getMenuItem().getName())) {
-                boolean hasShrimp = selectedVariationNames.contains("Com Camarão");
-                displayName = hasShrimp ? "Tempurá Com Camarão" : "Tempurá De Legumes";
-            } else if ("Comidas".equals(item.getMenuItem().getCategory())
-                    && item.getMenuItem().getName().equals("Yakisoba")) {
-                boolean hasShrimp = selectedVariationNames.contains("Com Camarão");
-                displayName = hasShrimp ? "Yakisoba Com Camarão" : "Yakisoba Simples";
-            } else if ("Comidas".equals(item.getMenuItem().getCategory())
-                    && "Hot Sushi".equals(item.getMenuItem().getName())) {
-                if (selectedVariationNames.size() > 1) {
-                    displayName = "Hot Sushi (" + String.join(" + ", selectedVariationNames) + ")";
+            displayName = item.getMenuItem().getName();
+            if (!selectedVariationNames.isEmpty()) {
+                if (displayName.toLowerCase().contains("pastel")) {
+                    displayName += " De " + String.join(" + ", selectedVariationNames);
+                } else if ("Camarão Milanesa".equals(displayName)) {
+                    displayName = String.join(" + ", selectedVariationNames) + " De " + displayName;
                 } else {
-                    displayName = selectedVariationNames.isEmpty()
-                            ? item.getMenuItem().getName()
-                            : "Hot Sushi (" + String.join(", ", selectedVariationNames) + ")";
+                    displayName += " " + String.join(" + ", selectedVariationNames);
                 }
-            } else if ("Comidas".equals(item.getMenuItem().getCategory())
-                    && item.getMenuItem().getName().equals("Pastel")) {
-                displayName = selectedVariationNames.isEmpty()
-                        ? item.getMenuItem().getName()
-                        : "Pastel (" + String.join(" + ", selectedVariationNames) + ")";
-            } else if ("Camarão Milanesa".equals(item.getMenuItem().getName())) {
-                String specificDisplayName = null;
-                Integer overrideQty = null;
-                
-                for (var v : item.getVariations()) {
-                    if (v.getSelected()) {
-                         int vQty = v.getQuantity() != null ? v.getQuantity() : 1;
-                         int totalLineQty = vQty * item.getQuantity();
-                         
-                         if ("Porção com 5 unidades".equals(v.getMenuItemVariation().getName())) {
-                             int totalUnits = totalLineQty * 5;
-                             specificDisplayName = "Porção de Camarão (" + totalUnits + " unidades)";
-                             overrideQty = totalLineQty;
-                             break;
-                         } else if ("Unidade".equals(v.getMenuItemVariation().getName())) {
-                             specificDisplayName = "Unidade de Camarão Milanesa";
-                             overrideQty = totalLineQty;
-                             break;
-                         }
-                    }
-                }
-                
-                if (specificDisplayName != null) {
-                    displayName = specificDisplayName;
-                } else {
-                     // Fallback
-                     displayName = item.getMenuItem().getName();
-                }
-
-                if (overrideQty != null && overrideQty > 0) {
-                    displayQuantity = overrideQty;
-                    // Recalculate unit price based on the override quantity
-                    // Logic: Total Price / Total Display Units
-                    // Total Price = item.getPrice() * item.getQuantity()
-                    displayPrice = (item.getPrice() * item.getQuantity()) / overrideQty;
-                }
-            } else {
-                displayName = selectedVariationNames.isEmpty()
-                        ? item.getMenuItem().getName()
-                        : item.getMenuItem().getName() + " (" + String.join(", ", selectedVariationNames) + ")";
             }
 
             itemDTO.setMenuItemName(displayName);
@@ -398,21 +338,16 @@ public class OrderService {
         for (OrderItem item : order.getItems()) {
             // Revert stock for removed items
             if (item.getMenuItem().getStockQuantity() != null) {
-                // Specialized logic for Camarão Milanesa restoration
-                if ("Camarão Milanesa".equals(item.getMenuItem().getName()) && item.getVariations() != null) {
+                // Generic stock restoration logic using variation multipliers
+                if (item.getVariations() != null) {
                     boolean handledCustom = false;
                     for (OrderItemVariation itemVariation : item.getVariations()) {
                         if (itemVariation.getSelected()) {
                             MenuItemVariation variation = itemVariation.getMenuItemVariation();
                             int varQty = itemVariation.getQuantity() != null ? itemVariation.getQuantity() : 1;
                             
-                            if ("Porção com 5 unidades".equals(variation.getName())) {
-                                item.getMenuItem().setStockQuantity(item.getMenuItem().getStockQuantity() + (item.getQuantity() * 5 * varQty));
-                                menuItemRepository.save(item.getMenuItem());
-                                handledCustom = true;
-                                break;
-                            } else if ("Unidade".equals(variation.getName())) {
-                                item.getMenuItem().setStockQuantity(item.getMenuItem().getStockQuantity() + (item.getQuantity() * varQty));
+                            if (variation.getStockMultiplier() != null && variation.getStockMultiplier() > 1) {
+                                item.getMenuItem().setStockQuantity(item.getMenuItem().getStockQuantity() + (item.getQuantity() * variation.getStockMultiplier() * varQty));
                                 menuItemRepository.save(item.getMenuItem());
                                 handledCustom = true;
                                 break;
@@ -456,23 +391,17 @@ public class OrderService {
             if (menuItem.getStockQuantity() != null) {
                 int quantityToDeduct = itemRequest.getQuantity();
                 
-                // Custom logic for "Camarão Milanesa"
-                if ("Camarão Milanesa".equals(menuItem.getName()) && itemRequest.getVariations() != null) {
+                // Generic stock deduction logic using variation multipliers
+                if (itemRequest.getVariations() != null) {
                     for (var variationRequest : itemRequest.getVariations()) {
                         if (variationRequest.getSelected()) {
-                            // Fetch variation name to check type
                             MenuItemVariation variation = menuItemVariationRepository.findById(variationRequest.getMenuItemVariationId())
                                 .orElse(null);
                             
-                            if (variation != null) {
+                            if (variation != null && variation.getStockMultiplier() != null && variation.getStockMultiplier() > 1) {
                                 int varQty = variationRequest.getQuantity() != null ? variationRequest.getQuantity() : 1;
-                                if ("Porção com 5 unidades".equals(variation.getName())) {
-                                    quantityToDeduct = itemRequest.getQuantity() * 5 * varQty;
-                                    break;
-                                } else if ("Unidade".equals(variation.getName())) {
-                                    quantityToDeduct = itemRequest.getQuantity() * varQty;
-                                    break;
-                                }
+                                quantityToDeduct = itemRequest.getQuantity() * variation.getStockMultiplier() * varQty;
+                                break;
                             }
                         }
                     }

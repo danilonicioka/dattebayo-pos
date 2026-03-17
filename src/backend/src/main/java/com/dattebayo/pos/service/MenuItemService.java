@@ -2,6 +2,7 @@ package com.dattebayo.pos.service;
 
 import com.dattebayo.pos.dto.MenuItemDTO;
 import com.dattebayo.pos.dto.MenuItemVariationDTO;
+import com.dattebayo.pos.dto.MenuBatchUpdateDTO;
 import com.dattebayo.pos.dto.StockBatchUpdateDTO;
 import com.dattebayo.pos.model.MenuItem;
 import com.dattebayo.pos.repository.MenuItemRepository;
@@ -92,6 +93,26 @@ public class MenuItemService {
         }
     }
 
+    @Transactional
+    public void updateMenuBatch(MenuBatchUpdateDTO batchUpdate) {
+        if (batchUpdate.getItems() != null) {
+            for (MenuBatchUpdateDTO.MenuUpdateItem itemUpdate : batchUpdate.getItems()) {
+                menuItemRepository.findById(itemUpdate.getId()).ifPresent(item -> {
+                    if (itemUpdate.getAvailable() != null) {
+                        item.setAvailable(itemUpdate.getAvailable());
+                    }
+                    if (itemUpdate.getManualPrice() != null) {
+                        item.setManualPrice(itemUpdate.getManualPrice());
+                    }
+                    if (itemUpdate.getManualPriceEnabled() != null) {
+                        item.setManualPriceEnabled(itemUpdate.getManualPriceEnabled());
+                    }
+                    menuItemRepository.save(item);
+                });
+            }
+        }
+    }
+
     private MenuItemDTO convertToDTO(MenuItem menuItem) {
         MenuItemDTO dto = new MenuItemDTO();
         dto.setId(menuItem.getId());
@@ -119,6 +140,7 @@ public class MenuItemService {
                     Double additionalPrice = variation.getAdditionalPrice();
                     variationDTO.setAdditionalPrice(Math.round(additionalPrice * 100.0) / 100.0);
                     variationDTO.setStockQuantity(variation.getStockQuantity());
+                    variationDTO.setStockMultiplier(variation.getStockMultiplier());
                     
                     return variationDTO;
                 })

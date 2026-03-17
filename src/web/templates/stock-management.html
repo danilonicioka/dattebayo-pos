@@ -66,6 +66,27 @@
             box-shadow: 0 0 0 2px rgba(255, 107, 0, 0.1);
         }
 
+        .alert-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            z-index: 9999;
+            transform: translateX(200%);
+            transition: transform 0.3s ease-in-out;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .alert-toast.show {
+            transform: translateX(0);
+        }
+
+        .alert-success { background-color: var(--success-green); }
+        .alert-error { background-color: #e74c3c; }
+
         /* Adjust footer space */
         .content {
             padding-bottom: 40px;
@@ -188,11 +209,22 @@
         </div>
     </div>
 
+    <div id="alert-toast" class="alert-toast"></div>
+
     <script>
         let pendingChanges = {
             items: {},
             variations: {}
         };
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('alert-toast');
+            toast.textContent = message;
+            toast.className = `alert-toast ${type === 'success' ? 'alert-success' : 'alert-error'} show`;
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
 
         function updateSaveButton() {
             const hasChanges = Object.keys(pendingChanges.items).length > 0 ||
@@ -296,15 +328,15 @@
             })
                 .then(response => {
                     if (response.ok) {
-                        alert('Alterações salvas com sucesso!');
-                        location.reload();
+                        showToast('Alterações salvas com sucesso!');
+                        setTimeout(() => location.reload(), 1500);
                     } else {
                         throw new Error('Erro ao salvar.');
                     }
                 })
                 .catch(error => {
                     console.error('Error saving changes:', error);
-                    alert('Erro ao salvar alterações. Tente novamente.');
+                    showToast('Erro ao salvar alterações. Tente novamente.', 'error');
                     saveBtn.disabled = false;
                     saveBtn.innerHTML = originalContent;
                 });

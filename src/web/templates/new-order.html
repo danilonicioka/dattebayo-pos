@@ -29,6 +29,49 @@
             background-color: #ffebee;
             color: #c62828;
         }
+
+        .quantity-selector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .quantity-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            border: 1px solid #ddd;
+            background: white;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .quantity-btn:hover:not(:disabled) {
+            background: #ee8b1b;
+            color: white;
+            border-color: #ee8b1b;
+        }
+
+        .quantity-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .quantity-value {
+            font-size: 24px;
+            font-weight: bold;
+            min-width: 40px;
+            text-align: center;
+        }
     </style>
 </head>
 
@@ -132,6 +175,12 @@
             <div id="variationOptions">
                 <!-- Variations will be loaded here -->
             </div>
+            
+            <div class="quantity-selector">
+                <button type="button" class="quantity-btn" onclick="adjustProductQuantity(-1)" id="qtyDecreaseBtn">-</button>
+                <span class="quantity-value" id="productQuantityDisplay">1</span>
+                <button type="button" class="quantity-btn" onclick="adjustProductQuantity(1)">+</button>
+            </div>
             <div class="modal-footer">
                 <button onclick="closeVariationModal()" class="cancel-btn">Cancelar</button>
                 <button onclick="confirmAddToOrder()" class="confirm-btn">Adicionar ao Pedido</button>
@@ -144,6 +193,7 @@
         let orderItems = [];
         let selectedMenuItem = null;
         let selectedVariations = {};
+        let modalProductQuantity = 1;
         // Form of payment is now generic as per user request
         let selectedPaymentMethod = 'Pendente';
 
@@ -190,6 +240,49 @@
             });
         }
 
+        function getEffectiveStock(menuItem) {
+            if (menuItem.stockQuantity === null) return null;
+            
+            let deduction = 0;
+            orderItems.forEach(cartItem => {
+                if (cartItem.menuItemId === menuItem.id) {
+                    let itemMultiplier = 0;
+                    cartItem.variations.forEach(v => {
+                        const variationData = menuItem.variations.find(mv => mv.id === v.menuItemVariationId);
+                        if (variationData && variationData.stockMultiplier) {
+                            itemMultiplier += variationData.stockMultiplier;
+                        } else {
+                            itemMultiplier += 1; // Default if no multiplier
+                        }
+                    });
+                    
+                    if (cartItem.variations.length === 0) {
+                        itemMultiplier = 1;
+                    }
+                    
+                    deduction += cartItem.quantity * itemMultiplier;
+                }
+            });
+            
+            return Math.max(0, menuItem.stockQuantity - deduction);
+        }
+
+        function getEffectiveVariationStock(menuItem, variation) {
+            if (variation.stockQuantity === null) return null;
+            
+            let deduction = 0;
+            orderItems.forEach(cartItem => {
+                if (cartItem.menuItemId === menuItem.id) {
+                    const hasVariation = cartItem.variations.some(v => v.menuItemVariationId === variation.id);
+                    if (hasVariation) {
+                        deduction += cartItem.quantity;
+                    }
+                }
+            });
+            
+            return Math.max(0, variation.stockQuantity - deduction);
+        }
+
         function renderMenuItems() {
             const menuItemsDiv = document.getElementById('menuItems');
             menuItemsDiv.innerHTML = '';
@@ -203,16 +296,18 @@
 
                 // Stock Logic
                 let stockHtml = '';
-                if (item.stockQuantity !== null) {
-                    if (item.stockQuantity <= 0) {
+                const effectiveStock = getEffectiveStock(item);
+                
+                if (effectiveStock !== null) {
+                    if (effectiveStock <= 0) {
                         stockHtml = '<div class="stock-badge out">Sem Estoque</div>';
                         menuItemDiv.style.opacity = '0.6';
                         menuItemDiv.style.pointerEvents = 'none'; // Disable click
-                    } else if (item.stockQuantity < 5) {
-                        stockHtml = `<div class="stock-badge low">Restante: ${item.stockQuantity}</div>`;
+                    } else if (effectiveStock < 5) {
+                        stockHtml = `<div class="stock-badge low">Restante: ${effectiveStock}</div>`;
                         menuItemDiv.onclick = () => openVariationModal(item);
                     } else {
-                        stockHtml = `<div class="stock-badge">Restante: ${item.stockQuantity}</div>`;
+                        stockHtml = `<div class="stock-badge">Restante: ${effectiveStock}</div>`;
                         menuItemDiv.onclick = () => openVariationModal(item);
                     }
                 } else {
@@ -229,6 +324,13 @@
 
                 menuItemsDiv.appendChild(menuItemDiv);
             });
+            
+            // Re-apply filter if needed
+            const activeTab = document.querySelector('.category-tab.active');
+            if (activeTab) {
+                const category = activeTab.getAttribute('data-category-filter');
+                filterCategory(category);
+            }
         }
 
         function filterCategory(category) {
@@ -261,7 +363,13 @@
             }
 
             document.getElementById('modalItemName').textContent = menuItem.name;
-            document.getElementById('variationOptions').innerHTML = '';
+            
+            modalProductQuantity = 1;
+            document.getElementById('productQuantityDisplay').textContent = modalProductQuantity;
+            document.getElementById('qtyDecreaseBtn').disabled = true;
+
+            const variationOptions = document.getElementById('variationOptions');
+            variationOptions.innerHTML = '';
 
             if (menuItem.variations && menuItem.variations.length > 0) {
                 // Group variations by type
@@ -306,41 +414,23 @@
                         // Determine stock status
                         let stockHtml = '';
                         let isDisabled = false;
-                        if (variation.stockQuantity !== null) {
-                            if (variation.stockQuantity <= 0) {
+                        const effectiveVarStock = getEffectiveVariationStock(menuItem, variation);
+                        
+                        if (effectiveVarStock !== null) {
+                            if (effectiveVarStock <= 0) {
                                 stockHtml = ' <span class="stock-badge out" style="font-size: 0.7em; margin-left: 5px;">Sem Estoque</span>';
                                 isDisabled = true;
                             } else {
-                                stockHtml = ` <span class="stock-badge ${variation.stockQuantity < 5 ? 'low' : ''}" style="font-size: 0.7em; margin-left: 5px;">Estoque: ${variation.stockQuantity}</span>`;
+                                stockHtml = ` <span class="stock-badge ${effectiveVarStock < 5 ? 'low' : ''}" style="font-size: 0.7em; margin-left: 5px;">Estoque: ${effectiveVarStock}</span>`;
                             }
                         }
 
-                        if (isQuantityVariation) {
-                            optionDiv.innerHTML = `
-                                <div style="display: flex; align-items: center; width: 100%;">
-                                    <input type="${inputType}" id="${inputId}" name="${inputName}"
-                                           onchange="toggleVariation(${variation.id}, '${type}', this.checked)"
-                                           style="margin-right: 15px;" ${isDisabled ? 'disabled' : ''}>
-                                    <label for="${inputId}" style="flex:1; ${isDisabled ? 'color: #aaa;' : ''}">${variation.name}${stockHtml}</label>
-                                    
-                                    <div id="qty-container-${variation.id}" style="display: none; align-items: center; margin-left: 10px;">
-                                        <input type="number" id="qty-${variation.id}" value="1" min="1" max="${variation.stockQuantity !== null ? variation.stockQuantity : ''}"
-                                               style="width: 50px; padding: 5px; border-radius: 5px; border: 1px solid #ccc;"
-                                               onclick="event.stopPropagation()"
-                                               oninput="updateVariationQuantity(${variation.id}, this.value)">
-                                    </div>
-                                    
-                                    ${displayPrice ? `<span class="variation-price">${displayPrice}</span>` : ''}
-                                </div>
-                            `;
-                        } else {
-                            optionDiv.innerHTML = `
-                                <input type="${inputType}" id="${inputId}" name="${inputName}"
-                                       onchange="toggleVariation(${variation.id}, '${type}', this.checked)" ${isDisabled ? 'disabled' : ''}>
-                                <label for="${inputId}" style="${isDisabled ? 'color: #aaa;' : ''}">${variation.name}${stockHtml}</label>
-                                ${displayPrice ? `<span class="variation-price">${displayPrice}</span>` : ''}
-                            `;
-                        }
+                        optionDiv.innerHTML = `
+                            <input type="${inputType}" id="${inputId}" name="${inputName}"
+                                   onchange="toggleVariation(${variation.id}, '${type}', this.checked)" ${isDisabled ? 'disabled' : ''}>
+                            <label for="${inputId}" style="${isDisabled ? 'color: #aaa;' : ''}">${variation.name}${stockHtml}</label>
+                            ${displayPrice ? `<span class="variation-price">${displayPrice}</span>` : ''}
+                        `;
 
                         groupDiv.appendChild(optionDiv);
                     });
@@ -373,88 +463,52 @@
                     siblings.forEach(sib => {
                         // Remove sibling from selected state
                         delete selectedVariations[sib.id];
-                        // Hide quantity for sibling if applicable
-                        const sibQty = document.getElementById(`qty-container-${sib.id}`);
-                        if (sibQty) sibQty.style.display = 'none';
                     });
                 }
             }
 
             if (checked) {
                 selectedVariations[variationId] = { selected: true, quantity: 1 };
-                // Show quantity input if exists
-                const qtyContainer = document.getElementById(`qty-container-${variationId}`);
-                if (qtyContainer) {
-                    qtyContainer.style.display = 'flex';
-                }
             } else {
                 delete selectedVariations[variationId];
-                const qtyContainer = document.getElementById(`qty-container-${variationId}`);
-                if (qtyContainer) {
-                    qtyContainer.style.display = 'none';
-                }
             }
 
             updateModalPrice();
         }
 
-        function updateVariationQuantity(variationId, quantity) {
-            let qty = parseInt(quantity) || 1;
-
-            // Validate max stock
-            if (selectedMenuItem && selectedMenuItem.variations) {
-                const variation = selectedMenuItem.variations.find(v => v.id === variationId);
-                if (variation && variation.stockQuantity !== null && qty > variation.stockQuantity) {
-                    alert(`A quantidade máxima disponível para ${variation.name} é ${variation.stockQuantity}.`);
-                    qty = variation.stockQuantity;
-                    document.getElementById(`qty-${variationId}`).value = qty;
-                }
-            }
-
-            if (selectedVariations[variationId]) {
-                selectedVariations[variationId].quantity = qty;
-                updateModalPrice();
-            }
+        function adjustProductQuantity(delta) {
+            modalProductQuantity = Math.max(1, modalProductQuantity + delta);
+            document.getElementById('productQuantityDisplay').textContent = modalProductQuantity;
+            document.getElementById('qtyDecreaseBtn').disabled = modalProductQuantity <= 1;
+            updateModalPrice();
         }
+
 
         function updateModalPrice() {
             if (!selectedMenuItem) return;
 
-            let finalPrice = selectedMenuItem.price;
+            let unitPrice = selectedMenuItem.price;
             const selectedVariationIds = Object.keys(selectedVariations).map(id => parseInt(id));
 
-            if (selectedMenuItem.category === 'Comidas' && selectedMenuItem.name === 'Tempura') {
-                // Tempura special logic (simplified for minimal regression, assuming checked means selected)
-                const shrimpVariation = selectedVariationIds.find(id => {
-                    const variationData = selectedMenuItem.variations.find(v => v.id === id);
-                    return variationData && variationData.name === 'Com Camarão';
-                });
-
-                if (shrimpVariation) {
-                    finalPrice += 2.00; // Add $2 for shrimp
-                }
-            } else if (selectedMenuItem.name === 'Camarão Milanesa' && selectedMenuItem.variations) {
-                // Camarão Milanesa Smart Pricing Logic
+            if (selectedMenuItem.name === 'Camarão Milanesa' && selectedMenuItem.variations) {
+                // Simplified Camarão logic in modal: price per unit * modalProductQuantity
                 selectedVariationIds.forEach(id => {
                     const variationData = selectedMenuItem.variations.find(v => v.id === id);
                     if (variationData) {
-                        const qty = selectedVariations[id].quantity || 1;
                         const varName = variationData.name.trim();
 
-                        // Smart discount for "Unidade" if quantity >= 5
-                        // Case insensitive check just in case
-                        if (varName.toLowerCase() === 'unidade' && qty >= 5) {
+                        // Smart discount for "Unidade" if total quantity >= 5
+                        if (varName.toLowerCase() === 'unidade' && modalProductQuantity >= 5) {
                             const porcaoVar = selectedMenuItem.variations.find(v => v.name.trim() === 'Porção com 5 unidades');
                             if (porcaoVar) {
-                                const portions = Math.floor(qty / 5);
-                                const remainder = qty % 5;
-                                finalPrice += (portions * porcaoVar.additionalPrice) + (remainder * variationData.additionalPrice);
+                                const portions = Math.floor(modalProductQuantity / 5);
+                                const remainder = modalProductQuantity % 5;
+                                unitPrice = ((portions * porcaoVar.additionalPrice) + (remainder * variationData.additionalPrice)) / modalProductQuantity;
                             } else {
-                                // Fallback if portion var not found
-                                finalPrice += (variationData.additionalPrice * qty);
+                                unitPrice = variationData.additionalPrice;
                             }
                         } else {
-                            finalPrice += (variationData.additionalPrice * qty);
+                            unitPrice += variationData.additionalPrice;
                         }
                     }
                 });
@@ -463,13 +517,13 @@
                 selectedVariationIds.forEach(id => {
                     const variationData = selectedMenuItem.variations.find(v => v.id === id);
                     if (variationData) {
-                        const qty = selectedVariations[id].quantity || 1;
-                        finalPrice += (variationData.additionalPrice * qty);
+                        unitPrice += variationData.additionalPrice;
                     }
                 });
             }
 
-            document.getElementById('modalItemPrice').textContent = finalPrice.toFixed(0);
+            const totalPrice = unitPrice * modalProductQuantity;
+            document.getElementById('modalItemPrice').textContent = totalPrice.toFixed(0);
         }
 
         function confirmAddToOrder() {
@@ -478,152 +532,85 @@
             const variations = Object.keys(selectedVariations).map(id => ({
                 menuItemVariationId: parseInt(id),
                 selected: true,
-                quantity: selectedVariations[id].quantity || 1
+                quantity: 1 // Normalized to 1 since product quantity is separate now
             }));
 
-            addToOrder(selectedMenuItem.id, variations);
+            // Force at least one selection if variations exist
+            if (selectedMenuItem.variations && selectedMenuItem.variations.length > 0 && variations.length === 0) {
+                alert('Por favor, selecione pelo menos uma opção.');
+                return;
+            }
+
+            addToOrder(selectedMenuItem.id, variations, modalProductQuantity);
             closeVariationModal();
         }
 
-        function addToOrder(menuItemId, variations = []) {
+        function addToOrder(menuItemId, variations = [], quantity = 1) {
             const menuItem = menuItems.find(item => item.id === menuItemId);
             if (!menuItem) return;
 
-            // Special handling for different menu items
-            let finalPrice = selectedMenuItem.price; // Start with base price from selectedMenuItem
-            let itemName = menuItem.name;
-            const selectedVariationNames = [];
-            let finalQuantity = 1; // Default quantity for the order item
+            // Enforce variation selection for items with variations
+            if (menuItem.variations && menuItem.variations.length > 0 && variations.length === 0) {
+                openVariationModal(menuItem);
+                return;
+            }
 
-            if (menuItem.category === 'Comidas' && menuItem.name === 'Tempurá') {
-                // Tempurá special logic
-                const shrimpVariation = variations.find(v => {
-                    const variationData = menuItem.variations.find(vd => vd.id === v.menuItemVariationId);
-                    return variationData && variationData.name === 'Com Camarão' && v.selected;
-                });
+            let unitPrice = menuItem.price;
+            let selectedVariationNames = [];
+            let finalQuantity = quantity;
 
-                if (shrimpVariation) {
-                    finalPrice += 2.00; // Add $2 for shrimp
-                    itemName = 'Tempurá Com Camarão';
-                } else {
-                    itemName = 'Tempurá De Legumes';
-                }
-
-            } else if (menuItem.category === 'Comidas' && menuItem.name === 'Yakisoba') {
-                // Yakisoba special logic
-                const shrimpVariation = variations.find(v => {
-                    const variationData = menuItem.variations.find(vd => vd.id === v.menuItemVariationId);
-                    return variationData && variationData.name === 'Com Camarão' && v.selected;
-                });
-
-                if (shrimpVariation) {
-                    finalPrice += 5.00; // Add $5 for shrimp
-                    itemName = 'Yakisoba Com Camarão';
-                } else {
-                    itemName = 'Yakisoba Simples';
-                }
-
-            } else if (menuItem.category === 'Comidas' && menuItem.name === 'Hot Sushi') {
-                // Hot Sushi logic - Robust Name Construction
-                const parts = [];
-                let additionalCost = 0;
-
-                variations.forEach(v => {
-                    const vData = menuItem.variations.find(vd => vd.id === v.menuItemVariationId);
-                    if (vData && v.selected) {
-                        const qty = v.quantity || 1;
-                        additionalCost += vData.additionalPrice * qty;
-
-                        // Build name part safely
-                        if (vData.name) {
-                            if (qty > 1) {
-                                parts.push(`${qty}x ${vData.name}`);
-                            } else {
-                                parts.push(vData.name);
-                            }
-                        }
-                    }
-                });
-
-                finalPrice += additionalCost;
-
-                if (parts.length > 0) {
-                    itemName = `Hot Sushi (${parts.join(' + ')})`;
-                } else {
-                    itemName = menuItem.name;
-                }
-
-            } else if (menuItem.name === 'Camarão Milanesa' && menuItem.variations) {
-                // Camarão Milanesa Smart Pricing Logic
+            if (menuItem.name === 'Camarão Milanesa' && menuItem.variations) {
+                // New simplified logic for Camarão Milanesa
                 variations.forEach(variation => {
                     const variationData = menuItem.variations.find(v => v.id === variation.menuItemVariationId);
                     if (variationData && variation.selected) {
-                        const qty = variation.quantity || 1;
-                        // Safe name access
                         const varName = (variationData.name || '').trim();
-                        if (!varName) return; // Skip invalid data
+                        if (!varName) return;
 
-                        // Smart discount for "Unidade" if quantity >= 5
                         if (varName.toLowerCase() === 'unidade') {
-                            // CRITICAL FIX: To allow proper "1 by 1" increment in the order list,
-                            // we set the ORDER ITEM quantity to the total units, and VARIATION quantity to 1.
-                            // This way, clicking "+" adds 1 unit, not 1 batch.
-                            finalQuantity = qty;
-                            variation.quantity = 1; // normalization
-
-                            // Calculate initial price based on this quantity
-                            if (qty >= 5) {
+                            if (finalQuantity >= 5) {
                                 const porcaoVar = menuItem.variations.find(v => v.name.trim() === 'Porção com 5 unidades');
                                 if (porcaoVar) {
-                                    const portions = Math.floor(qty / 5);
-                                    const remainder = qty % 5;
+                                    const portions = Math.floor(finalQuantity / 5);
+                                    const remainder = finalQuantity % 5;
                                     const totalPrice = (portions * porcaoVar.additionalPrice) + (remainder * variationData.additionalPrice);
-                                    // Set UNIT price for display consistency (Subtotal will be Price * Qty)
-                                    finalPrice = totalPrice / qty;
+                                    unitPrice = totalPrice / finalQuantity;
                                 } else {
-                                    finalPrice = variationData.additionalPrice;
+                                    unitPrice = variationData.additionalPrice;
                                 }
                             } else {
-                                finalPrice = variationData.additionalPrice;
+                                unitPrice = variationData.additionalPrice;
                             }
-                        } else {
-                            // Normal logic for portions or other variations
-                            finalPrice += (variationData.additionalPrice * qty);
-                        }
-
-                        if (varName.toLowerCase() === 'unidade') {
                             selectedVariationNames.push("Unidade de Camarão Milanesa");
-                        } else if (qty > 1) {
-                            selectedVariationNames.push(`${qty}x ${variationData.name}`);
                         } else {
+                            unitPrice += variationData.additionalPrice;
                             selectedVariationNames.push(variationData.name);
                         }
                     }
                 });
-
-                itemName = selectedVariationNames.length > 0
-                    ? `${menuItem.name} (${selectedVariationNames.join(', ')})`
-                    : menuItem.name;
-
             } else {
-                // Default logic for other items
+                // Generic logic for all other items
                 variations.forEach(variation => {
                     const variationData = menuItem.variations.find(v => v.id === variation.menuItemVariationId);
                     if (variationData && variation.selected && variationData.name) {
-                        const qty = variation.quantity || 1;
-                        finalPrice += (variationData.additionalPrice * qty);
-                        if (qty > 1) {
-                            selectedVariationNames.push(`${qty}x ${variationData.name}`);
-                        } else {
-                            selectedVariationNames.push(variationData.name);
-                        }
+                        unitPrice += variationData.additionalPrice;
+                        selectedVariationNames.push(variationData.name);
                     }
                 });
-
-                itemName = selectedVariationNames.length > 0
-                    ? `${menuItem.name} (${selectedVariationNames.join(', ')})`
-                    : menuItem.name;
             }
+
+            let displayName = menuItem.name;
+            if (selectedVariationNames.length > 0) {
+                if (menuItem.name.toLowerCase().includes('pastel')) {
+                    displayName += ' De ' + selectedVariationNames.join(' + ');
+                } else if (menuItem.name === 'Camarão Milanesa') {
+                    displayName = selectedVariationNames.join(' + ') + ' De ' + menuItem.name;
+                } else {
+                    displayName += ' ' + selectedVariationNames.join(' + ');
+                }
+            }
+
+            const itemName = displayName;
 
             const existingItem = orderItems.find(item =>
                 item.menuItemId === menuItemId &&
@@ -640,11 +627,11 @@
                     menuItemId: menuItemId,
                     quantity: finalQuantity,
                     name: itemName,
-                    price: finalPrice,
+                    price: unitPrice,
                     variations: variations
                 };
                 // Ensure price is correct for distinct items too
-                if (newItem.name.includes('Unidade de Camarão Milanesa')) {
+                if (newItem.name.includes('Camarão Milanesa') && newItem.name.includes('Unidade')) {
                     recalculateItemPrice(newItem);
                 }
                 orderItems.push(newItem);
@@ -676,7 +663,7 @@
 
         function recalculateItemPrice(item) {
             // Only logic for Camarão Milanesa Units needs dynamic price updates for now
-            if (item.name.includes('Camarão Milanesa') && item.name.toLowerCase().includes('unidade')) {
+            if (item.name.includes('Camarão Milanesa') && item.name.includes('Unidade')) {
                 const qty = item.quantity;
                 // We need to find the variation data again. Since we normalized variation.quantity to 1,
                 // we rely on the main item quantity.
@@ -733,6 +720,9 @@
             const count = orderItems.reduce((sum, item) => sum + item.quantity, 0);
             document.getElementById('mobileTotal').textContent = `R$${total.toFixed(0)}`;
             document.getElementById('mobileItemCount').textContent = `${count} item${count !== 1 ? 's' : ''}`;
+            
+            // Re-render menu to update stock counts
+            renderMenuItems();
             
             // Re-calculate change
             calculateChange();

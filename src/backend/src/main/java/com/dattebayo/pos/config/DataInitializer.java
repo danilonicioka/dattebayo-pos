@@ -42,14 +42,15 @@ public class DataInitializer implements CommandLineRunner {
 
     private void seedInitialData() {
                 // Comidas
-                // Tempura Com Camarão option
+                // Tempura Variations
                 MenuItem tempura = new MenuItem();
                 tempura.setName("Tempurá");
-                tempura.setDescription("Tempura de legumes com ou sem camarão");
+                tempura.setDescription("Tempurá crocante com opções de legumes ou camarão");
                 tempura.setPrice(10.00);
                 tempura.setCategory("Comidas");
                 tempura.setAvailable(true);
-                tempura.getVariations().add(new MenuItemVariation(null, "Com Camarão", "SINGLE", 2.00, null, tempura));
+                tempura.getVariations().add(new MenuItemVariation(null, "De Legumes", "SINGLE", 0.00, null, 1, tempura));
+                tempura.getVariations().add(new MenuItemVariation(null, "Com Camarão", "SINGLE", 2.00, null, 1, tempura));
                 menuItemRepository.save(tempura);
 
                 MenuItem takoyaki = new MenuItem();
@@ -67,8 +68,8 @@ public class DataInitializer implements CommandLineRunner {
                 temaki.setPrice(22.00);
                 temaki.setCategory("Comidas");
                 temaki.setAvailable(true);
-                temaki.getVariations().add(new MenuItemVariation(null, "De Salmão", "SINGLE", 0.00, null, temaki));
-                temaki.getVariations().add(new MenuItemVariation(null, "De Camarão", "SINGLE", 0.00, null, temaki));
+                temaki.getVariations().add(new MenuItemVariation(null, "De Salmão", "SINGLE", 0.00, null, 1, temaki));
+                temaki.getVariations().add(new MenuItemVariation(null, "De Camarão", "SINGLE", 0.00, null, 1, temaki));
                 menuItemRepository.save(temaki);
 
                 // Gyoza
@@ -87,8 +88,8 @@ public class DataInitializer implements CommandLineRunner {
                 hotBall.setPrice(12.00);
                 hotBall.setCategory("Comidas");
                 hotBall.setAvailable(true);
-                hotBall.getVariations().add(new MenuItemVariation(null, "De Salmão", "SINGLE", 0.00, null, hotBall));
-                hotBall.getVariations().add(new MenuItemVariation(null, "De Camarão", "SINGLE", 0.00, null, hotBall));
+                hotBall.getVariations().add(new MenuItemVariation(null, "De Salmão", "SINGLE", 0.00, null, 1, hotBall));
+                hotBall.getVariations().add(new MenuItemVariation(null, "De Camarão", "SINGLE", 0.00, null, 1, hotBall));
                 menuItemRepository.save(hotBall);
 
                 // Hot coreano com Camarão option
@@ -98,18 +99,19 @@ public class DataInitializer implements CommandLineRunner {
                 hotCoreano.setPrice(20.00);
                 hotCoreano.setCategory("Comidas");
                 hotCoreano.setAvailable(true);
-                hotCoreano.getVariations().add(new MenuItemVariation(null, "De Salmão", "SINGLE", 0.00, null, hotCoreano));
-                hotCoreano.getVariations().add(new MenuItemVariation(null, "De Camarão", "SINGLE", 0.00, null, hotCoreano));
+                hotCoreano.getVariations().add(new MenuItemVariation(null, "De Salmão", "SINGLE", 0.00, null, 1, hotCoreano));
+                hotCoreano.getVariations().add(new MenuItemVariation(null, "De Camarão", "SINGLE", 0.00, null, 1, hotCoreano));
                 menuItemRepository.save(hotCoreano);
 
-                // Yakisoba Com Camarão option
+                // Yakisoba Variations
                 MenuItem yakisoba = new MenuItem();
                 yakisoba.setName("Yakisoba");
-                yakisoba.setDescription("Yakisoba de carne e frango com ou sem camarão");
+                yakisoba.setDescription("Yakisoba tradicional de carne e frango com opção de camarão");
                 yakisoba.setPrice(22.00);
                 yakisoba.setCategory("Comidas");
                 yakisoba.setAvailable(true);
-                yakisoba.getVariations().add(new MenuItemVariation(null, "Com Camarão", "SINGLE", 5.00, null, yakisoba));
+                yakisoba.getVariations().add(new MenuItemVariation(null, "Simples", "SINGLE", 0.00, null, 1, yakisoba));
+                yakisoba.getVariations().add(new MenuItemVariation(null, "Com Camarão", "SINGLE", 5.00, null, 1, yakisoba));
                 menuItemRepository.save(yakisoba);
 
                 // Hot sushi Com Camarão option
@@ -119,8 +121,8 @@ public class DataInitializer implements CommandLineRunner {
                 hotSushi.setPrice(35.00);
                 hotSushi.setCategory("Comidas");
                 hotSushi.setAvailable(true);
-                hotSushi.getVariations().add(new MenuItemVariation(null, "De Salmão", "MULTIPLE", 0.00, null, hotSushi));
-                hotSushi.getVariations().add(new MenuItemVariation(null, "De Camarão", "MULTIPLE", 0.00, null, hotSushi));
+                hotSushi.getVariations().add(new MenuItemVariation(null, "De Salmão", "MULTIPLE", 0.00, null, 1, hotSushi));
+                hotSushi.getVariations().add(new MenuItemVariation(null, "De Camarão", "MULTIPLE", 0.00, null, 1, hotSushi));
                 menuItemRepository.save(hotSushi);
 
                 MenuItem pastel = new MenuItem();
@@ -129,11 +131,11 @@ public class DataInitializer implements CommandLineRunner {
                 pastel.setPrice(6.00);
                 pastel.setCategory("Comidas");
                 pastel.setAvailable(true);
-                pastel.getVariations().add(new MenuItemVariation(null, "Queijo", "MULTIPLE", 2.00, null, pastel));
-                pastel.getVariations().add(new MenuItemVariation(null, "Frango", "MULTIPLE", 2.00, null, pastel));
-                pastel.getVariations().add(new MenuItemVariation(null, "Carne", "MULTIPLE", 2.00, null, pastel));
-                pastel.getVariations().add(new MenuItemVariation(null, "Calabresa", "MULTIPLE", 2.00, null, pastel));
-                pastel.getVariations().add(new MenuItemVariation(null, "Catupiry", "MULTIPLE", 2.00, null, pastel));
+                pastel.getVariations().add(new MenuItemVariation(null, "Queijo", "MULTIPLE", 2.00, null, 1, pastel));
+                pastel.getVariations().add(new MenuItemVariation(null, "Frango", "MULTIPLE", 2.00, null, 1, pastel));
+                pastel.getVariations().add(new MenuItemVariation(null, "Carne", "MULTIPLE", 2.00, null, 1, pastel));
+                pastel.getVariations().add(new MenuItemVariation(null, "Calabresa", "MULTIPLE", 2.00, null, 1, pastel));
+                pastel.getVariations().add(new MenuItemVariation(null, "Catupiry", "MULTIPLE", 2.00, null, 1, pastel));
                 menuItemRepository.save(pastel);
                 
                 MenuItem pastelParaense = new MenuItem();
@@ -147,12 +149,12 @@ public class DataInitializer implements CommandLineRunner {
                 // Camarão Milanesa
                 MenuItem camaraoMilanesa = new MenuItem();
                 camaraoMilanesa.setName("Camarão Milanesa");
-                camaraoMilanesa.setDescription("Camarão rosa empanado e frito");
+                camaraoMilanesa.setDescription("Camarão rosa empanado e frito vendido por unidade ou porção com 5 unidades");
                 camaraoMilanesa.setPrice(0.00);
                 camaraoMilanesa.setCategory("Comidas");
                 camaraoMilanesa.setAvailable(true);
-                camaraoMilanesa.getVariations().add(new MenuItemVariation(null, "Unidade", "SINGLE", 6.00, null, camaraoMilanesa));
-                camaraoMilanesa.getVariations().add(new MenuItemVariation(null, "Porção com 5 unidades", "SINGLE", 25.00, null, camaraoMilanesa));
+                camaraoMilanesa.getVariations().add(new MenuItemVariation(null, "Unidade", "SINGLE", 6.00, null, 1, camaraoMilanesa));
+                camaraoMilanesa.getVariations().add(new MenuItemVariation(null, "Porção", "SINGLE", 25.00, null, 5, camaraoMilanesa));
                 menuItemRepository.save(camaraoMilanesa);
 
                 // Polvo no espeto
@@ -176,44 +178,46 @@ public class DataInitializer implements CommandLineRunner {
 
     private void ensureVariationsSeeded() {
         checkAndSeedVariations("Tempurá", java.util.List.of(
-            new MenuItemVariation(null, "Com Camarão", "SINGLE", 2.00, null, null)
+            new MenuItemVariation(null, "De Legumes", "SINGLE", 0.00, null, 1, null),
+            new MenuItemVariation(null, "Com Camarão", "SINGLE", 2.00, null, 1, null)
         ));
 
         checkAndSeedVariations("Pastel", java.util.List.of(
-            new MenuItemVariation(null, "Queijo", "MULTIPLE", 2.00, null, null),
-            new MenuItemVariation(null, "Frango", "MULTIPLE", 2.00, null, null),
-            new MenuItemVariation(null, "Carne", "MULTIPLE", 2.00, null, null),
-            new MenuItemVariation(null, "Calabresa", "MULTIPLE", 2.00, null, null),
-            new MenuItemVariation(null, "Catupiry", "MULTIPLE", 2.00, null, null)
+            new MenuItemVariation(null, "Queijo", "MULTIPLE", 2.00, null, 1, null),
+            new MenuItemVariation(null, "Frango", "MULTIPLE", 2.00, null, 1, null),
+            new MenuItemVariation(null, "Carne", "MULTIPLE", 2.00, null, 1, null),
+            new MenuItemVariation(null, "Calabresa", "MULTIPLE", 2.00, null, 1, null),
+            new MenuItemVariation(null, "Catupiry", "MULTIPLE", 2.00, null, 1, null)
         ));
 
         checkAndSeedVariations("Yakisoba", java.util.List.of(
-            new MenuItemVariation(null, "Com Camarão", "SINGLE", 5.00, null, null)
+            new MenuItemVariation(null, "Simples", "SINGLE", 0.00, null, 1, null),
+            new MenuItemVariation(null, "Com Camarão", "SINGLE", 5.00, null, 1, null)
         ));
         
         checkAndSeedVariations("Hot Sushi", java.util.List.of(
-            new MenuItemVariation(null, "De Salmão", "MULTIPLE", 0.00, null, null),
-            new MenuItemVariation(null, "De Camarão", "MULTIPLE", 0.00, null, null)
+            new MenuItemVariation(null, "De Salmão", "MULTIPLE", 0.00, null, 1, null),
+            new MenuItemVariation(null, "De Camarão", "MULTIPLE", 0.00, null, 1, null)
         ));
 
         checkAndSeedVariations("Temaki", java.util.List.of(
-            new MenuItemVariation(null, "De Salmão", "SINGLE", 0.00, null, null),
-            new MenuItemVariation(null, "De Camarão", "SINGLE", 0.00, null, null)
+            new MenuItemVariation(null, "De Salmão", "SINGLE", 0.00, null, 1, null),
+            new MenuItemVariation(null, "De Camarão", "SINGLE", 0.00, null, 1, null)
         ));
 
         checkAndSeedVariations("Hot Ball", java.util.List.of(
-            new MenuItemVariation(null, "De Salmão", "SINGLE", 0.00, null, null),
-            new MenuItemVariation(null, "De Camarão", "SINGLE", 0.00, null, null)
+            new MenuItemVariation(null, "De Salmão", "SINGLE", 0.00, null, 1, null),
+            new MenuItemVariation(null, "De Camarão", "SINGLE", 0.00, null, 1, null)
         ));
         
         checkAndSeedVariations("Hot Coreano", java.util.List.of(
-            new MenuItemVariation(null, "De Salmão", "SINGLE", 0.00, null, null),
-            new MenuItemVariation(null, "De Camarão", "SINGLE", 0.00, null, null)
+            new MenuItemVariation(null, "De Salmão", "SINGLE", 0.00, null, 1, null),
+            new MenuItemVariation(null, "De Camarão", "SINGLE", 0.00, null, 1, null)
         ));
         
         checkAndSeedVariations("Camarão Milanesa", java.util.List.of(
-            new MenuItemVariation(null, "Unidade", "SINGLE", 6.00, null, null),
-            new MenuItemVariation(null, "Porção com 5 unidades", "SINGLE", 25.00, null, null)
+            new MenuItemVariation(null, "Unidade", "SINGLE", 6.00, null, 1, null),
+            new MenuItemVariation(null, "Porção com 5 unidades", "SINGLE", 25.00, null, 5, null)
         ));
     }
 

@@ -189,15 +189,14 @@
 }
 
 .order-total {
-    background: var(--secondary-color, #223c0e);
-    color: white;
-    padding: 15px;
-    border-radius: 10px;
-    text-align: center;
-    font-size: 1.5em;
-    font-weight: bold;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 10px rgba(34, 60, 14, 0.3);
+    background: white;
+    color: #223c0e;
+    padding: 20px 0;
+    border-top: 2px dashed #ee8b1b;
+    text-align: right;
+    font-size: 1.8em;
+    font-weight: 800;
+    margin-bottom: 15px;
 }
 
 .submit-order {

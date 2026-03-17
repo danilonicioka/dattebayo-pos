@@ -67,52 +67,21 @@ export default function HomeScreen() {
     setSelectedQuantity(1);
 
     if (item.variations && item.variations.length > 0) {
-      const isRadio = item.variations.some(v => v.type === 'SINGLE');
-      if (isRadio) {
-        // Cálculo de consumo total no carrinho para o Camarão Milanesa
-        let camaraoCartConsumption = 0;
-        const itemName = (item.name || '').toLowerCase();
-        const isCamarao = item.id === 10 || itemName.includes('camarão milanesa');
-
-        if (isCamarao) {
-          camaraoCartConsumption = cartItems.reduce((acc, cartItem) => {
-            const cItemName = (cartItem.menuItem.name || '').toLowerCase();
-            if (cartItem.menuItem.id === 10 || cItemName.includes('camarão milanesa')) {
-              const units = cartItem.variations?.reduce((u: number, v: any) => {
-                const vId = Number(v.menuItemVariationId || v.id);
-                const vName = (v.name || '').toLowerCase();
-                if (vId === 19 || vName === 'unidade') return u + 1; // Unidade
-                if (vId === 20 || vName.includes('porção')) return u + 5; // Porção
-                return u;
-              }, 0) || 0;
-              return acc + (units * cartItem.quantity);
-            }
-            return acc;
-          }, 0);
-        }
-
+        // Find first available variation to pre-select
         const firstAvailable = item.variations!.find(v => {
-          let effectiveStock = null;
-          if (isCamarao) {
-            if (item.stockQuantity !== null && item.stockQuantity !== undefined) {
-              const vName = (v.name || '').toLowerCase();
-              if (v.id === 19 || vName === 'unidade') effectiveStock = item.stockQuantity - camaraoCartConsumption;
-              else if (v.id === 20 || vName.includes('porção')) effectiveStock = Math.floor((item.stockQuantity - camaraoCartConsumption) / 5);
-            }
-          } else {
-            const variationCartCount = cartItems.reduce((acc, cartItem) => acc + (cartItem.variations?.some((cartVar: any) => String(cartVar.menuItemVariationId || cartVar.id) === String(v.id)) ? cartItem.quantity : 0), 0);
-            effectiveStock = v.stockQuantity !== null && v.stockQuantity !== undefined ? v.stockQuantity - variationCartCount : null;
-          }
+          const variationCartCount = cartItems.reduce((acc, cartItem) => 
+            acc + (cartItem.variations?.some((cartVar: any) => 
+              String(cartVar.menuItemVariationId || cartVar.id) === String(v.id)) ? cartItem.quantity : 0), 0);
+          
+          const effectiveStock = v.stockQuantity !== null && v.stockQuantity !== undefined ? v.stockQuantity - variationCartCount : null;
           return !(effectiveStock !== null && effectiveStock <= 0);
         });
+
         if (firstAvailable) {
           setSelectedVariations([firstAvailable.id!]);
         } else {
           setSelectedVariations([]);
         }
-      } else {
-        setSelectedVariations([]);
-      }
     } else {
       setSelectedVariations([]);
     }

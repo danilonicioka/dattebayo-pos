@@ -2,6 +2,7 @@ package com.dattebayo.pos.service;
 
 import com.dattebayo.pos.dto.MenuItemDTO;
 import com.dattebayo.pos.dto.MenuItemVariationDTO;
+import com.dattebayo.pos.dto.StockBatchUpdateDTO;
 import com.dattebayo.pos.model.MenuItem;
 import com.dattebayo.pos.repository.MenuItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,6 +72,26 @@ public class MenuItemService {
         return menuItemVariationRepository.save(variation);
     }
 
+    @Transactional
+    public void updateStockBatch(StockBatchUpdateDTO batchUpdate) {
+        if (batchUpdate.getItems() != null) {
+            for (StockBatchUpdateDTO.StockUpdateItem itemUpdate : batchUpdate.getItems()) {
+                menuItemRepository.findById(itemUpdate.getId()).ifPresent(item -> {
+                    item.setStockQuantity(itemUpdate.getStockQuantity());
+                    menuItemRepository.save(item);
+                });
+            }
+        }
+        if (batchUpdate.getVariations() != null) {
+            for (StockBatchUpdateDTO.StockUpdateItem variationUpdate : batchUpdate.getVariations()) {
+                menuItemVariationRepository.findById(variationUpdate.getId()).ifPresent(variation -> {
+                    variation.setStockQuantity(variationUpdate.getStockQuantity());
+                    menuItemVariationRepository.save(variation);
+                });
+            }
+        }
+    }
+
     private MenuItemDTO convertToDTO(MenuItem menuItem) {
         MenuItemDTO dto = new MenuItemDTO();
         dto.setId(menuItem.getId());
@@ -81,14 +102,12 @@ public class MenuItemService {
         dto.setBasePrice(menuItem.getPrice());
         dto.setManualPrice(menuItem.getManualPrice());
         dto.setManualPriceEnabled(menuItem.getManualPriceEnabled());
-        dto.setApplyMarkup(menuItem.getApplyMarkup());
         dto.setStockQuantity(menuItem.getStockQuantity());
-
         Double basePrice = (menuItem.getManualPriceEnabled() && menuItem.getManualPrice() != null) 
                 ? menuItem.getManualPrice() 
                 : menuItem.getPrice();
         
-        dto.setPrice(menuItem.getApplyMarkup() ? configurationService.applyMarkup(basePrice) : Math.round(basePrice));
+        dto.setPrice(Math.round(basePrice * 100.0) / 100.0); // Round to 2 decimal places if needed, or keep as is
 
         List<MenuItemVariationDTO> variationDTOs = menuItem.getVariations().stream()
                 .map(variation -> {
@@ -98,7 +117,7 @@ public class MenuItemService {
                     variationDTO.setType(variation.getType());
                     
                     Double additionalPrice = variation.getAdditionalPrice();
-                    variationDTO.setAdditionalPrice(menuItem.getApplyMarkup() ? configurationService.applyMarkup(additionalPrice) : Math.round(additionalPrice));
+                    variationDTO.setAdditionalPrice(Math.round(additionalPrice * 100.0) / 100.0);
                     variationDTO.setStockQuantity(variation.getStockQuantity());
                     
                     return variationDTO;

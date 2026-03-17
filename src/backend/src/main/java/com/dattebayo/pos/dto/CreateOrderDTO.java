@@ -13,4 +13,7 @@ public class CreateOrderDTO {
     private List<OrderItemRequestDTO> items;
     
     private String notes;
+    
+    private String paymentMethod;
+    private Double amountReceived;
 }

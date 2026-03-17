@@ -20,7 +20,7 @@
 }
 
 .history-header h2 i {
-    color: var(--primary-color);
+    color: var(--primary-color, #ee8b1b);
 }
 
 .header-actions {
@@ -30,7 +30,7 @@
 }
 
 .summary-btn {
-    background-color: var(--primary-color);
+    background-color: var(--secondary-color, #223c0e);
     color: white;
     padding: 0.5rem 1rem;
     border-radius: 6px;
@@ -44,7 +44,7 @@
 }
 
 .summary-btn:hover {
-    background-color: var(--primary-dark);
+    background-color: var(--primary-dark, #d67a1a);
 }
 
 .clear-history-btn {
@@ -106,7 +106,7 @@
 .order-id {
     font-family: monospace;
     font-weight: 600;
-    color: var(--primary-color);
+    color: var(--primary-color, #ee8b1b);
 }
 
 /* Items specific styling */

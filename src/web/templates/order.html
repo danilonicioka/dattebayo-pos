@@ -41,12 +41,21 @@
             <div th:if="${param.paid}" class="success-message">
                 Pedido finalizado com sucesso!
             </div>
+            <div th:if="${param.bulkPaid}" class="success-message">
+                Todos os pedidos foram finalizados com sucesso!
+            </div>
 
             <div class="active-orders-section">
                 <div class="active-orders-header">
                     <h2><i class="fas fa-clipboard-list"></i> Pedidos Ativos</h2>
-                    <button class="refresh-btn" onclick="refreshActiveOrders()"><i class="fas fa-sync-alt"></i>
-                        Atualizar</button>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="button" class="action-btn" onclick="openBulkConcludeModal()"
+                            style="background-color: var(--secondary-color); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-weight: 600;">
+                            <i class="fas fa-check-double"></i> Concluir Todos
+                        </button>
+                        <button class="refresh-btn" onclick="refreshActiveOrders()"><i class="fas fa-sync-alt"></i>
+                            Atualizar</button>
+                    </div>
                 </div>
                 <div class="active-orders-grid" id="activeOrdersGrid">
                     <div th:if="${activeOrders == null or activeOrders.isEmpty()}" class="no-active-orders">
@@ -74,24 +83,46 @@
                                 <i class="fas fa-edit"></i> Editar
                             </a>
 
-                            <form th:action="@{'/orders/' + ${order.id} + '/cancel'}" method="post"
-                                onsubmit="return confirm('Tem certeza que deseja cancelar este pedido? O estoque será reposto.');"
+                            <button type="button" class="action-btn cancel-order-btn"
+                                th:onclick="'openCancelModal(' + ${order.id} + ')'" style="flex: 1;">
+                                <i class="fas fa-times"></i> Cancelar
+                            </button>
+
+                            <form th:action="@{'/orders/' + ${order.id} + '/mark-paid'}" method="post"
                                 style="flex: 1; margin: 0;">
-                                <button type="submit" class="action-btn cancel-order-btn">
-                                    <i class="fas fa-times"></i> Cancelar
+                                <button type="submit" class="action-btn mark-paid-btn">
+                                    <i class="fas fa-check-double"></i> Concluir
                                 </button>
                             </form>
-
-                            <a th:href="@{'/orders/' + ${order.id} + '/checkout'}" class="action-btn mark-paid-btn"
-                                style="flex: 1;">
-                                <i class="fas fa-check"></i> Pagar
-                            </a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Custom Confirmation Modal -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Confirmação</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body" style="padding: 30px 25px; text-align: center;">
+                <i id="modalIcon" class="fas fa-exclamation-triangle"
+                    style="font-size: 3em; color: var(--primary-color); margin-bottom: 20px; display: block;"></i>
+                <p id="modalMessage" style="font-size: 1.1em; color: var(--text-dark); line-height: 1.5;"></p>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeModal()" class="cancel-btn">Não, Voltar</button>
+                <button id="modalConfirmBtn" class="confirm-btn">Sim, Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Forms for Actions -->
+    <form id="bulkConcludeForm" th:action="@{/orders/conclude-all}" method="post" style="display: none;"></form>
+    <form id="cancelOrderForm" method="post" style="display: none;"></form>
 
     <script th:inline="javascript">
         function refreshActiveOrders() {
@@ -102,6 +133,47 @@
         setInterval(function () {
             refreshActiveOrders();
         }, 10000);
+
+        const modal = document.getElementById('confirmModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalIcon = document.getElementById('modalIcon');
+        const confirmBtn = document.getElementById('modalConfirmBtn');
+
+        function openBulkConcludeModal() {
+            modalTitle.textContent = 'Concluir Todos';
+            modalMessage.textContent = 'Tem certeza que deseja concluir TODOS os pedidos ativos? Esta ação moverá todos para o histórico.';
+            modalIcon.className = 'fas fa-check-double';
+            modalIcon.style.color = 'var(--secondary-color)';
+            confirmBtn.onclick = () => {
+                document.getElementById('bulkConcludeForm').submit();
+            };
+            modal.style.display = 'block';
+        }
+
+        function openCancelModal(orderId) {
+            modalTitle.textContent = 'Cancelar Pedido';
+            modalMessage.textContent = 'Deseja realmente cancelar este pedido? O estoque dos itens será reposto automaticamente.';
+            modalIcon.className = 'fas fa-trash-alt';
+            modalIcon.style.color = '#dc3545';
+            confirmBtn.onclick = () => {
+                const form = document.getElementById('cancelOrderForm');
+                form.action = '/orders/' + orderId + '/cancel';
+                form.submit();
+            };
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function (event) {
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
     </script>
 </body>
 

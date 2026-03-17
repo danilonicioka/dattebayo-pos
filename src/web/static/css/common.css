@@ -1,14 +1,17 @@
 /* CSS Variables */
 :root {
     --primary-color: #ee8b1b;
+    /* Dattebayo Orange */
     --primary-dark: #d67a1a;
     --secondary-color: #223c0e;
+    /* Dattebayo Green */
+    --accent-color: #ee8b1b;
     --text-dark: #080502;
     --text-muted: #666666;
-    --bg-light: #f8f9fa;
-    --border-color: #dddddd;
+    --bg-light: #f4f5f7;
+    --border-color: #e0e0e0;
     --success-green: #28a745;
-    --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 /* Core Basics */
@@ -24,7 +27,7 @@ html {
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #ee8b1b 0%, #ebad1c 100%);
+    background: var(--bg-light);
     min-height: 100vh;
     padding: 20px;
 }
@@ -166,7 +169,7 @@ body {
 }
 
 .confirm-btn {
-    background: #ee8b1b;
+    background: var(--success-green);
 }
 
 .confirm-btn:hover {

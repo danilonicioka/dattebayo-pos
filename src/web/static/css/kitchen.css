@@ -79,8 +79,9 @@
 }
 
 .order-status.preparing {
-    background: #ee8b1b;
-    color: white;
+    background: #e3f2fd;
+    color: #1976d2;
+    border: 1px solid #bbdefb;
 }
 
 .order-status.ready {
@@ -133,7 +134,7 @@
 }
 
 .order-item-variations {
-    color: #ee8b1b;
+    color: #666;
     font-size: 0.9em;
     margin-top: 3px;
 }
@@ -174,7 +175,7 @@
 }
 
 .btn-preparing {
-    background: #ee8b1b;
+    background: #6c757d;
     color: white;
 }
 

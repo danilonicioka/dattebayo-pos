@@ -13,7 +13,6 @@ public class MenuItemDTO {
     private Double basePrice;
     private String category;
     private Boolean available;
-    private Boolean applyMarkup;
     private Double manualPrice;
     private Boolean manualPriceEnabled;
     private Integer stockQuantity;

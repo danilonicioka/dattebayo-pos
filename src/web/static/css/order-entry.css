@@ -189,7 +189,7 @@
 }
 
 .order-total {
-    background: #ee8b1b;
+    background: var(--secondary-color, #223c0e);
     color: white;
     padding: 15px;
     border-radius: 10px;
@@ -197,6 +197,7 @@
     font-size: 1.5em;
     font-weight: bold;
     margin-bottom: 20px;
+    box-shadow: 0 4px 10px rgba(34, 60, 14, 0.3);
 }
 
 .submit-order {

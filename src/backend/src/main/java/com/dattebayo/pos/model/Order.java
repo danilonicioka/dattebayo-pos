@@ -36,6 +36,10 @@ public class Order {
     @Column(length = 500)
     private String notes;
     
+    private String paymentMethod;
+    private Double amountReceived;
+    private Double changeAmount;
+    
     public enum OrderStatus {
         PENDING,    // Order placed, waiting to be prepared
         PREPARING,  // Kitchen is preparing the order

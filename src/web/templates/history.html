@@ -34,13 +34,9 @@
                 <div class="history-header">
                     <h2>Últimos Pedidos Entregues</h2>
                     <div class="header-actions">
-                        <form th:if="${orders != null and !orders.isEmpty()}" th:action="@{/history/clear}"
-                            method="post"
-                            onsubmit="return confirm('Tem certeza que deseja apagar todo o histórico? Esta ação não pode ser desfeita.');"
-                            style="display:inline;">
-                            <button type="submit" class="clear-history-btn"><i class="fas fa-trash-alt"></i> Limpar
-                                Histórico</button>
-                        </form>
+                        <button type="button" class="clear-history-btn" onclick="openClearHistoryModal()">
+                            <i class="fas fa-trash-alt"></i> Limpar Histórico
+                        </button>
                     </div>
                 </div>
 
@@ -56,6 +52,7 @@
                                 <th>Mesa</th>
                                 <th>Itens</th>
                                 <th>Total</th>
+                                <th>Pagamento</th>
                                 <th>Data/Hora</th>
                                 <th>Status</th>
                             </tr>
@@ -76,6 +73,15 @@
                                     <span class="total-amount"
                                         th:text="'R$' + ${#numbers.formatDecimal(order.total, 1, 0)}"></span>
                                 </td>
+                                <td data-label="Pagamento">
+                                    <div class="payment-info">
+                                        <span class="payment-badge" th:if="${order.paymentMethod != 'Pendente'}" th:text="${order.paymentMethod}">Metodo</span>
+                                        <div th:if="${order.amountReceived != null and order.amountReceived > 0}" class="payment-extra" style="font-size: 0.8em; color: #666;">
+                                            Rec: R$[[${#numbers.formatDecimal(order.amountReceived, 1, 0)}]]<br>
+                                            Troco: R$[[${#numbers.formatDecimal(order.changeAmount, 1, 0)}]]
+                                        </div>
+                                    </div>
+                                </td>
                                 <td data-label="Data/Hora">
                                     <span class="order-date"
                                         th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
@@ -91,6 +97,58 @@
             </div>
         </div>
     </div>
+
+    <!-- Custom Confirmation Modal -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Confirmação</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body" style="padding: 30px 25px; text-align: center;">
+                <i id="modalIcon" class="fas fa-exclamation-triangle"
+                    style="font-size: 3em; color: #dc3545; margin-bottom: 20px; display: block;"></i>
+                <p id="modalMessage" style="font-size: 1.1em; color: var(--text-dark); line-height: 1.5;"></p>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeModal()" class="cancel-btn">Não, Voltar</button>
+                <button id="modalConfirmBtn" class="confirm-btn">Sim, Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Form for Actions -->
+    <form id="clearHistoryForm" th:action="@{/history/clear}" method="post" style="display: none;"></form>
+
+    <script th:inline="javascript">
+        const modal = document.getElementById('confirmModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalIcon = document.getElementById('modalIcon');
+        const confirmBtn = document.getElementById('modalConfirmBtn');
+
+        function openClearHistoryModal() {
+            modalTitle.textContent = 'Limpar Histórico';
+            modalMessage.textContent = 'Tem certeza que deseja apagar todo o histórico? Esta ação não pode ser desfeita.';
+            modalIcon.className = 'fas fa-trash-alt';
+            modalIcon.style.color = '#dc3545';
+            confirmBtn.onclick = () => {
+                document.getElementById('clearHistoryForm').submit();
+            };
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function (event) {
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+    </script>
 </body>
 
 </html>

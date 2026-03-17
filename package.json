@@ -1,0 +1,21 @@
+{
+  "name": "dattebayo-pos-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "overrides": {
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-test-renderer": "19.1.0"
+  },
+  "dependencies": {
+    "@dattebayo/core": "^1.0.0",
+    "lucide-react": "^0.576.0",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-test-renderer": "19.1.0"
+  }
+}

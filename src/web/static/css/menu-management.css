@@ -5,6 +5,7 @@
     --dark-orange: #d67a1a;
     --light-orange: #fff3e6;
     --success-green: #223c0e;
+    --accent-green: #28a745;
     --text-main: #080502;
     --text-secondary: #666;
     --bg-card: #ffffff;
@@ -34,49 +35,6 @@
     padding-bottom: 10px;
 }
 
-/* Global Markup Dashboard */
-.markup-dashboard {
-    background: var(--light-orange);
-    border-radius: 12px;
-    padding: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 20px;
-}
-
-.markup-info h3 {
-    margin: 0;
-    color: var(--dark-orange);
-    font-size: 1.2rem;
-}
-
-.markup-inputs {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    background: white;
-    padding: 8px 15px;
-    border-radius: 50px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.markup-input-group {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.markup-input-group input {
-    width: 60px;
-    border: none;
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: var(--primary-orange);
-    text-align: center;
-    outline: none;
-}
 
 /* Management Grid */
 .management-grid {
@@ -188,31 +146,6 @@
     /* Prevent interaction when manual is on */
 }
 
-/* Markup Pill */
-.markup-pill {
-    font-size: 0.7rem;
-    padding: 2px 8px;
-    border-radius: 12px;
-    background: #eee;
-    color: #777;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    border: 1px solid transparent;
-    transition: all 0.2s;
-}
-
-.markup-pill.active {
-    background: var(--light-orange);
-    color: var(--dark-orange);
-    border-color: var(--primary-orange);
-    font-weight: bold;
-}
-
-.markup-pill input {
-    display: none;
-}
 
 .price-display-group {
     display: flex;
@@ -249,10 +182,9 @@
 }
 
 .manual-block.active-mode {
-    border-color: var(--primary-orange);
-    box-shadow: 0 0 0 1px var(--primary-orange) inset;
-    background: #fff8f0;
-    /* very light orange tint */
+    border-color: var(--success-green);
+    box-shadow: 0 0 0 1px var(--success-green) inset;
+    background: #f1f8e9;
 }
 
 .manual-toggle-wrapper {
@@ -324,7 +256,7 @@
 }
 
 input:checked+.slider {
-    background-color: var(--success-green);
+    background-color: var(--accent-green, #28a745);
 }
 
 input:checked+.slider:before {
@@ -347,35 +279,9 @@ input:checked+.slider:before {
 }
 
 
-/* Save Button */
-.save-markup-btn {
-    background: var(--primary-orange);
-    color: white;
-    border: none;
-    padding: 10px 24px;
-    border-radius: 50px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.save-markup-btn:hover {
-    background: var(--dark-orange);
-    transform: translateY(-2px);
-}
-
 .category-group {
     margin-bottom: 50px;
 }
 
 @media (max-width: 768px) {
-    .markup-dashboard {
-        flex-direction: column;
-        align-items: stretch;
-        text-align: center;
-    }
-
-    .markup-inputs {
-        justify-content: center;
-    }
 }

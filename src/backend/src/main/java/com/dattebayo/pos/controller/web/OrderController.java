@@ -150,12 +150,6 @@ public class OrderController {
         return "edit-order";
     }
 
-    @GetMapping("/orders/{id}/checkout")
-    public String checkoutPage(@PathVariable Long id, Model model) {
-        OrderDTO order = orderService.getOrderById(id);
-        model.addAttribute("order", order);
-        return "checkout";
-    }
 
     @PostMapping("/orders")
     public String createOrder(@ModelAttribute CreateOrderDTO createOrderDTO) {
@@ -182,6 +176,16 @@ public class OrderController {
             // Handle error
         }
         return "redirect:/?cancelled=true";
+    }
+
+    @PostMapping("/orders/conclude-all")
+    public String concludeAllOrders() {
+        try {
+            orderService.concludeAllActiveOrders();
+        } catch (Exception e) {
+            // Handle error
+        }
+        return "redirect:/?bulkPaid=true";
     }
 
     @PostMapping("/orders/{id}/mark-paid")

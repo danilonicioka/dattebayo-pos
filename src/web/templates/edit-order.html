@@ -49,8 +49,6 @@
                     <a href="/stock-management" class="nav-link"><i class="fas fa-boxes"></i> Estoque</a>
                 </div>
             </div>
-            <p id="markupNotice" style="color: #223c0e; font-weight: bold; margin-top: 5px; display: none;">Calculando
-                preços com taxa extra</p>
         </div>
 
         <div class="content">
@@ -91,6 +89,18 @@
 
                     <div class="order-total" id="orderTotal">
                         Total: R$<span th:text="${#numbers.formatDecimal(order.total, 1, 0)}"></span>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 15px;">
+                        <label for="amountReceived">Pagamento (Valor Recebido):</label>
+                        <input type="number" id="amountReceived" placeholder="0.00" oninput="calculateChange()"
+                            step="0.01"
+                            style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem;">
+
+                        <div id="changeDisplay"
+                            style="margin-top: 10px; font-weight: bold; color: #28a745; display: none; font-size: 1.1rem;">
+                            Troco: R$<span id="changeAmount">0.00</span>
+                        </div>
                     </div>
 
                     <div class="form-group">
@@ -148,19 +158,7 @@
             loadMenuItems(); // Must be called to populate menuItems for lookups
             loadCategories();
             initializeExistingOrder();
-            checkMarkup();
         });
-
-        function checkMarkup() {
-            fetch('/api/menu/markup')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.enabled && data.percentage > 0) {
-                        document.getElementById('markupNotice').textContent = `Preços ajustados com taxa extra de ${data.percentage}%`;
-                        document.getElementById('markupNotice').style.display = 'block';
-                    }
-                });
-        }
 
         function initializeExistingOrder() {
             // Convert existing order items to the format expected by the JavaScript
@@ -836,6 +834,7 @@
             }
 
             totalElement.textContent = total.toFixed(0);
+            calculateChange();
 
             // Update mobile checkout bar
             const mobileTotal = document.getElementById('mobileTotal');
@@ -856,6 +855,25 @@
 
         function prepareFormData() {
             // Logic is now in updateOrderDisplay
+        }
+
+        function calculateChange() {
+            const amountReceivedInput = document.getElementById('amountReceived');
+            if (!amountReceivedInput) return;
+
+            const amountReceived = parseFloat(amountReceivedInput.value) || 0;
+            const total = parseFloat(document.getElementById('orderTotal').querySelector('span').textContent) || 0;
+            const change = amountReceived - total;
+
+            const changeDisplay = document.getElementById('changeDisplay');
+            const changeAmountSpan = document.getElementById('changeAmount');
+
+            if (amountReceived > 0) {
+                changeAmountSpan.textContent = change.toFixed(0);
+                changeDisplay.style.display = 'block';
+            } else {
+                changeDisplay.style.display = 'none';
+            }
         }
     </script>
 </body>

@@ -34,8 +34,8 @@
 }
 
 .revenue-card {
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+    background: linear-gradient(135deg, #223c0e, #1a2e0a);
+    box-shadow: 0 4px 15px rgba(34, 60, 14, 0.3);
 }
 
 .items-card {
@@ -86,7 +86,7 @@
     display: inline-block;
     width: 4px;
     height: 18px;
-    background-color: var(--primary-color);
+    background-color: var(--secondary-color, #223c0e);
     margin-right: 10px;
     border-radius: 2px;
 }
@@ -114,7 +114,7 @@
 .summary-count {
     font-size: 1.5rem;
     font-weight: 700;
-    color: var(--primary-color);
+    color: var(--secondary-color, #223c0e);
     margin-bottom: 0.2rem;
     line-height: 1;
 }

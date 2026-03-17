@@ -37,9 +37,6 @@ public class MenuItem {
     
     private Boolean manualPriceEnabled = false;
 
-    @Column(nullable = false)
-    private Boolean applyMarkup = true;
-
     private Integer stockQuantity; // null means unlimited/untracked
 
     @OneToMany(mappedBy = "menuItem", cascade = CascadeType.ALL, orphanRemoval = true)

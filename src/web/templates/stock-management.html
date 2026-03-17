@@ -9,6 +9,67 @@
     <link rel="stylesheet" th:href="@{/css/common.css}">
     <link rel="stylesheet" th:href="@{/css/stock-management.css}">
     <style>
+        .save-bar {
+            background: white;
+            padding: 30px;
+            margin-top: 20px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-soft);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 15px;
+            border: 1px solid #eee;
+        }
+
+        .save-btn {
+            background: var(--success-green);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            width: 100%;
+            max-width: 400px;
+            justify-content: center;
+        }
+
+        .save-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .save-btn:not(:disabled):hover {
+            background: #388e3c;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
+        }
+
+        .pending-text {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .dirty-input {
+            border-color: var(--primary-orange) !important;
+            background-color: #fff8f5 !important;
+            box-shadow: 0 0 0 2px rgba(255, 107, 0, 0.1);
+        }
+
+        /* Adjust footer space */
+        .content {
+            padding-bottom: 40px;
+        }
     </style>
 </head>
 
@@ -114,102 +175,119 @@
 
                     </div> <!-- End Item Card -->
                 </div> <!-- End Grid -->
+            </section>
+
+            <div id="save-bar" class="save-bar">
+                <span id="pending-counter" class="pending-text" style="display: none; margin-bottom: 5px;">Existem
+                    alterações não salvas</span>
+                <button id="save-btn" class="save-btn" onclick="saveAllChanges()" disabled>
+                    <i class="fas fa-save"></i> Salvar Alterações
+                </button>
+            </div>
+
         </div>
-        </section>
-    </div>
     </div>
 
     <script>
+        let pendingChanges = {
+            items: {},
+            variations: {}
+        };
+
+        function updateSaveButton() {
+            const hasChanges = Object.keys(pendingChanges.items).length > 0 ||
+                Object.keys(pendingChanges.variations).length > 0;
+
+            const btn = document.getElementById('save-btn');
+            const counter = document.getElementById('pending-counter');
+
+            btn.disabled = !hasChanges;
+            counter.style.display = hasChanges ? 'block' : 'none';
+        }
+
+        function markInputDirty(element) {
+            if (element) {
+                element.classList.add('dirty-input');
+            }
+        }
+
         function toggleStockTracking(id, isEnabled) {
             const stockInput = document.getElementById('stock-qty-' + id);
             const wrapper = document.getElementById('stock-input-wrapper-' + id);
-
-            // stockInput.disabled = !isEnabled; // Not strictly needed if we hide via opacity/pointer-events, but good for accessibility
 
             if (isEnabled) {
                 if (wrapper) {
                     wrapper.style.opacity = '1';
                     wrapper.style.pointerEvents = 'auto';
                 }
+                pendingChanges.items[id] = parseInt(stockInput.value) || 0;
             } else {
                 if (wrapper) {
                     wrapper.style.opacity = '0.5';
                     wrapper.style.pointerEvents = 'none';
                 }
+                pendingChanges.items[id] = null;
             }
-
-            let payload = {};
-            if (isEnabled) {
-                payload.stockQuantity = parseInt(stockInput.value) || 0;
-            } else {
-                payload.stockQuantity = null;
-            }
-
-            updateStockBackend(id, payload);
+            markInputDirty(stockInput);
+            updateSaveButton();
         }
 
         function updateStock(id) {
             const stockInput = document.getElementById('stock-qty-' + id);
             const value = parseInt(stockInput.value);
-            updateStockBackend(id, { stockQuantity: value });
-        }
-
-        function updateStockBackend(id, payload) {
-            fetch('/api/menu/' + id + '/stock', {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        alert('Erro ao atualizar estoque.');
-                        location.reload();
-                    }
-                })
-                .catch(error => {
-                    console.error('Error updating stock:', error);
-                    alert('Erro de conexão.');
-                });
+            pendingChanges.items[id] = value;
+            markInputDirty(stockInput);
+            updateSaveButton();
         }
 
         function toggleVariationStock(id, isEnabled) {
             const stockInput = document.getElementById('var-stock-qty-' + id);
             const wrapper = document.getElementById('var-stock-input-wrapper-' + id);
 
-            // stockInput.disabled = !isEnabled;
-
             if (isEnabled) {
                 if (wrapper) {
                     wrapper.style.opacity = '1';
                     wrapper.style.pointerEvents = 'auto';
                 }
+                pendingChanges.variations[id] = parseInt(stockInput.value) || 0;
             } else {
                 if (wrapper) {
                     wrapper.style.opacity = '0.5';
                     wrapper.style.pointerEvents = 'none';
                 }
+                pendingChanges.variations[id] = null;
             }
-
-            let payload = {};
-            if (isEnabled) {
-                payload.stockQuantity = parseInt(stockInput.value) || 0;
-            } else {
-                payload.stockQuantity = null;
-            }
-
-            updateVariationStockBackend(id, payload);
+            markInputDirty(stockInput);
+            updateSaveButton();
         }
 
         function updateVariationStock(id) {
             const stockInput = document.getElementById('var-stock-qty-' + id);
             const value = parseInt(stockInput.value);
-            updateVariationStockBackend(id, { stockQuantity: value });
+            pendingChanges.variations[id] = value;
+            markInputDirty(stockInput);
+            updateSaveButton();
         }
 
-        function updateVariationStockBackend(id, payload) {
-            fetch('/api/menu/variations/' + id + '/stock', {
+        function saveAllChanges() {
+            const saveBtn = document.querySelector('.save-btn');
+            const originalContent = saveBtn.innerHTML;
+
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+
+            const payload = {
+                items: Object.keys(pendingChanges.items).map(id => ({
+                    id: parseInt(id),
+                    stockQuantity: pendingChanges.items[id]
+                })),
+                variations: Object.keys(pendingChanges.variations).map(id => ({
+                    id: parseInt(id),
+                    stockQuantity: pendingChanges.variations[id]
+                }))
+            };
+
+            fetch('/api/menu/batch-stock', {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json'
@@ -217,14 +295,18 @@
                 body: JSON.stringify(payload)
             })
                 .then(response => {
-                    if (!response.ok) {
-                        alert('Erro ao atualizar estoque da variação.');
+                    if (response.ok) {
+                        alert('Alterações salvas com sucesso!');
                         location.reload();
+                    } else {
+                        throw new Error('Erro ao salvar.');
                     }
                 })
                 .catch(error => {
-                    console.error('Error updating variation stock:', error);
-                    alert('Erro de conexão.');
+                    console.error('Error saving changes:', error);
+                    alert('Erro ao salvar alterações. Tente novamente.');
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = originalContent;
                 });
         }
     </script>

@@ -28,17 +28,18 @@
 }
 
 .refresh-btn {
-    background: #ee8b1b;
+    background: #28a745;
     color: white;
     border: none;
     padding: 8px 16px;
     border-radius: 5px;
     cursor: pointer;
     font-size: 0.9em;
+    transition: background 0.2s;
 }
 
 .refresh-btn:hover {
-    background: #d67a1a;
+    background: #218838;
 }
 
 .refresh-btn i {
@@ -69,13 +70,12 @@
     /* Fixed height for alignment */
 }
 
-/* Specific Colors */
 .edit-order-btn {
-    background: #ee8b1b;
+    background: #6c757d;
 }
 
 .edit-order-btn:hover {
-    background: #d67a1a;
+    background: #5a6268;
 }
 
 .cancel-order-btn {
@@ -134,11 +134,16 @@
 
 .active-order-card {
     background: white;
-    border-radius: 10px;
+    border-radius: 12px;
     padding: 15px;
-    border-left: 4px solid #ee8b1b;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     border: 1px solid #e0e0e0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.active-order-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
 }
 
 .active-order-card .active-order-header {
@@ -198,10 +203,12 @@
 }
 
 .active-order-total {
-    font-weight: bold;
-    font-size: 1.1em;
+    font-weight: 800;
+    font-size: 1.25em;
     color: #ee8b1b;
-    margin: 10px 0;
+    margin: 12px 0;
+    border-top: 1px dashed #eee;
+    padding-top: 10px;
 }
 
 .active-order-time {

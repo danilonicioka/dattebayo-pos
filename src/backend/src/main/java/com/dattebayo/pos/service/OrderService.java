@@ -35,6 +35,8 @@ public class OrderService {
         order.setTableNumber(createOrderDTO.getTableNumber());
         order.setNotes(createOrderDTO.getNotes());
         order.setStatus(Order.OrderStatus.PENDING);
+        order.setPaymentMethod(createOrderDTO.getPaymentMethod());
+        order.setAmountReceived(createOrderDTO.getAmountReceived());
 
         for (var itemRequest : createOrderDTO.getItems()) {
             MenuItem menuItem = menuItemRepository.findById(itemRequest.getMenuItemId())
@@ -84,8 +86,7 @@ public class OrderService {
             Double basePrice = (menuItem.getManualPriceEnabled() && menuItem.getManualPrice() != null)
                     ? menuItem.getManualPrice()
                     : menuItem.getPrice();
-            orderItem.setPrice(
-                    menuItem.getApplyMarkup() ? configurationService.applyMarkup(basePrice) : Math.round(basePrice));
+            orderItem.setPrice(Math.round(basePrice * 100.0) / 100.0);
             orderItem.setSpecialInstructions(itemRequest.getSpecialInstructions());
 
             // Handle variations and pricing
@@ -96,6 +97,18 @@ public class OrderService {
             }
 
             order.getItems().add(orderItem);
+        }
+        
+        // Calculate total for change calculation if payment is cash
+        double total = 0;
+        for (OrderItem item : order.getItems()) {
+            total += item.getPrice() * item.getQuantity();
+        }
+        
+        if (order.getAmountReceived() != null && order.getAmountReceived() > 0) {
+            order.setChangeAmount(Math.max(0, order.getAmountReceived() - total));
+        } else {
+            order.setChangeAmount(0.0);
         }
 
         order = orderRepository.save(order);
@@ -143,6 +156,19 @@ public class OrderService {
     public void clearOrderHistory() {
         orderRepository.deleteByStatus(Order.OrderStatus.COMPLETED);
         orderRepository.deleteByStatus(Order.OrderStatus.CANCELLED);
+    }
+
+    public void concludeAllActiveOrders() {
+        List<Order.OrderStatus> activeStatuses = List.of(
+                Order.OrderStatus.PENDING,
+                Order.OrderStatus.PREPARING,
+                Order.OrderStatus.READY);
+        List<Order> activeOrders = orderRepository.findByStatusInOrderByCreatedAtAsc(activeStatuses);
+        for (Order order : activeOrders) {
+            order.setStatus(Order.OrderStatus.COMPLETED);
+            order.setUpdatedAt(LocalDateTime.now());
+        }
+        orderRepository.saveAll(activeOrders);
     }
 
     public OrderDTO updateOrderStatus(Long orderId, Order.OrderStatus newStatus) {
@@ -234,6 +260,9 @@ public class OrderService {
         dto.setCreatedAt(order.getCreatedAt());
         dto.setUpdatedAt(order.getUpdatedAt());
         dto.setNotes(order.getNotes());
+        dto.setPaymentMethod(order.getPaymentMethod());
+        dto.setAmountReceived(order.getAmountReceived());
+        dto.setChangeAmount(order.getChangeAmount());
 
         double total = 0.0;
         for (OrderItem item : order.getItems()) {
@@ -369,8 +398,35 @@ public class OrderService {
         for (OrderItem item : order.getItems()) {
             // Revert stock for removed items
             if (item.getMenuItem().getStockQuantity() != null) {
-                item.getMenuItem().setStockQuantity(item.getMenuItem().getStockQuantity() + item.getQuantity());
-                menuItemRepository.save(item.getMenuItem());
+                // Specialized logic for Camarão Milanesa restoration
+                if ("Camarão Milanesa".equals(item.getMenuItem().getName()) && item.getVariations() != null) {
+                    boolean handledCustom = false;
+                    for (OrderItemVariation itemVariation : item.getVariations()) {
+                        if (itemVariation.getSelected()) {
+                            MenuItemVariation variation = itemVariation.getMenuItemVariation();
+                            int varQty = itemVariation.getQuantity() != null ? itemVariation.getQuantity() : 1;
+                            
+                            if ("Porção com 5 unidades".equals(variation.getName())) {
+                                item.getMenuItem().setStockQuantity(item.getMenuItem().getStockQuantity() + (item.getQuantity() * 5 * varQty));
+                                menuItemRepository.save(item.getMenuItem());
+                                handledCustom = true;
+                                break;
+                            } else if ("Unidade".equals(variation.getName())) {
+                                item.getMenuItem().setStockQuantity(item.getMenuItem().getStockQuantity() + (item.getQuantity() * varQty));
+                                menuItemRepository.save(item.getMenuItem());
+                                handledCustom = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!handledCustom) {
+                        item.getMenuItem().setStockQuantity(item.getMenuItem().getStockQuantity() + item.getQuantity());
+                        menuItemRepository.save(item.getMenuItem());
+                    }
+                } else {
+                    item.getMenuItem().setStockQuantity(item.getMenuItem().getStockQuantity() + item.getQuantity());
+                    menuItemRepository.save(item.getMenuItem());
+                }
             }
 
             // Revert stock for removed variations
@@ -437,8 +493,7 @@ public class OrderService {
             Double basePrice = (menuItem.getManualPriceEnabled() && menuItem.getManualPrice() != null)
                     ? menuItem.getManualPrice()
                     : menuItem.getPrice();
-            orderItem.setPrice(
-                    menuItem.getApplyMarkup() ? configurationService.applyMarkup(basePrice) : Math.round(basePrice));
+            orderItem.setPrice(Math.round(basePrice * 100.0) / 100.0);
             orderItem.setSpecialInstructions(itemRequest.getSpecialInstructions());
 
             // Handle variations and pricing
@@ -511,10 +566,7 @@ public class OrderService {
                      Double portionPrice = portionVar.get().getAdditionalPrice();
                      Double effectiveTotalPrice = (portions * portionPrice) + (remainder * additionalPrice);
                      
-                     // Apply markup if needed to the *calculated* total variation price
-                     Double processedEffectiveTotal = orderItem.getMenuItem().getApplyMarkup()
-                         ? configurationService.applyMarkup(effectiveTotalPrice)
-                         : Math.round(effectiveTotalPrice);
+                     Double processedEffectiveTotal = Math.round(effectiveTotalPrice * 100.0) / 100.0;
                          
                      // We need to set the price PER ORDER ITEM.
                      // The orderItem.price will be multiplied by orderItem.quantity later in calculations.
@@ -524,9 +576,7 @@ public class OrderService {
                  }
             }
 
-            Double processedAdditional = orderItem.getMenuItem().getApplyMarkup()
-                    ? configurationService.applyMarkup(additionalPrice)
-                    : Math.round(additionalPrice);
+            Double processedAdditional = Math.round(additionalPrice * 100.0) / 100.0;
             // Multiply the additional price by the quantity of this variation
             // AND add to existing price (base price usually 0 for this item)
             orderItem.setPrice(orderItem.getPrice() + (processedAdditional * variationQty));

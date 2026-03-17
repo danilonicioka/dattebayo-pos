@@ -28,30 +28,6 @@
         </div>
 
         <div class="content">
-            <!-- SECTION 1: Configurações Globais -->
-            <section class="config-section">
-                <h2 class="section-title"><i class="fas fa-globe"></i> Configurações Globais</h2>
-                <div class="markup-dashboard">
-                    <div class="markup-info">
-                        <h3>Taxa Extra de Checkout (Markup)</h3>
-                        <p>Aplica um acréscimo percentual automático aos itens selecionados.</p>
-                    </div>
-                    <div class="markup-inputs">
-                        <div class="markup-input-group">
-                            <input type="number" id="markupPercentage" step="0.1" value="0.0" min="0">
-                            <span>%</span>
-                        </div>
-                        <div style="height: 24px; width: 1px; background: #eee;"></div>
-                        <div class="markup-toggle-box">
-                            <label class="switch">
-                                <input type="checkbox" id="markupEnabled" onchange="toggleMarkupEnabled(this.checked)">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <button class="save-markup-btn" onclick="saveMarkupPercentage()">Salvar</button>
-                    </div>
-                </div>
-            </section>
 
             <!-- SECTION 2: Inventário por Categoria -->
             <section class="config-section">
@@ -92,24 +68,11 @@
                                     <div class="block-header">
                                         <span class="block-label"><i class="fas fa-calculator"></i> Automático</span>
 
-                                        <!-- Markup Toggle Pill -->
-                                        <label th:class="'markup-pill ' + (${item.applyMarkup} ? 'active' : '')"
-                                            th:id="'markup-pill-' + ${item.id}">
-                                            <input type="checkbox" th:id="'apply-markup-' + ${item.id}"
-                                                th:checked="${item.applyMarkup}"
-                                                th:onchange="'toggleApplyMarkup(' + ${item.id} + ', this.checked)'">
-                                            <span>Markup</span>
-                                        </label>
                                     </div>
 
                                     <div class="price-display-group">
-                                        <div class="price-mini-row">
-                                            <span class="label">Base:</span>
-                                            <span class="value"
-                                                th:text="'R$' + ${#numbers.formatDecimal(item.basePrice, 1, 0)}"></span>
-                                        </div>
                                         <div class="price-main-row">
-                                            <span class="label">Final:</span>
+                                            <span class="label">Preço:</span>
                                             <span class="value final-price"
                                                 th:text="'R$' + ${#numbers.formatDecimal(item.price, 1, 0)}"></span>
                                         </div>
@@ -148,68 +111,14 @@
     </div>
 
     <script th:inline="javascript">
-        // Load markup settings on page load
         document.addEventListener('DOMContentLoaded', function () {
-            fetch('/api/menu/markup')
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('markupPercentage').value = data.percentage;
-                    document.getElementById('markupEnabled').checked = data.enabled;
-                })
-                .catch(error => console.error('Error loading markup settings:', error));
+            // Initial load logic here if needed
         });
-
-        function toggleMarkupEnabled(enabled) {
-            updateMarkupSettings({ enabled: enabled });
-        }
-
-        function saveMarkupPercentage() {
-            const percentage = document.getElementById('markupPercentage').value;
-            updateMarkupSettings({ percentage: percentage });
-        }
-
-        function updateMarkupSettings(payload) {
-            fetch('/api/menu/markup', {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            })
-                .then(response => {
-                    if (response.ok) {
-                        const btn = document.querySelector('.save-markup-btn');
-                        const originalText = btn.textContent;
-                        btn.textContent = 'Salvo!';
-                        btn.style.background = '#223c0e';
-                        setTimeout(() => {
-                            btn.textContent = originalText;
-                            btn.style.background = '';
-                            location.reload(); // Reload to see the price changes on the page
-                        }, 1000);
-                    } else {
-                        alert('Erro ao salvar configurações.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error updating markup:', error);
-                    alert('Erro de conexão.');
-                });
-        }
 
         function toggleManualPrice(id, isEnabled) {
             updateManualPriceSettings(id, { manualPriceEnabled: isEnabled });
         }
 
-        function toggleApplyMarkup(id, isEnabled) {
-            const pill = document.getElementById('markup-pill-' + id);
-            if (isEnabled) {
-                pill.classList.add('active');
-            } else {
-                pill.classList.remove('active');
-            }
-            updateManualPriceSettings(id, { applyMarkup: isEnabled });
-        }
 
         function updateManualPrice(id) {
             const price = document.getElementById('manual-price-' + id).value;

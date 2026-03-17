@@ -16,4 +16,7 @@ public class OrderDTO {
     private String notes;
     private List<OrderItemDTO> items = new ArrayList<>();
     private Double total;
+    private String paymentMethod;
+    private Double amountReceived;
+    private Double changeAmount;
 }

@@ -43,15 +43,11 @@
                 <h1><i class="fas fa-plus-circle"></i> Create Novo Pedido</h1>
                 <div class="nav-links">
                     <a href="/" class="nav-link"><i class="fas fa-clipboard-list"></i> Pedidos</a>
-                    <a href="/new-order" class="nav-link active"><i class="fas fa-plus-circle"></i> Novo Pedido</a>
                     <a href="/kitchen" class="nav-link"><i class="fas fa-utensils"></i> Cozinha</a>
                     <a href="/history" class="nav-link"><i class="fas fa-history"></i> Histórico</a>
                     <a href="/stock-management" class="nav-link"><i class="fas fa-boxes"></i> Estoque</a>
                 </div>
             </div>
-            <!-- <p id="markupNotice" ...> labels removed/moved or kept as is -->
-            <p id="markupNotice" style="color: #223c0e; font-weight: bold; margin-top: 5px; display: none;">Calculando
-                preços com taxa extra</p>
         </div>
 
         <div class="content">
@@ -90,6 +86,15 @@
 
                     <div class="order-total" id="orderTotal">
                         Total: R$0.00
+                    </div>
+
+                    <div class="form-group" style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 15px;">
+                        <label for="amountReceived">Pagamento (Valor Recebido):</label>
+                        <input type="number" id="amountReceived" placeholder="0.00" oninput="calculateChange()" step="0.01" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+                        
+                        <div id="changeDisplay" style="margin-top: 10px; font-weight: bold; color: #4CAF50; display: none;">
+                            Troco: R$<span id="changeAmount">0.00</span>
+                        </div>
                     </div>
 
                     <div class="form-group">
@@ -139,24 +144,15 @@
         let orderItems = [];
         let selectedMenuItem = null;
         let selectedVariations = {};
+        // Form of payment is now generic as per user request
+        let selectedPaymentMethod = 'Pendente';
 
         // Load menu items on page load
         document.addEventListener('DOMContentLoaded', function () {
             loadMenuItems();
             loadCategories();
-            checkMarkup();
         });
 
-        function checkMarkup() {
-            fetch('/api/menu/markup')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.enabled && data.percentage > 0) {
-                        document.getElementById('markupNotice').textContent = `Preços ajustados com taxa extra de ${data.percentage}%`;
-                        document.getElementById('markupNotice').style.display = 'block';
-                    }
-                });
-        }
 
         function loadMenuItems() {
             fetch('/api/menu/available')
@@ -737,6 +733,28 @@
             const count = orderItems.reduce((sum, item) => sum + item.quantity, 0);
             document.getElementById('mobileTotal').textContent = `R$${total.toFixed(0)}`;
             document.getElementById('mobileItemCount').textContent = `${count} item${count !== 1 ? 's' : ''}`;
+            
+            // Re-calculate change
+            calculateChange();
+        }
+
+        function calculateChange() {
+            const total = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const submitBtn = document.getElementById('submitBtn');
+            const amountReceived = parseFloat(document.getElementById('amountReceived').value) || 0;
+            const changeAmountSpan = document.getElementById('changeAmount');
+            const changeDisplay = document.getElementById('changeDisplay');
+
+            if (amountReceived >= total && total > 0) {
+                const change = amountReceived - total;
+                changeAmountSpan.textContent = change.toFixed(0);
+                changeDisplay.style.display = 'block';
+            } else {
+                changeDisplay.style.display = 'none';
+            }
+
+            // Button is enabled if there are items, regardless of payment value
+            submitBtn.disabled = orderItems.length === 0;
         }
 
         function openMobileOrder() {
@@ -762,6 +780,8 @@
             const orderData = {
                 tableNumber: tableNumber,
                 notes: notes,
+                paymentMethod: selectedPaymentMethod,
+                amountReceived: parseFloat(document.getElementById('amountReceived').value) || 0,
                 items: orderItems.map(item => ({
                     menuItemId: item.menuItemId,
                     quantity: item.quantity,

@@ -10,12 +10,8 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { scale, fontScale, verticalScale } from '@/utils/responsive';
 
 export default function HomeScreen() {
-  const [items, setItems] = useState<MenuItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const [selectedItemForVariations, setSelectedItemForVariations] = useState<MenuItem | null>(null);
-  const [selectedVariations, setSelectedVariations] = useState<number[]>([]);
-  const [selectedQuantity, setSelectedQuantity] = useState<number>(1);
+  const [categories, setCategories] = useState<string[]>(['Todos']);
+  const [selectedCategory, setSelectedCategory] = useState('Todos');
 
   const cartItems = useCartStore((state) => state.items);
   const addOrderItem = useCartStore((state) => state.addOrderItem);
@@ -24,25 +20,13 @@ export default function HomeScreen() {
   const fetchMenu = async () => {
     try {
       setIsLoading(true);
-      const res = await api.get<MenuItem[]>('/menu');
+      const [menuRes, catRes] = await Promise.all([
+        api.get<MenuItem[]>('/menu'),
+        api.get<string[]>('/menu/categories')
+      ]);
 
-      setItems(res.data.filter(i => {
-        if (!i.available) return false;
-
-        const isMandatoryRadio = i.variations && i.variations.length > 1 && i.variations[0].type === 'SINGLE';
-        const isMandatoryMulti = i.variations && i.variations.length > 0 && i.variations[0].type === 'MULTIPLE';
-        const hasMandatoryVariations = isMandatoryRadio || isMandatoryMulti;
-
-        if (hasMandatoryVariations) {
-          // Se tiver variação obrigatória, a disponibilidade no cardápio
-          // depende do estoque das opções, não do item base.
-          // Mostra se pelo menos uma opção tiver estoque.
-          return i.variations!.some(v => v.stockQuantity === null || v.stockQuantity === undefined || v.stockQuantity > 0);
-        }
-
-        // Para itens sem variações obrigatórias, usar o estoque base
-        return i.stockQuantity === null || i.stockQuantity === undefined || i.stockQuantity > 0;
-      }));
+      setItems(menuRes.data);
+      setCategories(['Todos', ...catRes.data]);
     } catch (e) {
       console.error('Falha ao obter Menu Público:', e);
     } finally {
@@ -56,6 +40,21 @@ export default function HomeScreen() {
       fetchMenu();
     }, [])
   );
+
+  const filteredItems = items.filter(i => {
+    if (!i.available) return false;
+    if (selectedCategory !== 'Todos' && i.category !== selectedCategory) return false;
+
+    const isMandatoryRadio = i.variations && i.variations.length > 1 && i.variations[0].type === 'SINGLE';
+    const isMandatoryMulti = i.variations && i.variations.length > 0 && i.variations[0].type === 'MULTIPLE';
+    const hasMandatoryVariations = isMandatoryRadio || isMandatoryMulti;
+
+    if (hasMandatoryVariations) {
+      return i.variations!.some(v => v.stockQuantity === null || v.stockQuantity === undefined || v.stockQuantity > 0);
+    }
+
+    return i.stockQuantity === null || i.stockQuantity === undefined || i.stockQuantity > 0;
+  });
 
   const handleAddItem = (item: MenuItem) => {
     // Override price if dynamic price is enabled
@@ -154,11 +153,27 @@ export default function HomeScreen() {
         </View>
       </View>
 
+      <View style={styles.categoryContainer}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryContent}>
+          {categories.map((cat) => (
+            <TouchableOpacity
+              key={cat}
+              style={[styles.categoryTab, selectedCategory === cat && styles.categoryTabActive]}
+              onPress={() => setSelectedCategory(cat)}
+            >
+              <Text style={[styles.categoryTabText, selectedCategory === cat && styles.categoryTabTextActive]}>
+                {cat}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+
       {isLoading ? (
         <ActivityIndicator style={{ marginTop: 40 }} size="large" color="#ee8b1b" />
       ) : (
         <FlatList
-          data={items}
+          data={filteredItems}
           keyExtractor={(item) => item.id!.toString()}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
@@ -171,11 +186,18 @@ export default function HomeScreen() {
                     {item.description}
                   </Text>
                 ) : null}
+
+                {item.variations && item.variations.length > 0 && (
+                  <View style={styles.variationIndicator}>
+                    <Text style={styles.variationIndicatorText}>⚙️ Opções disponíveis</Text>
+                  </View>
+                )}
+
                 <View style={styles.priceContainer}>
                   <View>
                     <Text style={[
                       styles.price,
-                      item.manualPriceEnabled && item.manualPrice != null ? { color: '#D32F2F' } : null
+                      item.manualPriceEnabled && item.manualPrice != null ? { color: '#D32F2F' } : { color: '#ee8b1b' }
                     ]}>
                       R$ {(item.manualPriceEnabled && item.manualPrice != null ? item.manualPrice : item.price).toFixed(2).replace('.', ',')}
                     </Text>
@@ -384,8 +406,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: scale(24),
     paddingTop: verticalScale(60),
     paddingBottom: verticalScale(20),
-    backgroundColor: '#223c0e',
-    borderBottomWidth: 0,
+    backgroundColor: '#ee8b1b', // Dattebayo Orange
+    borderBottomLeftRadius: scale(24),
+    borderBottomRightRadius: scale(24),
   },
   greeting: {
     fontSize: fontScale(14),
@@ -427,15 +450,42 @@ const styles = StyleSheet.create({
     fontSize: fontScale(12),
     fontWeight: 'bold',
   },
+  categoryContainer: {
+    backgroundColor: '#fff',
+    paddingVertical: verticalScale(12),
+  },
+  categoryContent: {
+    paddingHorizontal: scale(24),
+    gap: scale(10),
+  },
+  categoryTab: {
+    paddingHorizontal: scale(20),
+    paddingVertical: verticalScale(8),
+    borderRadius: scale(25),
+    backgroundColor: '#fff',
+    borderWidth: 2,
+    borderColor: '#ee8b1b',
+  },
+  categoryTabActive: {
+    backgroundColor: '#ee8b1b',
+  },
+  categoryTabText: {
+    fontSize: fontScale(14),
+    fontWeight: '700',
+    color: '#ee8b1b',
+  },
+  categoryTabTextActive: {
+    color: '#fff',
+  },
   managementButton: {
     width: scale(44),
     height: scale(44),
     borderRadius: scale(12),
-    backgroundColor: '#ffffff20',
+    backgroundColor: '#ffffff30',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#ffffff30',
+    borderColor: '#ffffff40',
   },
   listContainer: {
     padding: scale(24),
@@ -466,7 +516,22 @@ const styles = StyleSheet.create({
     fontSize: fontScale(14),
     color: '#666',
     lineHeight: fontScale(20),
-    marginBottom: verticalScale(16),
+    marginBottom: verticalScale(12),
+  },
+  variationIndicator: {
+    backgroundColor: '#fff3e6',
+    paddingHorizontal: scale(8),
+    paddingVertical: verticalScale(4),
+    borderRadius: scale(4),
+    borderWidth: 1,
+    borderColor: '#ffd8a8',
+    alignSelf: 'flex-start',
+    marginBottom: verticalScale(12),
+  },
+  variationIndicatorText: {
+    fontSize: fontScale(12),
+    color: '#ee8b1b',
+    fontWeight: '700',
   },
   priceContainer: {
     flexDirection: 'row',

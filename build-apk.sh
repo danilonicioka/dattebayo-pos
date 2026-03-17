@@ -1,19 +1,14 @@
 #!/bin/bash
 
-# Este script gera o arquivo .apk do Dattebayo POS automaticamente.
-# Ele roda na versão local sem depender da nuvem do Expo.
+# Dattebayo POS - Build Android APK
+# Generates the .apk file locally without using Expo's cloud
 
-set -e # Interrompe o script se ocorrer algum erro
-
-# Entra na raiz do projeto
-PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-cd "$PROJECT_ROOT"
+set -e
 
 # Define o caminho do Android SDK padrão do Linux (necessário para o Gradle)
 export ANDROID_HOME=$HOME/Android/Sdk
 
 # Define o caminho forçado para o Java JDK recém instalado (evitando falha do compilador 'javac')
-# Fallback para o caminho padrão se o específico não existir
 if [ -d "/usr/lib/jvm/java-21-openjdk-amd64" ]; then
     export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
 fi

@@ -1,10 +1,9 @@
 #!/bin/bash
+
+# Dattebayo POS - Deploy from Docker Hub
+# Pulls latest images and restarts production containers
+
 set -e
-
-# Script para rodar no servidor (VM)
-
-PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-cd "$PROJECT_ROOT"
 
 echo "🛑 Parando os containers antigos..."
 docker compose -f docker-compose.prod.yml down

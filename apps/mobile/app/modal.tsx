@@ -14,6 +14,7 @@ export default function ModalScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [amountReceived, setAmountReceived] = useState('');
   const [customerName, setCustomerName] = useState('');
+  const [notes, setNotes] = useState('');
   const triggerToast = useToastStore(state => state.triggerToast);
 
   const change = amountReceived ? parseFloat(amountReceived) - cartTotal : 0;
@@ -23,17 +24,17 @@ export default function ModalScreen() {
       setIsLoading(true);
       const orderDto = {
         tableNumber: customerName || null,
-        notes: 'Pedido via App',
+        notes: notes || 'Pedido via App',
+        paymentMethod: 'DINHEIRO', // Default as per plan
+        amountReceived: parseFloat(amountReceived) || 0,
         items: items.map(item => ({
           menuItemId: item.menuItem.id,
-          name: item.menuItem.name,
           quantity: item.quantity,
-          price: item.price,
           specialInstructions: item.specialInstructions || '',
           variations: item.variations.map((v: any) => ({
             menuItemVariationId: parseInt(v.menuItemVariationId || v.id, 10),
-            name: v.name,
-            additionalPrice: v.additionalPrice,
+            selected: true,
+            quantity: v.quantity || 1
           }))
         }))
       };
@@ -43,6 +44,7 @@ export default function ModalScreen() {
       // Limpa os status, fecha a tela e aciona o toast global (sem delay)
       clearCart();
       setCustomerName('');
+      setAmountReceived('');
       triggerToast('Pedido Realizado! 🎉\nO pedido foi enviado.', 'success');
       router.back();
 
@@ -92,7 +94,7 @@ export default function ModalScreen() {
                 </Text>
 
                 <Text style={styles.price}>
-                  R$ {((item.price + item.variations.reduce((acc: number, v: any) => acc + v.additionalPrice, 0)) * item.quantity).toFixed(2).replace('.', ',')}
+                  R$ {((item.price + item.variations.reduce((acc: number, v: any) => acc + (v.additionalPrice || 0), 0)) * item.quantity).toFixed(2).replace('.', ',')}
                 </Text>
               </View>
 
@@ -127,7 +129,7 @@ export default function ModalScreen() {
 
           <View style={styles.paymentSection}>
             <View style={styles.inputRow}>
-              <Text style={styles.inputLabel}>Nome do Cliente</Text>
+              <Text style={styles.inputLabel}>Identificador da Mesa</Text>
               <TextInput
                 style={[styles.textInput, { textAlign: 'left', width: scale(150) }]}
                 placeholder="Opcional"
@@ -137,7 +139,7 @@ export default function ModalScreen() {
             </View>
 
             <View style={styles.inputRow}>
-              <Text style={styles.inputLabel}>Valor Recebido</Text>
+              <Text style={styles.inputLabel}>Pagamento (Valor Recebido)</Text>
               <TextInput
                 style={styles.textInput}
                 placeholder="R$ 0,00"

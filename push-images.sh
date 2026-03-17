@@ -1,10 +1,9 @@
 #!/bin/bash
+
+# Dattebayo POS - Build and Push Images
+# Builds the backend image and pushes it to Docker Hub
+
 set -e
-
-# Script para buildar a imagem do Backend Java localmente e enviar para o Docker Hub
-
-PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-cd "$PROJECT_ROOT"
 
 DOCKER_USER="danilonicioka"
 

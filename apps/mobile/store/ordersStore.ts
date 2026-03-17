@@ -30,10 +30,10 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
 
     updateOrderStatus: async (orderId: number, status: OrderStatus) => {
         try {
-            const payload: UpdateOrderStatusDTO = { status };
-            await api.patch(`/orders/${orderId}`, payload);
+            // Backend uses @PutMapping("/{id}/status") with @RequestParam String status
+            await api.put(`/orders/${orderId}/status?status=${status.toUpperCase()}`);
 
-            // Atualização Local Otimista (Sem recarregar lista inteira)
+            // Local Optimistic Update
             const currentOrders = get().orders;
             set({
                 orders: currentOrders.map(order =>

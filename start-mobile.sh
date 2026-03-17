@@ -1,8 +1,7 @@
 #!/bin/bash
 
-# Entra na raiz do projeto (um nível acima de scripts/)
-PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-cd "$PROJECT_ROOT"
+# Dattebayo POS - Start Mobile (Expo)
+# Starts the mobile development environment
 
 echo "📱 Iniciando o App Mobile (Expo)..."
 

@@ -1,8 +1,7 @@
 #!/bin/bash
 
-# Entra na raiz do projeto (um nível acima de scripts/)
-PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-cd "$PROJECT_ROOT"
+# Dattebayo POS - Restart Containers
+# Rebuilds and restarts all local services
 
 echo "🛑 Parando os containers..."
 docker compose down

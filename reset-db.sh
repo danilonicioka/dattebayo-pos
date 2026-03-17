@@ -1,12 +1,7 @@
 #!/bin/bash
 
-# Este script reseta os containers e deleta os volumes do banco de dados
-# para garantir um ambiente limpo. Ao iniciar novamente, as migrations
-# e o seed do banco de dados serão rodados automaticamente pela API.
-
-# Entra na raiz do projeto (um nível acima de scripts/)
-PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-cd "$PROJECT_ROOT"
+# Dattebayo POS - Reset Database
+# Stops containers, deletes volumes, and restarts with a clean slate.
 
 echo "⚠️  Parando os containers e removendo os volumes (-v)..."
 docker compose down -v

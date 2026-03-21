@@ -13,7 +13,7 @@ public class SocketIOConfig {
     @Value("${socket.host:0.0.0.0}")
     private String host;
 
-    @Value("${socket.port:9092}")
+    @Value("${socket.port:3000}")
     private Integer port;
 
     private SocketIOServer server;

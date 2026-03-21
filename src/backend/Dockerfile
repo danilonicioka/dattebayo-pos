@@ -18,5 +18,5 @@ FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 COPY --from=build /build/backend/target/restaurant-pos-server-*.jar app.jar
 EXPOSE 80
-EXPOSE 9092
+EXPOSE 3000
 ENTRYPOINT ["java", "-Duser.timezone=America/Sao_Paulo", "-jar", "app.jar"]

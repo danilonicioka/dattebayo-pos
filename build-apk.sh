@@ -15,6 +15,12 @@ fi
 
 echo "🚀 Iniciando build local do aplicativo Android..."
 
+# Se o IP da VM for passado como argumento, configura o mobile
+if [ ! -z "$1" ]; then
+    echo "🌐 Configurando IP da VM: $1"
+    ./configure-ip.sh "$1"
+fi
+
 # 1. Navegar para a pasta do mobile
 cd apps/mobile
 

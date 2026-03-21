@@ -88,7 +88,7 @@
     <script>
         // Conecta ao servidor Socket.io na porta 9092
         // Usamos o hostname atual para que funcione tanto via localhost quanto via IP da rede
-        const socket = io(`${window.location.hostname}:9092`, {
+        const socket = io(`${window.location.hostname}:3000`, {
             transports: ['websocket']
         });
 

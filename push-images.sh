@@ -8,6 +8,7 @@ set -e
 DOCKER_USER="danilonicioka"
 
 echo "🚀 Iniciando build da imagem Java (Backend + Web) para o Docker Hub..."
+
 echo ""
 
 echo "🔐 Fazendo login no Docker Hub..."

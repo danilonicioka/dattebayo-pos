@@ -1,115 +1,85 @@
 # Dattebayo Restaurant POS
 
-A mixed Maven + Gradle monorepo for a Restaurant Point of Sale system.
+A modern Restaurant Point of Sale system built with a unified JavaScript ecosystem.
 
 ## Architecture
 
-- **Backend**: Spring Boot + Thymeleaf + PostgreSQL (Maven)
-- **Client**: Generated Java Retrofit client from OpenAPI (Maven)
-- **Android App**: Native Android app consuming the generated client (Gradle)
+- **Backend**: NestJS + Prisma ORM + PostgreSQL
+- **Frontend/Mobile**: React Native (Expo)
+- **Shared**: Monorepo using npm workspaces (`@dattebayo/core`)
 - **Infrastructure**: Docker Compose for local development
 
 ## Project Structure
 
 ```
-your-project/
-├── pom.xml                         # Maven root (parent POM)
-├── contracts/
-│   └── openapi.yaml                # API contract (OpenAPI 3.0)
-├── server/
-│   ├── pom.xml                     # Spring Boot app
-│   ├── src/
-│   └── Dockerfile
-├── clients/
-│   └── android-client/
-│       └── pom.xml                 # Generated Java client
+dattebayo-pos/
+├── package.json                    # Root workspace Configuration
 ├── apps/
-│   └── android/                    # Android app (Gradle)
-│       ├── build.gradle
-│       ├── settings.gradle
-│       └── app/
-└── docker/
-    └── compose.dev.yml
+│   ├── api/                        # NestJS Backend API
+│   │   ├── src/                    # Controllers and Services
+│   │   ├── prisma/                 # Database schema (dev.db SQLite / PostgreSQL)
+│   │   └── package.json
+│   └── mobile/                     # React Native Expo App
+│       ├── app/                    # Expo Router Views (Admin, Cashier, Orders)
+│       ├── components/             # Reusable UI components
+│       └── package.json
+├── packages/
+│   └── core/                       # Shared types, dtos, and configuration
+├── docker-compose.yml              # Local container orchestration
+└── build-android.sh                # Local Android APK builder script
 ```
-
-## Installation (Production VM)
-
-To deploy this project to a fresh Debian/Ubuntu VM, follow these steps:
-
-1. **Clone the repository:**
-   ```bash
-   git clone git@github.com:danilonicioka/dattebayo-pos.git
-   cd dattebayo-pos
-   ```
-
-2. **Run the setup script:**
-   The `setup_vm.sh` script installs Docker (if missing), generates a default `.env` file, and starts the Docker Compose services in the background.
-   ```bash
-   chmod +x setup_vm.sh
-   ./setup_vm.sh
-   ```
-
-3. **Verify Deployment:**
-   Wait a moment for the images to build and services to start. Your app should then be accessible on port 80 (or the port defined in your `.env`).
 
 ## Getting Started
 
 ### Prerequisites
 
-- Docker & Docker Compose
-- (Optional) Maven 3.9+ and Java 17+ for local builds
-- (Optional) Android Studio for Android development
+- [Node.js](https://nodejs.org/) (v20+ recommended)
+- [Docker](https://www.docker.com/) & Docker Compose
 
-### Running the Backend
+### Running the Project
 
-All development is done via Docker Compose. **No local Maven or Java installation required.**
-
-```bash
-# Start the backend + database
-docker compose -f docker/compose.dev.yml up --build
-
-# Access the application
-open http://localhost:80
-```
-
-The Docker build will:
-1. Build the Spring Boot application inside a Maven container
-2. Package it into a runnable JAR
-3. Run it in a lightweight JRE container
-
-### Generating the Android Client
-
-To generate the Retrofit client from the OpenAPI spec:
+All development is orchestrated via Docker Compose, which spins up the backend API and database.
 
 ```bash
-# From the root directory
-mvn clean install -pl clients/android-client
+# Start the backend API locally
+docker-compose up -d --build
 
-# This will:
-# 1. Read contracts/openapi.yaml
-# 2. Generate Java/Retrofit client code
-# 3. Install to local Maven repository (~/.m2)
+# Once up, the API will be available at: http://localhost:3000
 ```
 
-### Building the Android App
+### Running the Mobile App
+
+After the backend is running, you can boot the frontend application pointing to your machine's local IP address using Expo.
 
 ```bash
-cd apps/android
-./gradlew build
+# Enter the mobile directory
+cd apps/mobile
 
-# The app can consume the generated client via mavenLocal()
+# Install dependencies (if not done already)
+npm install
+
+# Start the Expo development server
+npx expo start
 ```
+*Note: Ensure `EXPO_PUBLIC_API_URL` in `apps/mobile/.env` is set to your machine's physical network IP (e.g., `http://192.168.0.x:3000`) instead of `localhost` so physical devices can reach the backend.*
 
-## Development Workflow
+### Building a Local Android APK
 
-1. **API First**: Update `contracts/openapi.yaml` when adding new endpoints
-2. **Implement**: Add corresponding Spring Boot controllers in `server/src`
-3. **Generate**: Run `mvn install` in `clients/android-client` to regenerate the client
-4. **Consume**: Use the generated client in the Android app
+If you need a standalone, installable `.apk` file for Android devices (like POS machines or tablets) without using Expo Go, you can compile the app offline:
+
+1. Ensure you have the **Android SDK** installed (typically via Android Studio).
+2. From the root directory, run the automated script:
+   ```bash
+   ./build-android.sh
+   ```
+3. The script will generate the native project and compile it via Gradle. Your output file will be located at:
+   `apps/mobile/android/app/build/outputs/apk/release/app-release.apk`
+
+---
 
 ## Environment Variables
 
-The backend uses Spring profiles. Environment variables are defined in `docker/compose.dev.yml`:
+The backend uses Spring profiles. Environment variables are defined in `.env` and `docker/compose.yml`:
 
 - `DB_HOST`: Database hostname
 - `DB_PORT`: Database port
@@ -129,3 +99,35 @@ The backend uses Spring profiles. Environment variables are defined in `docker/c
 ## License
 
 See [LICENSE](LICENSE) file.
+
+
+### VM Configuration
+
+Once your VM is created and you have SSH access, follow these steps to get the project running:
+
+1.  **Install Git and clone the repository:**
+    ```bash
+    sudo apt-get update
+    sudo apt-get install -y git
+    git clone https://github.com/danilonicioka/dattebayo-pos.git
+    cd dattebayo-pos
+    ```
+
+2.  **Run the setup script:**
+    This script will install Docker, configure your user, and start the services.
+    ```bash
+    chmod +x setup-vm.sh
+    ./setup-vm.sh
+    ```
+
+3.  **Reload group membership:**
+    After the script finishes, you need to apply the new group membership for Docker to work without `sudo`:
+    ```bash
+    newgrp docker
+    ```
+
+4.  **Verify services:**
+    Check if the containers are running:
+    ```bash
+    docker compose ps
+    ```

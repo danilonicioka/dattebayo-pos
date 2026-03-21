@@ -30,6 +30,9 @@ public class OrderService {
     @Autowired
     private ConfigurationService configurationService;
 
+    @Autowired
+    private SocketService socketService;
+
     public OrderDTO createOrder(CreateOrderDTO createOrderDTO) {
         Order order = new Order();
         order.setTableNumber(createOrderDTO.getTableNumber());
@@ -107,6 +110,7 @@ public class OrderService {
         }
 
         order = orderRepository.save(order);
+        socketService.broadcastOrderUpdate();
         return convertToDTO(order);
     }
 
@@ -173,6 +177,7 @@ public class OrderService {
         order.setStatus(newStatus);
         order.setUpdatedAt(LocalDateTime.now());
         order = orderRepository.save(order);
+        socketService.broadcastOrderUpdate();
 
         return convertToDTO(order);
     }
@@ -230,6 +235,7 @@ public class OrderService {
         order.setStatus(Order.OrderStatus.CANCELLED);
         order.setUpdatedAt(LocalDateTime.now());
         order = orderRepository.save(order);
+        socketService.broadcastOrderUpdate();
 
         return convertToDTO(order);
     }
@@ -437,6 +443,7 @@ public class OrderService {
 
         order.setUpdatedAt(LocalDateTime.now());
         Order savedOrder = orderRepository.save(order);
+        socketService.broadcastOrderUpdate();
 
         return convertToDTO(savedOrder);
     }

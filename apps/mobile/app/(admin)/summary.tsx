@@ -1,7 +1,8 @@
 import React, { useCallback, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl, ActivityIndicator } from 'react-native';
 import { useFocusEffect } from 'expo-router';
-import { api } from '@/services/api';
+import { api, API_URL } from '@/services/api';
+import axios from 'axios';
 import { router } from 'expo-router';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { TouchableOpacity, Alert, Platform } from 'react-native';
@@ -51,8 +52,34 @@ export default function SummaryScreen() {
 
     const fetchSummary = async () => {
         try {
-            const { data } = await api.get<SalesSummary>('/orders/summary');
-            setSummary(data);
+            // Get all completed orders instead of a summary endpoint to avoid backend changes
+            const { data: completedOrders } = await api.get<any[]>('/orders/status/completed');
+            
+            let totalRevenue = 0;
+            let totalOrders = completedOrders.length;
+            const statsMap: Record<string, { name: string, itemsSold: number, revenue: number }> = {};
+
+            completedOrders.forEach(order => {
+                totalRevenue += (order.total || 0);
+                if (order.items) {
+                    order.items.forEach((item: any) => {
+                        const name = item.menuItemName;
+                        if (!statsMap[name]) {
+                            statsMap[name] = { name, itemsSold: 0, revenue: 0 };
+                        }
+                        statsMap[name].itemsSold += (item.quantity || 0);
+                        statsMap[name].revenue += (item.subtotal || 0);
+                    });
+                }
+            });
+
+            const productStats = Object.values(statsMap).sort((a, b) => b.revenue - a.revenue);
+
+            setSummary({
+                totalRevenue,
+                totalOrders,
+                productStats
+            });
         } catch (e) {
             console.error('Erro ao buscar resumo de vendas:', e);
         } finally {
@@ -85,7 +112,10 @@ export default function SummaryScreen() {
         closeConfirmModal();
         try {
             setIsLoading(true);
-            await api.post('/orders/clear');
+            // Using the existing web endpoint for clearing history
+            const webUrl = API_URL.replace('/api', '/history/clear');
+            await axios.post(webUrl);
+            
             setToastMessage({ text: 'Caixa zerado com sucesso!', type: 'success' });
             setTimeout(() => setToastMessage(null), 3000);
             fetchSummary();

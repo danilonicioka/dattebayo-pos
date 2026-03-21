@@ -84,13 +84,26 @@
                 pedidos pendentes ! Cozinha está vazia. </div>
         </div>
     </div>
-    <script> // Auto-refresh every 5 seconds
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script>
+        // Conecta ao servidor Socket.io na porta 9092
+        // Usamos o hostname atual para que funcione tanto via localhost quanto via IP da rede
+        const socket = io(`${window.location.hostname}:9092`, {
+            transports: ['websocket']
+        });
 
-        setInterval(function () {
+        socket.on('connect', () => {
+            console.log('✅ Conectado ao servidor de atualizações em tempo real');
+        });
+
+        socket.on('orderUpdated', () => {
+            console.log('📢 Pedido atualizado! Recarregando...');
             location.reload();
-        }
+        });
 
-            , 5000);
+        socket.on('disconnect', () => {
+            console.log('❌ Desconectado do servidor de atualizações');
+        });
     </script>
 </body>
 

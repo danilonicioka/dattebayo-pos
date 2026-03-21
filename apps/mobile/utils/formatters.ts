@@ -1,4 +1,8 @@
-export function formatProductNameWithVariations(productName: string, variations: { name: string }[] | undefined): string {
+export function formatProductNameWithVariations(productName: string | undefined, variations: { name: string }[] | undefined): string {
+    if (!productName) {
+        return '';
+    }
+    
     if (!variations || variations.length === 0) {
         return productName;
     }

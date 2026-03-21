@@ -10,6 +10,8 @@ import { formatProductNameWithVariations } from '@/utils/formatters';
 import { scale, fontScale, verticalScale } from '@/utils/responsive';
 import { ConfirmModal } from '@/components/ConfirmModal';
 import { useToastStore } from '@/store/toastStore';
+import { useCartStore } from '@/store/cartStore';
+import { router } from 'expo-router';
 // Interface básica baseada no Core simplificado para o frontend
 interface OrderResponse {
     id: number;
@@ -19,7 +21,7 @@ interface OrderResponse {
     items: {
         quantity: number;
         price: number;
-        name: string;
+        menuItemName: string;
         variations?: { name: string, additionalPrice: number }[];
     }[];
 }
@@ -110,6 +112,28 @@ export default function OrdersScreen() {
             };
         }, [fetchOrders])
     );
+ 
+    const handleConcludeAll = async () => {
+        openConfirmModal(
+            'Concluir Todos',
+            'Tem certeza que deseja concluir TODOS os pedidos ativos? Esta ação moverá todos para o histórico.',
+            'success',
+            async () => {
+                closeConfirmModal();
+                try {
+                    setIsLoading(true);
+                    // Chamada para o endpoint WEB (fora do /api)
+                    await api.post('../orders/conclude-all');
+                    triggerToast('Todos os pedidos concluídos! ✅', 'success');
+                    fetchOrders();
+                } catch (error) {
+                    console.error('Erro ao concluir todos:', error);
+                    triggerToast('Erro ao concluir todos os pedidos.', 'error');
+                    setIsLoading(false);
+                }
+            }
+        );
+    };
 
     const onRefresh = () => {
         setRefreshing(true);
@@ -176,18 +200,30 @@ export default function OrdersScreen() {
             </View>
 
             <View style={styles.filterContainer}>
-                <TouchableOpacity
-                    style={[styles.filterButton, filter === 'ACTIVE' && styles.filterButtonActive]}
-                    onPress={() => setFilter('ACTIVE')}
-                >
-                    <Text style={[styles.filterText, filter === 'ACTIVE' && styles.filterTextActive]}>Em Andamento</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={[styles.filterButton, filter === 'HISTORY' && styles.filterButtonActive]}
-                    onPress={() => setFilter('HISTORY')}
-                >
-                    <Text style={[styles.filterText, filter === 'HISTORY' && styles.filterTextActive]}>Histórico</Text>
-                </TouchableOpacity>
+                <View style={{ flexDirection: 'row', flex: 1 }}>
+                    <TouchableOpacity
+                        style={[styles.filterButton, filter === 'ACTIVE' && styles.filterButtonActive]}
+                        onPress={() => setFilter('ACTIVE')}
+                    >
+                        <Text style={[styles.filterText, filter === 'ACTIVE' && styles.filterTextActive]}>Em Andamento</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.filterButton, filter === 'HISTORY' && styles.filterButtonActive]}
+                        onPress={() => setFilter('HISTORY')}
+                    >
+                        <Text style={[styles.filterText, filter === 'HISTORY' && styles.filterTextActive]}>Histórico</Text>
+                    </TouchableOpacity>
+                </View>
+
+                {filter === 'ACTIVE' && orders.some(o => ['PENDING', 'PREPARING', 'READY'].includes(o.status)) && (
+                    <TouchableOpacity
+                        style={styles.concludeAllButton}
+                        onPress={handleConcludeAll}
+                    >
+                        <CheckCircle2 size={scale(16)} color="#ffffff" />
+                        <Text style={styles.concludeAllText}>Concluir Todos</Text>
+                    </TouchableOpacity>
+                )}
             </View>
 
             <FlatList
@@ -228,7 +264,7 @@ export default function OrdersScreen() {
                                     <View style={styles.itemRow}>
                                         <Text style={styles.itemQty}>{orderItem.quantity}x</Text>
                                         <Text style={styles.itemName} numberOfLines={2}>
-                                            {formatProductNameWithVariations(orderItem.name, orderItem.variations)}
+                                            {formatProductNameWithVariations(orderItem.menuItemName, orderItem.variations)}
                                         </Text>
                                         <Text style={styles.itemPrice}>
                                             R$ {((orderItem.price + (orderItem.variations?.reduce((acc, v) => acc + v.additionalPrice, 0) || 0)) * orderItem.quantity).toFixed(2).replace('.', ',')}
@@ -246,6 +282,16 @@ export default function OrdersScreen() {
 
                             {filter === 'ACTIVE' && (
                                 <View style={styles.actionsContainer}>
+                                    <TouchableOpacity
+                                        style={[styles.actionButton, styles.editButton]}
+                                        onPress={() => {
+                                            useCartStore.getState().initializeFromOrder(item);
+                                            router.push('/');
+                                        }}
+                                    >
+                                        <Text style={styles.editText}>Editar</Text>
+                                    </TouchableOpacity>
+
                                     <TouchableOpacity
                                         style={[styles.actionButton, styles.cancelButton]}
                                         onPress={() => openConfirmModal(
@@ -362,6 +408,22 @@ const styles = StyleSheet.create({
     },
     filterTextActive: {
         color: '#ee8b1b',
+    },
+    concludeAllButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: scale(6),
+        backgroundColor: '#ee8b1b', // Dattebayo Orange
+        paddingHorizontal: scale(12),
+        paddingVertical: verticalScale(6),
+        borderRadius: scale(16),
+        marginLeft: scale(8),
+        alignSelf: 'center',
+    },
+    concludeAllText: {
+        color: '#ffffff',
+        fontWeight: 'bold',
+        fontSize: fontScale(12),
     },
     listContainer: {
         padding: scale(24),
@@ -484,6 +546,13 @@ const styles = StyleSheet.create({
         borderRadius: scale(8),
         alignItems: 'center',
     },
+    editButton: {
+        backgroundColor: '#3B82F6', // Blue for Edit
+    },
+    editText: {
+        color: '#FFFFFF',
+        fontWeight: 'bold',
+    },
     cancelButton: {
         backgroundColor: '#FFF2F2',
         borderWidth: 1,
@@ -494,7 +563,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     deliverButton: {
-        backgroundColor: '#4CAF50',
+        backgroundColor: '#ee8b1b', // Dattebayo Orange
     },
     deliverText: {
         color: '#FFFFFF',

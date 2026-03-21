@@ -35,8 +35,14 @@ export default function EditItemScreen() {
 
     const loadItemContext = async (itemId: number) => {
         try {
-            const response = await api.get<MenuItem>(`/menu/${itemId}`);
-            const item = response.data;
+            // We fetch the full menu instead of a single item to avoid the circular reference issue
+            // in the backend's MenuItem entity serialization for the single item endpoint.
+            const response = await api.get<MenuItem[]>('/menu');
+            const item = response.data.find(i => i.id === itemId);
+
+            if (!item) {
+                throw new Error('Produto não encontrado');
+            }
 
             setName(item.name);
             setDescription(item.description || '');
@@ -106,7 +112,7 @@ export default function EditItemScreen() {
             console.log(`[DEBUG] Enviando requisição (${isEditing ? 'PATCH' : 'POST'})...`);
             if (isEditing) {
                 const updatePayload: UpdateMenuItemDTO = { ...payload, id: Number(id) };
-                await api.patch(`/menu/${id}`, updatePayload);
+                await api.put(`/menu/${id}`, updatePayload);
             } else {
                 const createPayload: CreateMenuItemDTO = { ...payload };
                 await api.post('/menu', createPayload);

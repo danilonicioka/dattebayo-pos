@@ -73,7 +73,7 @@ export function KitchenOrderCard({ order, onUpdateStatus, isOldest = false }: Ki
                         <Text style={styles.itemQuantity}>{item.quantity}x</Text>
                         <View style={styles.itemDetails}>
                             <Text style={styles.itemName}>
-                                {formatProductNameWithVariations(item.name, item.variations)}
+                                {item.menuItemName || formatProductNameWithVariations(item.name, item.variations)}
                             </Text>
 
                             {/* Observações */}

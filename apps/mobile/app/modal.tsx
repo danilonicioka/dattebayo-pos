@@ -9,12 +9,10 @@ import { scale, fontScale, verticalScale } from '@/utils/responsive';
 import { useToastStore } from '@/store/toastStore';
 
 export default function ModalScreen() {
-  const { items, addOrderItem, removeOrderItem, clearCart } = useCartStore();
+  const { items, addOrderItem, removeOrderItem, clearCart, editMode, editingOrderId, customerName, notes, setCustomerName, setNotes } = useCartStore();
   const cartTotal = getCartTotal(items);
   const [isLoading, setIsLoading] = useState(false);
   const [amountReceived, setAmountReceived] = useState('');
-  const [customerName, setCustomerName] = useState('');
-  const [notes, setNotes] = useState('');
   const triggerToast = useToastStore(state => state.triggerToast);
 
   const change = amountReceived ? parseFloat(amountReceived) - cartTotal : 0;
@@ -22,35 +20,63 @@ export default function ModalScreen() {
   const handleCheckout = async () => {
     try {
       setIsLoading(true);
-      const orderDto = {
-        tableNumber: customerName || null,
-        notes: notes || 'Pedido via App',
-        paymentMethod: 'DINHEIRO', // Default as per plan
-        amountReceived: parseFloat(amountReceived) || 0,
-        items: items.map(item => ({
-          menuItemId: item.menuItem.id,
-          quantity: item.quantity,
-          specialInstructions: item.specialInstructions || '',
-          variations: item.variations.map((v: any) => ({
-            menuItemVariationId: parseInt(v.menuItemVariationId || v.id, 10),
-            selected: true,
-            quantity: v.quantity || 1
+
+      if (editMode && editingOrderId) {
+        // Formata para o endpoint Web (form-encoded)
+        const params = new URLSearchParams();
+        params.append('tableNumber', customerName || '');
+        params.append('notes', notes || '');
+        params.append('paymentMethod', 'DINHEIRO');
+        params.append('amountReceived', (parseFloat(amountReceived) || 0).toString());
+
+        items.forEach((item, index) => {
+          params.append(`items[${index}].menuItemId`, item.menuItem.id.toString());
+          params.append(`items[${index}].quantity`, item.quantity.toString());
+          params.append(`items[${index}].specialInstructions`, item.specialInstructions || '');
+          
+          item.variations.forEach((v: any, vIndex: number) => {
+            params.append(`items[${index}].variations[${vIndex}].menuItemVariationId`, (v.menuItemVariationId || v.id).toString());
+            params.append(`items[${index}].variations[${vIndex}].selected`, 'true');
+            params.append(`items[${index}].variations[${vIndex}].quantity`, (v.quantity || 1).toString());
+          });
+        });
+
+        // Chamada para o endpoint WEB (fora do /api se necessário, ou relativo)
+        await api.post(`../orders/${editingOrderId}/update`, params, {
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        });
+        
+        triggerToast('Pedido Atualizado! 📝', 'success');
+      } else {
+        // Novo Pedido (JSON API)
+        const orderDto = {
+          tableNumber: customerName || null,
+          notes: notes || 'Pedido via App',
+          paymentMethod: 'DINHEIRO',
+          amountReceived: parseFloat(amountReceived) || 0,
+          items: items.map(item => ({
+            menuItemId: item.menuItem.id,
+            quantity: item.quantity,
+            specialInstructions: item.specialInstructions || '',
+            variations: item.variations.map((v: any) => ({
+              menuItemVariationId: parseInt(v.menuItemVariationId || v.id, 10),
+              selected: true,
+              quantity: v.quantity || 1
+            }))
           }))
-        }))
-      };
+        };
 
-      await api.post('/orders', orderDto);
+        await api.post('/orders', orderDto);
+        triggerToast('Pedido Realizado! 🎉', 'success');
+      }
 
-      // Limpa os status, fecha a tela e aciona o toast global (sem delay)
       clearCart();
-      setCustomerName('');
       setAmountReceived('');
-      triggerToast('Pedido Realizado! 🎉\nO pedido foi enviado.', 'success');
       router.back();
 
     } catch (error) {
-      console.error('Erro ao enviar pedido:', error);
-      triggerToast('Ops! Erro ao confirmar pedido.', 'error');
+      console.error('Erro ao processar pedido:', error);
+      triggerToast('Ops! Erro ao processar pedido.', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -167,7 +193,7 @@ export default function ModalScreen() {
             {isLoading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.checkoutBtnText}>Confirmar Pedido</Text>
+              <Text style={styles.checkoutBtnText}>{editMode ? 'Atualizar Pedido' : 'Confirmar Pedido'}</Text>
             )}
           </TouchableOpacity>
         </View>

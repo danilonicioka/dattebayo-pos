@@ -34,7 +34,7 @@ export default function GerenciarScreen() {
         setItems(current => current.map(i => i.id === item.id ? { ...i, available: newValue } : i));
 
         try {
-            await api.patch(`/menu/${item.id}`, { available: newValue });
+            await api.patch(`/menu/${item.id}/available`, { available: newValue });
         } catch (err: any) {
             console.log('FALHA DE PATCH MENU:', err.response?.data || err.message);
             Alert.alert('Erro', 'Não foi possível atualizar o status do produto.');

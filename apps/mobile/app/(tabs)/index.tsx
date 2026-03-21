@@ -10,11 +10,20 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { scale, fontScale, verticalScale } from '@/utils/responsive';
 
 export default function HomeScreen() {
+  const [items, setItems] = useState<MenuItem[]>([]);
   const [categories, setCategories] = useState<string[]>(['Todos']);
   const [selectedCategory, setSelectedCategory] = useState('Todos');
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Modal State for variations
+  const [selectedItemForVariations, setSelectedItemForVariations] = useState<MenuItem | null>(null);
+  const [selectedQuantity, setSelectedQuantity] = useState(1);
+  const [selectedVariations, setSelectedVariations] = useState<number[]>([]);
 
-  const cartItems = useCartStore((state) => state.items);
-  const addOrderItem = useCartStore((state) => state.addOrderItem);
+  const cartItems = useCartStore((state: any) => state.items);
+  const addOrderItem = useCartStore((state: any) => state.addOrderItem);
+  const editMode = useCartStore((state: any) => state.editMode);
+  const editingOrderId = useCartStore((state: any) => state.editingOrderId);
   const itemCount = getCartItemCount(cartItems);
 
   const fetchMenu = async () => {
@@ -91,21 +100,25 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale(12) }}>
-          <TouchableOpacity
-            onPress={() => router.push('/(admin)/products')}
-            style={styles.managementButton}
-          >
-            <IconSymbol name="gearshape.fill" size={scale(22)} color="#ffffff" />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => router.push('/kitchen')}
-            style={styles.managementButton}
-          >
-            <ChefHat size={scale(22)} color="#ffffff" />
-          </TouchableOpacity>
+          {!editMode && (
+            <>
+              <TouchableOpacity
+                onPress={() => router.push('/(admin)/products')}
+                style={styles.managementButton}
+              >
+                <IconSymbol name="gearshape.fill" size={scale(22)} color="#ffffff" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => router.push('/kitchen')}
+                style={styles.managementButton}
+              >
+                <ChefHat size={scale(22)} color="#ffffff" />
+              </TouchableOpacity>
+            </>
+          )}
           <View>
-            <Text style={styles.greeting}>Olá, Atendente</Text>
-            <Text style={styles.title}>Caixa</Text>
+            <Text style={styles.greeting}>{editMode ? 'Modo de Edição' : 'Olá, Atendente'}</Text>
+            <Text style={styles.title}>{editMode ? `Pedido #${editingOrderId}` : 'Caixa'}</Text>
           </View>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -375,7 +388,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: scale(24),
     paddingTop: verticalScale(60),
     paddingBottom: verticalScale(20),
-    backgroundColor: '#ee8b1b', // Dattebayo Orange
+    backgroundColor: '#223c0e', // Verde Escuro Dattebayo (Web Parity)
     borderBottomLeftRadius: scale(24),
     borderBottomRightRadius: scale(24),
   },
@@ -383,6 +396,7 @@ const styles = StyleSheet.create({
     fontSize: fontScale(14),
     color: '#d4edda',
     fontWeight: '500',
+    opacity: 0.9,
   },
   title: {
     fontSize: fontScale(28),
@@ -397,9 +411,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#ee8b1b', // Dattebayo Orange
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#ee8b1b',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: verticalScale(4) },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.2,
     shadowRadius: scale(8),
     elevation: 5,
   },
@@ -407,29 +421,32 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: scale(-4),
     right: scale(-4),
-    backgroundColor: '#1A1A1A',
-    width: scale(20),
+    backgroundColor: '#ef4444', // Red for visibility
+    minWidth: scale(20),
     height: scale(20),
     borderRadius: scale(10),
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 4,
   },
   badgeText: {
     color: '#fff',
-    fontSize: fontScale(12),
+    fontSize: fontScale(11),
     fontWeight: 'bold',
   },
   categoryContainer: {
     backgroundColor: '#fff',
-    paddingVertical: verticalScale(12),
+    paddingVertical: verticalScale(16),
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
   },
   categoryContent: {
     paddingHorizontal: scale(24),
-    gap: scale(10),
+    gap: scale(12),
   },
   categoryTab: {
     paddingHorizontal: scale(20),
-    paddingVertical: verticalScale(8),
+    paddingVertical: verticalScale(10),
     borderRadius: scale(25),
     backgroundColor: '#fff',
     borderWidth: 2,

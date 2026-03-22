@@ -55,6 +55,9 @@ public class MenuItemApiController {
     @PutMapping("/{id}")
     public ResponseEntity<MenuItem> updateMenuItem(@PathVariable Long id, @RequestBody MenuItem menuItem) {
         menuItem.setId(id);
+        if (menuItem.getVariations() != null) {
+            menuItem.getVariations().forEach(v -> v.setMenuItem(menuItem));
+        }
         return ResponseEntity.ok(menuItemService.saveMenuItem(menuItem));
     }
     

@@ -32,5 +32,6 @@ public class MenuItemVariation {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "menu_item_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private MenuItem menuItem;
 }

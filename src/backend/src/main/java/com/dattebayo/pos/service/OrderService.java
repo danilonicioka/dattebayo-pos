@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -546,11 +547,6 @@ public class OrderService {
         }
     }
 
-    public List<OrderDTO> getCompletedOrders() {
-        return orderRepository.findByStatusInOrderByCreatedAtAsc(List.of(Order.OrderStatus.COMPLETED)).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
-    }
 
     public Map<String, List<com.dattebayo.pos.dto.ItemSalesSummaryDTO>> getSalesSummaryByCategory(List<OrderDTO> completedOrders, List<com.dattebayo.pos.dto.MenuItemDTO> allMenuItems) {
         // Get all menu items to map IDs to Categories

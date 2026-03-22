@@ -81,7 +81,7 @@ public class OrderController {
         // Calculate Total Revenue
         double totalRevenue = completedOrders.stream()
                 .filter(o -> o.getTotal() != null)
-                .mapToDouble(OrderDTO::getTotal)
+                .mapToDouble(o -> o.getTotal())
                 .sum();
 
         // Calculate Total Items Sold

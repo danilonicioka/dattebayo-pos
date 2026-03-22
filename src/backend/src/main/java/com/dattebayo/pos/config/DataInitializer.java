@@ -92,15 +92,16 @@ public class DataInitializer implements CommandLineRunner {
                 hotBall.getVariations().add(new MenuItemVariation(null, "De Camarão", "SINGLE", 0.00, null, 1, hotBall));
                 menuItemRepository.save(hotBall);
 
-                // Hot coreano com Camarão option
+                // Hot Coreano
                 MenuItem hotCoreano = new MenuItem();
                 hotCoreano.setName("Hot Coreano");
-                hotCoreano.setDescription("Espeto de salmão ou camarão com queijo empanado com massa estilo coreano");
-                hotCoreano.setPrice(20.00);
+                hotCoreano.setDescription("Espeto de salsicha, salmão ou camarão com queijo empanado com massa estilo coreano");
+                hotCoreano.setPrice(18.00);
                 hotCoreano.setCategory("Comidas");
                 hotCoreano.setAvailable(true);
-                hotCoreano.getVariations().add(new MenuItemVariation(null, "De Salmão", "SINGLE", 0.00, null, 1, hotCoreano));
-                hotCoreano.getVariations().add(new MenuItemVariation(null, "De Camarão", "SINGLE", 0.00, null, 1, hotCoreano));
+                hotCoreano.getVariations().add(new MenuItemVariation(null, "De Salsicha", "SINGLE", 0.00, null, 1, hotCoreano));
+                hotCoreano.getVariations().add(new MenuItemVariation(null, "De Salmão", "SINGLE", 2.00, null, 1, hotCoreano));
+                hotCoreano.getVariations().add(new MenuItemVariation(null, "De Camarão", "SINGLE", 2.00, null, 1, hotCoreano));
                 menuItemRepository.save(hotCoreano);
 
                 // Yakisoba Variations
@@ -125,18 +126,18 @@ public class DataInitializer implements CommandLineRunner {
                 hotSushi.getVariations().add(new MenuItemVariation(null, "De Camarão", "MULTIPLE", 0.00, null, 1, hotSushi));
                 menuItemRepository.save(hotSushi);
 
-                MenuItem pastel = new MenuItem();
-                pastel.setName("Pastel");
-                pastel.setDescription("Pastel de vento com diferentes recheios");
-                pastel.setPrice(6.00);
-                pastel.setCategory("Comidas");
-                pastel.setAvailable(true);
-                pastel.getVariations().add(new MenuItemVariation(null, "Queijo", "MULTIPLE", 2.00, null, 1, pastel));
-                pastel.getVariations().add(new MenuItemVariation(null, "Frango", "MULTIPLE", 2.00, null, 1, pastel));
-                pastel.getVariations().add(new MenuItemVariation(null, "Carne", "MULTIPLE", 2.00, null, 1, pastel));
-                pastel.getVariations().add(new MenuItemVariation(null, "Calabresa", "MULTIPLE", 2.00, null, 1, pastel));
-                pastel.getVariations().add(new MenuItemVariation(null, "Catupiry", "MULTIPLE", 2.00, null, 1, pastel));
-                menuItemRepository.save(pastel);
+                // MenuItem pastel = new MenuItem();
+                // pastel.setName("Pastel");
+                // pastel.setDescription("Pastel de vento com diferentes recheios");
+                // pastel.setPrice(6.00);
+                // pastel.setCategory("Comidas");
+                // pastel.setAvailable(true);
+                // pastel.getVariations().add(new MenuItemVariation(null, "Queijo", "MULTIPLE", 2.00, null, 1, pastel));
+                // pastel.getVariations().add(new MenuItemVariation(null, "Frango", "MULTIPLE", 2.00, null, 1, pastel));
+                // pastel.getVariations().add(new MenuItemVariation(null, "Carne", "MULTIPLE", 2.00, null, 1, pastel));
+                // pastel.getVariations().add(new MenuItemVariation(null, "Calabresa", "MULTIPLE", 2.00, null, 1, pastel));
+                // pastel.getVariations().add(new MenuItemVariation(null, "Catupiry", "MULTIPLE", 2.00, null, 1, pastel));
+                // menuItemRepository.save(pastel);
                 
                 MenuItem pastelParaense = new MenuItem();
                 pastelParaense.setName("Pastel Paraense");
@@ -157,14 +158,14 @@ public class DataInitializer implements CommandLineRunner {
                 camaraoMilanesa.getVariations().add(new MenuItemVariation(null, "Porção", "SINGLE", 25.00, null, 5, camaraoMilanesa));
                 menuItemRepository.save(camaraoMilanesa);
 
-                // Polvo no espeto
-                MenuItem polvoNoEspeto = new MenuItem();
-                polvoNoEspeto.setName("Polvo no Espeto");
-                polvoNoEspeto.setDescription("Polvo no espeto frito na chapa acompanhado de arroz");
-                polvoNoEspeto.setPrice(20.00);
-                polvoNoEspeto.setCategory("Comidas");
-                polvoNoEspeto.setAvailable(true);
-                menuItemRepository.save(polvoNoEspeto);
+                // // Polvo no espeto
+                // MenuItem polvoNoEspeto = new MenuItem();
+                // polvoNoEspeto.setName("Polvo no Espeto");
+                // polvoNoEspeto.setDescription("Polvo no espeto frito na chapa acompanhado de arroz");
+                // polvoNoEspeto.setPrice(20.00);
+                // polvoNoEspeto.setCategory("Comidas");
+                // polvoNoEspeto.setAvailable(true);
+                // menuItemRepository.save(polvoNoEspeto);
 
                 // Bubble
                 MenuItem bubble = new MenuItem();
@@ -211,8 +212,9 @@ public class DataInitializer implements CommandLineRunner {
         ));
         
         checkAndSeedVariations("Hot Coreano", java.util.List.of(
-            new MenuItemVariation(null, "De Salmão", "SINGLE", 0.00, null, 1, null),
-            new MenuItemVariation(null, "De Camarão", "SINGLE", 0.00, null, 1, null)
+            new MenuItemVariation(null, "De Salsicha", "SINGLE", 0.00, null, 1, null),
+            new MenuItemVariation(null, "De Salmão", "SINGLE", 2.00, null, 1, null),
+            new MenuItemVariation(null, "De Camarão", "SINGLE", 2.00, null, 1, null)
         ));
         
         checkAndSeedVariations("Camarão Milanesa", java.util.List.of(

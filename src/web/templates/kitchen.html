@@ -36,8 +36,8 @@
                     th:classappend="${(iterStat.index == 0 ? 'oldest-order ' : '') + order.status.name().toLowerCase()}">
                     <div class="order-header">
                         <div>
-                            <div class="order-id">Pedido #<span th:text="${order.id}"></span></div>
-                            <div class="order-table" th:text="${order.tableNumber != null and !order.tableNumber.isEmpty() ? 'Mesa ' + order.tableNumber : 'Mesa N/A'}"></div>
+                            <div class="order-id" th:if="${order.tableNumber != null and !order.tableNumber.isEmpty()}">Pedido #<span th:text="${order.id}"></span></div>
+                            <div class="order-table" th:text="${order.tableNumber != null and !order.tableNumber.isEmpty() ? order.tableNumber : 'Pedido #' + order.id}"></div>
                             <div class="order-time" th:text="${#temporals.format(order.createdAt, 'HH:mm:ss')}"></div>
                         </div>
                         <div class="order-status" th:classappend="${order.status.name().toLowerCase()}" th:text="${order.status.name() == 'PENDING' ? 'Pendente' : 

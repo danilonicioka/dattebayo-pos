@@ -57,10 +57,10 @@ export function KitchenOrderCard({ order, onUpdateStatus, isOldest = false }: Ki
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                     {isOldest && <Flame size={20} color="#EF4444" fill="#EF4444" />}
                     <Text style={styles.tableText}>
-                        {order.tableNumber ? `${order.tableNumber}` : `Pedido`}
+                        {order.tableNumber ? order.tableNumber : `Pedido #${order.id}`}
                     </Text>
                 </View>
-                <Text style={styles.idText}>#{order.id}</Text>
+                {order.tableNumber && <Text style={styles.idText}>#{order.id}</Text>}
             </View>
             <Text style={styles.timeText}>
                 {new Date(order.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}

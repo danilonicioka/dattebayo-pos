@@ -249,7 +249,7 @@ export default function OrdersScreen() {
                                     )}
                                     <View>
                                         <Text style={styles.orderId}>
-                                            {item.tableNumber ? `${item.tableNumber} #${item.id}` : `Pedido #${item.id}`}
+                                            {item.tableNumber ? item.tableNumber : `Pedido #${item.id}`}
                                         </Text>
                                         <Text style={styles.timeText}>{new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
                                     </View>

@@ -335,7 +335,10 @@
 
         function filterCategory(category) {
             document.querySelectorAll('.category-tab').forEach(tab => tab.classList.remove('active'));
-            event.target.classList.add('active');
+            const activeTabElement = document.querySelector(`.category-tab[data-category-filter="${category}"]`);
+            if (activeTabElement) {
+                activeTabElement.classList.add('active');
+            }
 
             const items = document.querySelectorAll('.menu-item');
             items.forEach(item => {
@@ -370,10 +373,11 @@
 
             const variationOptions = document.getElementById('variationOptions');
             variationOptions.innerHTML = '';
+            
+            const variationsByType = {};
 
             if (menuItem.variations && menuItem.variations.length > 0) {
                 // Group variations by type
-                const variationsByType = {};
                 menuItem.variations.forEach(variation => {
                     if (!variationsByType[variation.type]) {
                         variationsByType[variation.type] = [];

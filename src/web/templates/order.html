@@ -63,7 +63,7 @@
                     </div>
                     <div class="active-order-card" th:each="order : ${activeOrders}">
                         <div class="active-order-header">
-                            <div class="active-order-table" th:text="'Mesa ' + ${order.tableNumber}"></div>
+                            <div class="active-order-table" th:text="${order.tableNumber != null and !order.tableNumber.isEmpty() ? 'Mesa ' + order.tableNumber : 'Mesa N/A'}"></div>
                             <div class="active-order-status" th:classappend="${order.status.name().toLowerCase()}"
                                 th:text="${order.status.name() == 'PENDING' ? 'Pendente' : 
                                           order.status.name() == 'PREPARING' ? 'Preparando' : 

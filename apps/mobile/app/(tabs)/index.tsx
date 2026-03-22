@@ -76,8 +76,9 @@ export default function HomeScreen() {
     setSelectedQuantity(1);
 
     if (item.variations && item.variations.length > 0) {
-        // Find first available variation to pre-select
-        const firstAvailable = item.variations!.find(v => {
+        // Prioritize finding first available SINGLE variation for auto-selection
+        const findAvailable = (type?: string) => item.variations!.find(v => {
+          if (type && v.type !== type) return false;
           const variationCartCount = cartItems.reduce((acc, cartItem) => 
             acc + (cartItem.variations?.some((cartVar: any) => 
               String(cartVar.menuItemVariationId || cartVar.id) === String(v.id)) ? cartItem.quantity : 0), 0);
@@ -85,6 +86,9 @@ export default function HomeScreen() {
           const effectiveStock = v.stockQuantity !== null && v.stockQuantity !== undefined ? v.stockQuantity - variationCartCount : null;
           return !(effectiveStock !== null && effectiveStock <= 0);
         });
+
+        const singleAvailable = findAvailable('SINGLE');
+        const firstAvailable = singleAvailable || findAvailable();
 
         if (firstAvailable) {
           setSelectedVariations([firstAvailable.id!]);

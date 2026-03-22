@@ -80,51 +80,20 @@ public class OrderController {
 
         // Calculate Total Revenue
         double totalRevenue = completedOrders.stream()
+                .filter(o -> o.getTotal() != null)
                 .mapToDouble(OrderDTO::getTotal)
                 .sum();
 
         // Calculate Total Items Sold
         long totalItemsSold = completedOrders.stream()
+                .filter(o -> o.getItems() != null)
                 .flatMap(order -> order.getItems().stream())
                 .mapToLong(item -> item.getQuantity() != null ? item.getQuantity() : 0)
                 .sum();
 
-        // Get all menu items to map IDs to Categories
-        Map<String, String> itemCategories = menuItemService.getAllMenuItems().stream()
-                .collect(java.util.stream.Collectors.toMap(MenuItemDTO::getName, MenuItemDTO::getCategory, (existing, replacement) -> existing));
-
-        // Group sales by Category
-        // Map<Category, List<ItemSalesSummaryDTO>>
-        Map<String, java.util.Map<String, com.dattebayo.pos.dto.ItemSalesSummaryDTO>> tempGroupedStats = new java.util.HashMap<>();
-
-        for (OrderDTO order : completedOrders) {
-            for (com.dattebayo.pos.dto.OrderItemDTO item : order.getItems()) {
-                String itemName = item.getMenuItemName();
-                String category = itemCategories.getOrDefault(itemName, "Outros");
-
-                tempGroupedStats.putIfAbsent(category, new java.util.HashMap<>());
-                java.util.Map<String, com.dattebayo.pos.dto.ItemSalesSummaryDTO> categoryItems = tempGroupedStats.get(category);
-
-                com.dattebayo.pos.dto.ItemSalesSummaryDTO summary = categoryItems.getOrDefault(itemName, 
-                    new com.dattebayo.pos.dto.ItemSalesSummaryDTO(itemName, 0L, 0.0));
-                
-                long qty = item.getQuantity() != null ? item.getQuantity() : 0;
-                double price = item.getPrice() != null ? item.getPrice() : 0.0;
-                
-                summary.setQuantity(summary.getQuantity() + qty);
-                summary.setTotal(summary.getTotal() + (price * qty)); // Appx total per item line
-                
-                categoryItems.put(itemName, summary);
-            }
-        }
-
-        // Convert to detailed map for view
-        Map<String, List<com.dattebayo.pos.dto.ItemSalesSummaryDTO>> salesByCategory = new java.util.HashMap<>();
-        for (Map.Entry<String, java.util.Map<String, com.dattebayo.pos.dto.ItemSalesSummaryDTO>> entry : tempGroupedStats.entrySet()) {
-            List<com.dattebayo.pos.dto.ItemSalesSummaryDTO> items = new java.util.ArrayList<>(entry.getValue().values());
-            items.sort((a, b) -> Long.compare(b.getQuantity(), a.getQuantity())); // Sort by quantity desc
-            salesByCategory.put(entry.getKey(), items);
-        }
+        // Get Summary Map from Service
+        Map<String, List<com.dattebayo.pos.dto.ItemSalesSummaryDTO>> salesByCategory = 
+            orderService.getSalesSummaryByCategory(completedOrders, menuItemService.getAllMenuItems());
 
         model.addAttribute("totalRevenue", totalRevenue);
         model.addAttribute("totalItemsSold", totalItemsSold);

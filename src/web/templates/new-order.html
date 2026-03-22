@@ -443,6 +443,29 @@
             }
 
             updateModalPrice();
+            
+            // Auto-select first variation for SINGLE type if none are selected (User request)
+            if (menuItem.variations && menuItem.variations.length > 0) {
+                const types = Object.keys(variationsByType);
+                types.forEach(type => {
+                    if (type === 'SINGLE') {
+                        const hasSelection = variationsByType[type].some(v => selectedVariations[v.id]);
+                        if (!hasSelection) {
+                            const firstAvailable = variationsByType[type].find(v => {
+                                const stock = getEffectiveVariationStock(menuItem, v);
+                                return stock === null || stock > 0;
+                            });
+                            if (firstAvailable) {
+                                toggleVariation(firstAvailable.id, 'SINGLE', true);
+                                // Sync UI
+                                const radio = document.getElementById(`variation-${firstAvailable.id}`);
+                                if (radio) radio.checked = true;
+                            }
+                        }
+                    }
+                });
+            }
+
             document.getElementById('variationModal').style.display = 'block';
         }
 

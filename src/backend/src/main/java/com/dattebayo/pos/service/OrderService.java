@@ -109,6 +109,9 @@ public class OrderService {
             order.setChangeAmount(0.0);
         }
 
+        // Validate mandatory variations before saving
+        validateMandatoryVariations(order);
+
         order = orderRepository.save(order);
         socketService.broadcastOrderUpdate();
         return convertToDTO(order);
@@ -251,7 +254,7 @@ public class OrderService {
         dto.setId(order.getId());
         dto.setTableNumber(order.getTableNumber());
         dto.setStatus(order.getStatus());
-        dto.setCreatedAt(order.getCreatedAt());
+        dto.setCreatedAt(order.getCreatedAt() != null ? order.getCreatedAt() : LocalDateTime.now());
         dto.setUpdatedAt(order.getUpdatedAt());
         dto.setNotes(order.getNotes());
         dto.setPaymentMethod(order.getPaymentMethod());
@@ -276,11 +279,6 @@ public class OrderService {
                     })
                     .collect(Collectors.toList());
 
-            // Enforce variation selection if variations are defined for the item
-            if (!item.getMenuItem().getVariations().isEmpty() && selectedVariationNames.isEmpty()) {
-                throw new RuntimeException("Selection mandatory for: " + item.getMenuItem().getName());
-            }
-
             String displayName;
             // Default quantity and price
             int displayQuantity = item.getQuantity();
@@ -294,6 +292,10 @@ public class OrderService {
                 } else {
                     displayName += " " + String.join(" + ", selectedVariationNames);
                 }
+            } else if (!item.getMenuItem().getVariations().isEmpty()) {
+                // If variations are mandatory but missing (legacy data), 
+                // we just show the base name to avoid crashing.
+                // Log or handle as needed.
             }
 
             itemDTO.setMenuItemName(displayName);
@@ -442,6 +444,10 @@ public class OrderService {
         }
 
         order.setUpdatedAt(LocalDateTime.now());
+        
+        // Validate mandatory variations before saving
+        validateMandatoryVariations(order);
+
         Order savedOrder = orderRepository.save(order);
         socketService.broadcastOrderUpdate();
 
@@ -517,5 +523,73 @@ public class OrderService {
             // AND add to existing price (base price usually 0 for this item)
             orderItem.setPrice(orderItem.getPrice() + (processedAdditional * variationQty));
         }
+    }
+
+    private void validateMandatoryVariations(Order order) {
+        for (OrderItem item : order.getItems()) {
+            MenuItem menuItem = item.getMenuItem();
+            if (menuItem.getVariations() != null && !menuItem.getVariations().isEmpty()) {
+                // Check if at least one variation is selected for each type that exists
+                // Currently we only have SINGLE and MULTIPLE, if there are variations, 
+                // we expect at least one selection if any of them are SINGLE.
+                boolean hasSingleType = menuItem.getVariations().stream()
+                        .anyMatch(v -> "SINGLE".equals(v.getType()));
+                
+                boolean selectionMade = item.getVariations().stream()
+                        .anyMatch(OrderItemVariation::getSelected);
+                
+                if (selectionMade) continue; // Basic check: at least one thing must be selected if variations exist
+
+                // If no selection was made but variations exist, we throw here (at creation/update time)
+                throw new RuntimeException("Seleção obrigatória para: " + menuItem.getName());
+            }
+        }
+    }
+
+    public List<OrderDTO> getCompletedOrders() {
+        return orderRepository.findByStatusInOrderByCreatedAtAsc(List.of(Order.OrderStatus.COMPLETED)).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    public Map<String, List<com.dattebayo.pos.dto.ItemSalesSummaryDTO>> getSalesSummaryByCategory(List<OrderDTO> completedOrders, List<com.dattebayo.pos.dto.MenuItemDTO> allMenuItems) {
+        // Get all menu items to map IDs to Categories
+        Map<String, String> itemCategories = allMenuItems.stream()
+                .collect(Collectors.toMap(com.dattebayo.pos.dto.MenuItemDTO::getName, com.dattebayo.pos.dto.MenuItemDTO::getCategory, (existing, replacement) -> existing));
+
+        // Group sales by Category
+        Map<String, Map<String, com.dattebayo.pos.dto.ItemSalesSummaryDTO>> tempGroupedStats = new java.util.HashMap<>();
+
+        for (OrderDTO order : completedOrders) {
+            if (order.getItems() == null) continue;
+            for (com.dattebayo.pos.dto.OrderItemDTO item : order.getItems()) {
+                String itemName = item.getMenuItemName();
+                if (itemName == null) continue;
+                String category = itemCategories.getOrDefault(itemName, "Outros");
+
+                tempGroupedStats.putIfAbsent(category, new java.util.HashMap<>());
+                Map<String, com.dattebayo.pos.dto.ItemSalesSummaryDTO> categoryItems = tempGroupedStats.get(category);
+
+                com.dattebayo.pos.dto.ItemSalesSummaryDTO summary = categoryItems.getOrDefault(itemName, 
+                    new com.dattebayo.pos.dto.ItemSalesSummaryDTO(itemName, 0L, 0.0));
+                
+                long qty = item.getQuantity() != null ? item.getQuantity() : 0;
+                double price = item.getPrice() != null ? item.getPrice() : 0.0;
+                
+                summary.setQuantity(summary.getQuantity() + qty);
+                summary.setTotal(summary.getTotal() + (price * qty));
+                
+                categoryItems.put(itemName, summary);
+            }
+        }
+
+        // Convert to final map
+        Map<String, List<com.dattebayo.pos.dto.ItemSalesSummaryDTO>> salesByCategory = new java.util.HashMap<>();
+        for (Map.Entry<String, Map<String, com.dattebayo.pos.dto.ItemSalesSummaryDTO>> entry : tempGroupedStats.entrySet()) {
+            List<com.dattebayo.pos.dto.ItemSalesSummaryDTO> items = new java.util.ArrayList<>(entry.getValue().values());
+            items.sort((a, b) -> Long.compare(b.getQuantity(), a.getQuantity())); // Sort by quantity desc
+            salesByCategory.put(entry.getKey(), items);
+        }
+        return salesByCategory;
     }
 }

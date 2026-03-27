@@ -35,12 +35,14 @@ public class MenuItemService {
     
     public List<MenuItemDTO> getAvailableMenuItems() {
         return menuItemRepository.findByAvailableTrueOrderByIdAsc().stream()
+                .filter(item -> !item.getComboOnly())
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
     
     public List<MenuItemDTO> getMenuItemsByCategory(String category) {
         return menuItemRepository.findByCategoryAndAvailableTrueOrderByIdAsc(category).stream()
+                .filter(item -> !item.getComboOnly())
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
@@ -124,6 +126,7 @@ public class MenuItemService {
         dto.setManualPrice(menuItem.getManualPrice());
         dto.setManualPriceEnabled(menuItem.getManualPriceEnabled());
         dto.setStockQuantity(menuItem.getStockQuantity());
+        dto.setComboOnly(menuItem.getComboOnly());
         Double basePrice = (menuItem.getManualPriceEnabled() && menuItem.getManualPrice() != null) 
                 ? menuItem.getManualPrice() 
                 : menuItem.getPrice();

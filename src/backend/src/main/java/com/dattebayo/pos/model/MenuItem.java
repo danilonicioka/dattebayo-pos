@@ -38,6 +38,9 @@ public class MenuItem {
     private Boolean manualPriceEnabled = false;
 
     private Integer stockQuantity; // null means unlimited/untracked
+    
+    @Column(nullable = false)
+    private Boolean comboOnly = false;
 
     @OneToMany(mappedBy = "menuItem", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MenuItemVariation> variations = new ArrayList<>();

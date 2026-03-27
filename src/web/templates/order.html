@@ -72,7 +72,15 @@
                         <div class="active-order-time" th:text="${#temporals.format(order.createdAt, 'HH:mm')}"></div>
                         <div class="active-order-items">
                             <div class="active-order-item" th:each="item : ${order.items}">
-                                <span th:text="${item.quantity} + 'x ' + ${item.menuItemName}"></span>
+                                <div style="display: flex; flex-direction: column;">
+                                    <span th:text="${item.quantity} + 'x ' + ${item.menuItemName}" style="font-weight: 600;"></span>
+                                    <div class="item-variations" th:if="${item.comboItemDetails != null and !item.comboItemDetails.isEmpty()}" style="font-size: 1.1em; color: #000; padding-left: 8px; margin: 2px 0; line-height: 1.2;">
+                                        <span th:each="detail : ${item.comboItemDetails}" th:text="${detail}" style="display: block; font-weight: 500;"></span>
+                                    </div>
+                                    <div class="item-variations" th:if="${(item.comboItemDetails == null or item.comboItemDetails.isEmpty()) and item.variations != null and !item.variations.isEmpty()}" style="font-size: 0.9em; color: #444; padding-left: 8px; line-height: 1.1;">
+                                        <span th:each="variation : ${item.variations}" th:if="${variation.selected}" th:text="${variation.name}" style="display: block;"></span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="active-order-total"

@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -29,6 +30,9 @@ public class OrderService {
     private OrderItemVariationRepository orderItemVariationRepository;
 
     @Autowired
+    private ComboRepository comboRepository;
+
+    @Autowired
     private ConfigurationService configurationService;
 
     @Autowired
@@ -43,6 +47,37 @@ public class OrderService {
         order.setAmountReceived(createOrderDTO.getAmountReceived());
 
         for (var itemRequest : createOrderDTO.getItems()) {
+
+            // ── COMBO item ───────────────────────────────────────────────────
+            if (itemRequest.getComboId() != null) {
+                Combo combo = comboRepository.findById(itemRequest.getComboId())
+                        .orElseThrow(() -> new RuntimeException("Combo not found: " + itemRequest.getComboId()));
+
+                if (!combo.getAvailable()) {
+                    throw new RuntimeException("Combo not available: " + combo.getName());
+                }
+
+                OrderItem orderItem = new OrderItem();
+                orderItem.setOrder(order);
+                orderItem.setCombo(combo);
+                orderItem.setMenuItem(null);
+                orderItem.setQuantity(itemRequest.getQuantity());
+                orderItem.setPrice(combo.getPrice());
+                orderItem.setSpecialInstructions(itemRequest.getSpecialInstructions());
+
+                // Record variation choices for the combo
+                if (itemRequest.getVariations() != null) {
+                    for (var variationRequest : itemRequest.getVariations()) {
+                        addVariationToOrderItem(orderItem, variationRequest);
+                    }
+                }
+                
+                deductComboStock(orderItem, itemRequest.getQuantity());
+                order.getItems().add(orderItem);
+                continue;
+            }
+
+            // ── Normal menu item ─────────────────────────────────────────────
             MenuItem menuItem = menuItemRepository.findById(itemRequest.getMenuItemId())
                     .orElseThrow(() -> new RuntimeException("Menu item not found: " + itemRequest.getMenuItemId()));
 
@@ -196,8 +231,15 @@ public class OrderService {
 
         // Restore Stock
         for (OrderItem item : order.getItems()) {
+
+            // Restore combo item stock
+            if (item.getCombo() != null) {
+                restoreComboStock(item, item.getQuantity());
+                continue;
+            }
+
             // Restore MenuItem Stock
-            if (item.getMenuItem().getStockQuantity() != null) {
+            if (item.getMenuItem() != null && item.getMenuItem().getStockQuantity() != null) {
                  // Generic stock restoration logic using variation multipliers
                  if (item.getVariations() != null) {
                     boolean handledCustom = false;
@@ -266,6 +308,55 @@ public class OrderService {
         for (OrderItem item : order.getItems()) {
             OrderItemDTO itemDTO = new OrderItemDTO();
             itemDTO.setId(item.getId());
+            itemDTO.setQuantity(item.getQuantity());
+            itemDTO.setPrice(item.getPrice());
+            itemDTO.setSpecialInstructions(item.getSpecialInstructions());
+            itemDTO.setSubtotal(item.getPrice() * item.getQuantity());
+
+            // ── Combo item ───────────────────────────────────────────────────
+            if (item.getCombo() != null) {
+                itemDTO.setComboId(item.getCombo().getId());
+                itemDTO.setComboName(item.getCombo().getName());
+                itemDTO.setMenuItemName(item.getCombo().getName());
+                // Map variations for combos too
+                itemDTO.setVariations(mapVariationsToDTO(item.getVariations()));
+                
+                // Build detailed breakdown of combo items for kitchen/display
+                List<String> details = new ArrayList<>();
+                if (item.getCombo().getItems() != null) {
+                    for (ComboItem ci : item.getCombo().getItems()) {
+                        StringBuilder sb = new StringBuilder();
+                        String baseName = ci.getMenuItem().getName();
+                        
+                        // Find if user selected a variation for THIS specific menu item in the combo
+                        List<String> selectedVariations = item.getVariations().stream()
+                            .filter(v -> v.getSelected() && v.getMenuItemVariation().getMenuItem().getId().equals(ci.getMenuItem().getId()))
+                            .map(v -> v.getMenuItemVariation().getName())
+                            .collect(Collectors.toList());
+                        
+                        String displayNameForItem = baseName;
+                        if (!selectedVariations.isEmpty()) {
+                            if (baseName.toLowerCase().contains("pastel")) {
+                                displayNameForItem += " De " + String.join(" + ", selectedVariations);
+                            } else if ("Camarão Milanesa".equals(baseName)) {
+                                displayNameForItem = String.join(" + ", selectedVariations) + " De " + baseName;
+                            } else {
+                                displayNameForItem += " " + String.join(" + ", selectedVariations);
+                            }
+                        }
+                        
+                        sb.append(ci.getQuantity()).append("x ").append(displayNameForItem);
+                        details.add(sb.toString());
+                    }
+                }
+                itemDTO.setComboItemDetails(details);
+                
+                total += itemDTO.getSubtotal();
+                dto.getItems().add(itemDTO);
+                continue;
+            }
+
+            // ── Normal menu item ─────────────────────────────────────────────
             itemDTO.setMenuItemId(item.getMenuItem().getId());
 
             // Build display name including selected variations
@@ -296,31 +387,12 @@ public class OrderService {
             } else if (!item.getMenuItem().getVariations().isEmpty()) {
                 // If variations are mandatory but missing (legacy data), 
                 // we just show the base name to avoid crashing.
-                // Log or handle as needed.
             }
 
             itemDTO.setMenuItemName(displayName);
-            itemDTO.setQuantity(displayQuantity);
-            itemDTO.setPrice(displayPrice);
-
-            itemDTO.setSpecialInstructions(item.getSpecialInstructions());
-            // Use subtotal from original calculations to avoid floating point issues when multiplying back
-            itemDTO.setSubtotal(item.getPrice() * item.getQuantity());
 
             // Convert variations
-            List<OrderItemVariationDTO> variationDTOs = item.getVariations().stream()
-                    .map(variation -> {
-                        OrderItemVariationDTO variationDTO = new OrderItemVariationDTO();
-                        variationDTO.setId(variation.getId());
-                        variationDTO.setName(variation.getMenuItemVariation().getName());
-                        variationDTO.setType(variation.getMenuItemVariation().getType());
-                        variationDTO.setAdditionalPrice(variation.getMenuItemVariation().getAdditionalPrice());
-                        variationDTO.setSelected(variation.getSelected());
-                        variationDTO.setQuantity(variation.getQuantity());
-                        return variationDTO;
-                    })
-                    .collect(Collectors.toList());
-            itemDTO.setVariations(variationDTOs);
+            itemDTO.setVariations(mapVariationsToDTO(item.getVariations()));
 
             total += itemDTO.getSubtotal();
             dto.getItems().add(itemDTO);
@@ -345,8 +417,13 @@ public class OrderService {
 
         // Clear existing order items and variations
         for (OrderItem item : order.getItems()) {
-            // Revert stock for removed items
-            if (item.getMenuItem().getStockQuantity() != null) {
+            // Restore stock for combo items
+            if (item.getCombo() != null) {
+                restoreComboStock(item, item.getQuantity());
+                continue;
+            }
+            // Revert stock for removed regular items
+            if (item.getMenuItem() != null && item.getMenuItem().getStockQuantity() != null) {
                 // Generic stock restoration logic using variation multipliers
                 if (item.getVariations() != null) {
                     boolean handledCustom = false;
@@ -389,6 +466,37 @@ public class OrderService {
 
         // Add new order items
         for (var itemRequest : createOrderDTO.getItems()) {
+
+            // ── COMBO item ───────────────────────────────────────────────────
+            if (itemRequest.getComboId() != null) {
+                Combo combo = comboRepository.findById(itemRequest.getComboId())
+                        .orElseThrow(() -> new RuntimeException("Combo not found: " + itemRequest.getComboId()));
+
+                if (!combo.getAvailable()) {
+                    throw new RuntimeException("Combo not available: " + combo.getName());
+                }
+
+                OrderItem orderItem = new OrderItem();
+                orderItem.setOrder(order);
+                orderItem.setCombo(combo);
+                orderItem.setMenuItem(null);
+                orderItem.setQuantity(itemRequest.getQuantity());
+                orderItem.setPrice(combo.getPrice());
+                orderItem.setSpecialInstructions(itemRequest.getSpecialInstructions());
+
+                // Record variation choices for the combo
+                if (itemRequest.getVariations() != null) {
+                    for (var variationRequest : itemRequest.getVariations()) {
+                        addVariationToOrderItem(orderItem, variationRequest);
+                    }
+                }
+                
+                deductComboStock(orderItem, itemRequest.getQuantity());
+                order.getItems().add(orderItem);
+                continue;
+            }
+
+            // ── Normal menu item ─────────────────────────────────────────────
             MenuItem menuItem = menuItemRepository.findById(itemRequest.getMenuItemId())
                     .orElseThrow(() -> new RuntimeException("Menu item not found: " + itemRequest.getMenuItemId()));
 
@@ -460,8 +568,8 @@ public class OrderService {
                 .orElseThrow(() -> new RuntimeException(
                         "Menu item variation not found: " + variationRequest.getMenuItemVariationId()));
 
-        // Validate that the variation belongs to the menu item
-        if (!variation.getMenuItem().getId().equals(orderItem.getMenuItem().getId())) {
+        // Validate that the variation belongs to the menu item (skip for combos as they contain multiple items)
+        if (orderItem.getMenuItem() != null && !variation.getMenuItem().getId().equals(orderItem.getMenuItem().getId())) {
             throw new RuntimeException("Variation does not belong to the selected menu item");
         }
 
@@ -481,7 +589,8 @@ public class OrderService {
         // Add additional price if variation is selected, multiplying by quantity
         if (variationRequest.getSelected()) {
             // Check and update stock for variation
-            if (variation.getStockQuantity() != null) {
+            // SKIP stock deduction here for combos, as it is handled centrally in deductComboStock
+            if (variation.getStockQuantity() != null && orderItem.getCombo() == null) {
                 int totalRequired = orderItem.getQuantity() * variationQty;
                 if (variation.getStockQuantity() < totalRequired) {
                     throw new RuntimeException("Estoque insuficiente para variação: " + variation.getName() + 
@@ -489,6 +598,11 @@ public class OrderService {
                 }
                 variation.setStockQuantity(variation.getStockQuantity() - totalRequired);
                 menuItemVariationRepository.save(variation);
+            }
+
+            // Skip price addition for combos (fixed price)
+            if (orderItem.getCombo() != null) {
+                return;
             }
 
             Double additionalPrice = variation.getAdditionalPrice();
@@ -522,12 +636,18 @@ public class OrderService {
             Double processedAdditional = Math.round(additionalPrice * 100.0) / 100.0;
             // Multiply the additional price by the quantity of this variation
             // AND add to existing price (base price usually 0 for this item)
-            orderItem.setPrice(orderItem.getPrice() + (processedAdditional * variationQty));
+            // Skip additional price for combos as per user requirement (fixed price)
+            if (orderItem.getCombo() == null) {
+                orderItem.setPrice(orderItem.getPrice() + (processedAdditional * variationQty));
+            }
         }
     }
 
     private void validateMandatoryVariations(Order order) {
         for (OrderItem item : order.getItems()) {
+            // Combo items variations are validated at the frontend or during choice logic
+            if (item.getCombo() != null) continue;
+
             MenuItem menuItem = item.getMenuItem();
             if (menuItem.getVariations() != null && !menuItem.getVariations().isEmpty()) {
                 // Check if at least one variation is selected for each type that exists
@@ -543,6 +663,101 @@ public class OrderService {
 
                 // If no selection was made but variations exist, we throw here (at creation/update time)
                 throw new RuntimeException("Seleção obrigatória para: " + menuItem.getName());
+            }
+        }
+    }
+
+    /** Deducts stock from each MenuItem (or Variation) inside the combo. */
+    private void deductComboStock(OrderItem orderItem, int orderQuantity) {
+        Combo combo = orderItem.getCombo();
+        List<MenuItemVariation> selectedVariations = orderItem.getVariations().stream()
+                .map(OrderItemVariation::getMenuItemVariation)
+                .collect(Collectors.toList());
+
+        for (ComboItem ci : combo.getItems()) {
+            MenuItem item = ci.getMenuItem();
+            List<MenuItemVariation> allowed = ci.getAllowedVariations();
+            MenuItemVariation chosen = null;
+
+            if (allowed.size() == 1) {
+                chosen = allowed.get(0);
+            } else if (allowed.size() > 1) {
+                // Find matching variation in selection
+                for (MenuItemVariation v : allowed) {
+                    if (selectedVariations.contains(v)) {
+                        chosen = v;
+                        break;
+                    }
+                }
+            }
+
+            int baseQty = ci.getQuantity() * orderQuantity;
+
+            // 1. If Variation (chosen or allowed single) has its own stock, deduct from it
+            if (chosen != null && chosen.getStockQuantity() != null) {
+                if (chosen.getStockQuantity() < baseQty) {
+                    throw new RuntimeException("Estoque insuficiente para '" + chosen.getName() + "' do combo '" + combo.getName() + "'");
+                }
+                chosen.setStockQuantity(chosen.getStockQuantity() - baseQty);
+                menuItemVariationRepository.save(chosen);
+                continue; 
+            }
+
+            // 2. Otherwise, check for multiplier and deduct from the base MenuItem
+            int finalDeduct = baseQty;
+            if (chosen != null && chosen.getStockMultiplier() != null && chosen.getStockMultiplier() > 1) {
+                finalDeduct *= chosen.getStockMultiplier();
+            }
+
+            if (item.getStockQuantity() != null) {
+                if (item.getStockQuantity() < finalDeduct) {
+                    throw new RuntimeException("Estoque insuficiente para '" + item.getName() + "' do combo '" + combo.getName() + "'");
+                }
+                item.setStockQuantity(item.getStockQuantity() - finalDeduct);
+                menuItemRepository.save(item);
+            }
+        }
+    }
+
+    /** Restores stock for each MenuItem (or Variation) inside the combo. */
+    private void restoreComboStock(OrderItem orderItem, int orderQuantity) {
+        Combo combo = orderItem.getCombo();
+        List<MenuItemVariation> selectedVariations = orderItem.getVariations().stream()
+                .map(OrderItemVariation::getMenuItemVariation)
+                .collect(Collectors.toList());
+
+        for (ComboItem ci : combo.getItems()) {
+            MenuItem item = ci.getMenuItem();
+            List<MenuItemVariation> allowed = ci.getAllowedVariations();
+            MenuItemVariation chosen = null;
+
+            if (allowed.size() == 1) {
+                chosen = allowed.get(0);
+            } else if (allowed.size() > 1) {
+                for (MenuItemVariation v : allowed) {
+                    if (selectedVariations.contains(v)) {
+                        chosen = v;
+                        break;
+                    }
+                }
+            }
+
+            int baseQty = ci.getQuantity() * orderQuantity;
+
+            if (chosen != null && chosen.getStockQuantity() != null) {
+                chosen.setStockQuantity(chosen.getStockQuantity() + baseQty);
+                menuItemVariationRepository.save(chosen);
+                continue;
+            }
+
+            int finalRestore = baseQty;
+            if (chosen != null && chosen.getStockMultiplier() != null && chosen.getStockMultiplier() > 1) {
+                finalRestore *= chosen.getStockMultiplier();
+            }
+
+            if (item.getStockQuantity() != null) {
+                item.setStockQuantity(item.getStockQuantity() + finalRestore);
+                menuItemRepository.save(item);
             }
         }
     }
@@ -587,5 +802,22 @@ public class OrderService {
             salesByCategory.put(entry.getKey(), items);
         }
         return salesByCategory;
+    }
+
+    private List<OrderItemVariationDTO> mapVariationsToDTO(List<OrderItemVariation> variations) {
+        if (variations == null) return List.of();
+        return variations.stream()
+                .map(variation -> {
+                    OrderItemVariationDTO variationDTO = new OrderItemVariationDTO();
+                    variationDTO.setId(variation.getId());
+                    variationDTO.setMenuItemVariationId(variation.getMenuItemVariation().getId());
+                    variationDTO.setName(variation.getMenuItemVariation().getName());
+                    variationDTO.setType(variation.getMenuItemVariation().getType());
+                    variationDTO.setAdditionalPrice(variation.getMenuItemVariation().getAdditionalPrice());
+                    variationDTO.setSelected(variation.getSelected());
+                    variationDTO.setQuantity(variation.getQuantity());
+                    return variationDTO;
+                })
+                .collect(Collectors.toList());
     }
 }

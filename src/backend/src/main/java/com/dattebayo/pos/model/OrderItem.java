@@ -23,8 +23,13 @@ public class OrderItem {
     private Order order;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "menu_item_id", nullable = false)
+    @JoinColumn(name = "menu_item_id", nullable = true)
     private MenuItem menuItem;
+
+    /** Set when this order item represents a combo instead of a single menu item. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "combo_id", nullable = true)
+    private Combo combo;
     
     @Column(nullable = false)
     private Integer quantity;

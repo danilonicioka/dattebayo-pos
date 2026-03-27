@@ -16,5 +16,6 @@ public class MenuItemDTO {
     private Double manualPrice;
     private Boolean manualPriceEnabled;
     private Integer stockQuantity;
+    private Boolean comboOnly;
     private List<MenuItemVariationDTO> variations;
 }

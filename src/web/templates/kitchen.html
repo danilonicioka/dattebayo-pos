@@ -49,16 +49,15 @@
                             <div class="order-item-quantity" th:text="'x' + ${item.quantity}"></div>
                             <div>
                                 <div class="order-item-name" th:text="${item.menuItemName}"></div>
-                                <!--
-                                <div class="order-item-variations"
-                                    th:if="${item.variations != null and !item.variations.isEmpty()}"><span
-                                        th:each="variation : ${item.variations}" th:if="${variation.selected}"><i
-                                            class="fas fa-check"></i><span th:text="${variation.name}"></span></span>
+                                <div class="item-variations" th:if="${item.comboItemDetails != null and !item.comboItemDetails.isEmpty()}" style="font-size: 1.1em; color: #000; padding-left: 8px; margin: 2px 0; line-height: 1.2;">
+                                    <span th:each="detail : ${item.comboItemDetails}" th:text="${detail}" style="display: block; font-weight: 500;"></span>
                                 </div>
-                                -->
+                                <div class="item-variations" th:if="${(item.comboItemDetails == null or item.comboItemDetails.isEmpty()) and item.variations != null and !item.variations.isEmpty()}" style="font-size: 0.9em; color: #444; padding-left: 8px; line-height: 1.1;">
+                                    <span th:each="variation : ${item.variations}" th:if="${variation.selected}" th:text="${variation.name}" style="display: block;"></span>
+                                </div>
                                 <div class="order-item-instructions"
                                     th:if="${item.specialInstructions != null and !item.specialInstructions.isEmpty()}"
-                                    th:text="'Note: ' + ${item.specialInstructions}"></div>
+                                    th:text="'Nota: ' + ${item.specialInstructions}"></div>
                             </div>
                         </div>
                     </div>

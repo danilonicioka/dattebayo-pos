@@ -1,7 +1,10 @@
 package com.dattebayo.pos.config;
 
+import com.dattebayo.pos.model.Combo;
+import com.dattebayo.pos.model.ComboItem;
 import com.dattebayo.pos.model.MenuItem;
 import com.dattebayo.pos.model.MenuItemVariation;
+import com.dattebayo.pos.repository.ComboRepository;
 import com.dattebayo.pos.repository.MenuItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -14,6 +17,9 @@ public class DataInitializer implements CommandLineRunner {
     
     @Autowired
     private MenuItemRepository menuItemRepository;
+
+    @Autowired
+    private ComboRepository comboRepository;
 
     @Autowired
     private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
@@ -79,6 +85,7 @@ public class DataInitializer implements CommandLineRunner {
                 gyoza.setPrice(18.00);
                 gyoza.setCategory("Comidas");
                 gyoza.setAvailable(true);
+                gyoza.getVariations().add(new MenuItemVariation(null, "Unidade (Unid)", "SINGLE", 0.00, null, 1, gyoza));
                 menuItemRepository.save(gyoza);
 
                 // Hot ball com Camarão option
@@ -104,6 +111,19 @@ public class DataInitializer implements CommandLineRunner {
                 hotCoreano.getVariations().add(new MenuItemVariation(null, "De Camarão", "SINGLE", 2.00, null, 1, hotCoreano));
                 menuItemRepository.save(hotCoreano);
 
+                // Mini Hot Coreano
+                MenuItem miniHotCoreano = new MenuItem();
+                miniHotCoreano.setName("Mini Hot Coreano");
+                miniHotCoreano.setDescription("Mini espeto de salsicha, salmão ou camarão com queijo empanado com massa estilo coreano");
+                miniHotCoreano.setPrice(12.00);
+                miniHotCoreano.setCategory("Comidas");
+                miniHotCoreano.setAvailable(true);
+                miniHotCoreano.setComboOnly(true);
+                miniHotCoreano.getVariations().add(new MenuItemVariation(null, "De Salsicha", "SINGLE", 0.00, null, 1, miniHotCoreano));
+                miniHotCoreano.getVariations().add(new MenuItemVariation(null, "De Salmão", "SINGLE", 2.00, null, 1, miniHotCoreano));
+                miniHotCoreano.getVariations().add(new MenuItemVariation(null, "De Camarão", "SINGLE", 2.00, null, 1, miniHotCoreano));
+                menuItemRepository.save(miniHotCoreano);
+
                 // Yakisoba Variations
                 MenuItem yakisoba = new MenuItem();
                 yakisoba.setName("Yakisoba");
@@ -124,6 +144,8 @@ public class DataInitializer implements CommandLineRunner {
                 hotSushi.setAvailable(true);
                 hotSushi.getVariations().add(new MenuItemVariation(null, "De Salmão", "MULTIPLE", 0.00, null, 1, hotSushi));
                 hotSushi.getVariations().add(new MenuItemVariation(null, "De Camarão", "MULTIPLE", 0.00, null, 1, hotSushi));
+                hotSushi.getVariations().add(new MenuItemVariation(null, "De Salmão (Unid)", "MULTIPLE", 0.00, null, 1, hotSushi));
+                hotSushi.getVariations().add(new MenuItemVariation(null, "De Camarão (Unid)", "MULTIPLE", 0.00, null, 1, hotSushi));
                 menuItemRepository.save(hotSushi);
 
                 // MenuItem pastel = new MenuItem();
@@ -175,6 +197,57 @@ public class DataInitializer implements CommandLineRunner {
                 bubble.setCategory("Bebidas");
                 bubble.setAvailable(true);
                 menuItemRepository.save(bubble);
+
+                // Seed Combo 1
+                seedCombo1(hotSushi, takoyaki, gyoza, miniHotCoreano);
+    }
+
+    private void seedCombo1(MenuItem hotSushi, MenuItem takoyaki, MenuItem gyoza, MenuItem miniHotCoreano) {
+        Combo combo1 = new Combo();
+        combo1.setName("Combo 1");
+        combo1.setDescription("3 Hot Sushi Salmão, 1 Takoyaki, 1 Gyoza e 1 Mini Hot Salsicha");
+        combo1.setPrice(30.00); // Exemplo de preço
+        combo1.setAvailable(true);
+
+        // 3x Hot Sushi de Salmão (Unid)
+        ComboItem ci1 = new ComboItem();
+        ci1.setCombo(combo1);
+        ci1.setMenuItem(hotSushi);
+        ci1.setQuantity(3);
+        MenuItemVariation v1 = hotSushi.getVariations().stream()
+                .filter(v -> "De Salmão (Unid)".equals(v.getName())).findFirst().orElse(null);
+        if (v1 != null) ci1.getAllowedVariations().add(v1);
+        combo1.getItems().add(ci1);
+
+        // 1x Takoyaki (No variation)
+        ComboItem ci2 = new ComboItem();
+        ci2.setCombo(combo1);
+        ci2.setMenuItem(takoyaki);
+        ci2.setQuantity(1);
+        combo1.getItems().add(ci2);
+
+        // 1x Gyoza (Unid)
+        ComboItem ci3 = new ComboItem();
+        ci3.setCombo(combo1);
+        ci3.setMenuItem(gyoza);
+        ci3.setQuantity(1);
+        MenuItemVariation v3 = gyoza.getVariations().stream()
+                .filter(v -> "Unidade (Unid)".equals(v.getName())).findFirst().orElse(null);
+        if (v3 != null) ci3.getAllowedVariations().add(v3);
+        combo1.getItems().add(ci3);
+
+        // 1x Mini Hot Coreano De Salsicha
+        ComboItem ci4 = new ComboItem();
+        ci4.setCombo(combo1);
+        ci4.setMenuItem(miniHotCoreano);
+        ci4.setQuantity(1);
+        MenuItemVariation v4 = miniHotCoreano.getVariations().stream()
+                .filter(v -> "De Salsicha".equals(v.getName())).findFirst().orElse(null);
+        if (v4 != null) ci4.getAllowedVariations().add(v4);
+        combo1.getItems().add(ci4);
+
+        comboRepository.save(combo1);
+        System.out.println("Seeded Combo 1");
     }
 
     private void ensureVariationsSeeded() {

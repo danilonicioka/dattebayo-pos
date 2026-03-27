@@ -316,11 +316,50 @@
                 </div>
             </section>
 
+            <!-- SECTION: Combos -->
+            <section class="config-section" style="margin-top: 30px;">
+                <h2 class="section-title"><i class="fas fa-layer-group"></i> Gerenciar Combos</h2>
+
+                <div id="combos-list" class="management-grid">
+                    <!-- combos loaded via JS -->
+                </div>
+
+                <button class="save-btn" style="max-width:300px; margin-top:20px;" onclick="openComboModal(null)">
+                    <i class="fas fa-plus"></i> Criar Novo Combo
+                </button>
+            </section>
+
             <div id="save-bar" class="save-bar">
                 <span id="pending-counter" class="pending-text" style="display: none; margin-bottom: 5px;">Existem
                     alterações não salvas</span>
                 <button id="save-btn" class="save-btn" onclick="saveAllChanges()" disabled>
                     <i class="fas fa-save"></i> Salvar Alterações
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- COMBO MODAL -->
+    <div id="combo-modal" class="modal-overlay">
+        <div class="variations-modal" style="max-width:700px;">
+            <div class="variations-header">
+                <h2 id="combo-modal-title">Criar Combo</h2>
+                <button class="close-modal" onclick="closeComboModal()">&times;</button>
+            </div>
+            <div style="display:grid; gap:12px; margin-bottom:15px;">
+                <input id="combo-name" type="text" placeholder="Nome do Combo *" style="padding:10px; border:1px solid #ddd; border-radius:8px; font-size:1rem;">
+                <input id="combo-description" type="text" placeholder="Descrição (opcional)" style="padding:10px; border:1px solid #ddd; border-radius:8px; font-size:1rem;">
+                <input id="combo-price" type="number" min="0" step="1" placeholder="Preço do Combo (R$) *" style="padding:10px; border:1px solid #ddd; border-radius:8px; font-size:1rem;">
+            </div>
+            <h3 style="margin-bottom:10px; color:#555;"><i class="fas fa-utensils"></i> Itens Incluídos no Combo</h3>
+            <div id="combo-items-container"></div>
+            <button class="btn-variation btn-outline" style="margin-top:10px;" onclick="addComboItemRow()">
+                <i class="fas fa-plus"></i> Adicionar Item
+            </button>
+            <div class="modal-actions">
+                <button class="btn-variation" style="background:#f0f0f0; color:#333;" onclick="closeComboModal()">Cancelar</button>
+                <button id="combo-save-btn" class="btn-variation btn-save-modal" onclick="saveCombo()">
+                    <i class="fas fa-save"></i> Salvar Combo
                 </button>
             </div>
         </div>
@@ -603,21 +642,223 @@
                 },
                 body: JSON.stringify(payload)
             })
-            .then(response => {
+            .then(function(response) {
                 if (response.ok) {
                     showToast('Alterações salvas com sucesso!');
-                    setTimeout(() => location.reload(), 1500);
+                    setTimeout(function() { location.reload(); }, 1500);
                 } else {
                     throw new Error('Erro ao salvar.');
                 }
             })
-            .catch(error => {
+            .catch(function(error) {
                 console.error('Error saving changes:', error);
                 showToast('Erro ao salvar alterações. Tente novamente.', 'error');
                 saveBtn.disabled = false;
                 saveBtn.innerHTML = originalContent;
             });
         }
+
+        // ══════════════════════════════════════════════
+        // COMBOS MANAGEMENT
+        // ══════════════════════════════════════════════
+        var allMenuItemsForCombos = [];
+        var currentEditingComboId = null;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            loadCombos();
+            fetch('/api/menu')
+                .then(function(r) { return r.json(); })
+                .then(function(data) { allMenuItemsForCombos = data; });
+        });
+
+        function loadCombos() {
+            fetch('/api/combos')
+                .then(function(r) { return r.json(); })
+                .then(renderCombos)
+                .catch(function(err) { console.error('Erro ao carregar combos:', err); });
+        }
+
+        function renderCombos(combos) {
+            var list = document.getElementById('combos-list');
+            if (!combos || combos.length === 0) {
+                list.innerHTML = '<p style="color:#888; padding:20px;">Nenhum combo cadastrado ainda.</p>';
+                return;
+            }
+            list.innerHTML = combos.map(function(combo) {
+                var itemsHtml = (combo.items || []).map(function(i) { return i.quantity + 'x ' + i.menuItemName; }).join('<br>');
+                var descHtml = combo.description ? '<em>' + combo.description + '</em><br>' : '';
+                var escapedName = combo.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                return '<div class="management-item">' +
+                    '<div class="item-header">' +
+                        '<div class="item-title-box">' +
+                            '<h3>' + combo.name + '</h3>' +
+                            '<span class="status-badge ' + (combo.available ? 'status-available' : 'status-unavailable') + '">' +
+                                (combo.available ? 'Disponível' : 'Indisponível') + '</span>' +
+                        '</div>' +
+                        '<label class="switch"><input type="checkbox" ' + (combo.available ? 'checked' : '') +
+                            ' onchange="toggleComboAvailability(' + combo.id + ', this.checked)"><span class="slider"></span></label>' +
+                    '</div>' +
+                    '<div style="color:#555;font-size:.95rem;margin:8px 0;">' + descHtml + '<strong>Preço: R$' + Number(combo.price).toFixed(0) + '</strong></div>' +
+                    '<div style="font-size:.9rem;color:#777;margin-bottom:10px;"><strong>Itens:</strong><br>' + itemsHtml + '</div>' +
+                    '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+                        '<button class="btn-manage-variations" onclick="openComboModal(' + combo.id + ')"><i class="fas fa-edit"></i> Editar</button>' +
+                        '<button class="btn-manage-variations" style="color:#e74c3c;" onclick="deleteCombo(' + combo.id + ',\'' + escapedName + '\')"><i class="fas fa-trash"></i> Excluir</button>' +
+                    '</div></div>';
+            }).join('');
+        }
+
+        function openComboModal(comboId) {
+            currentEditingComboId = comboId;
+            document.getElementById('combo-name').value = '';
+            document.getElementById('combo-description').value = '';
+            document.getElementById('combo-price').value = '';
+            document.getElementById('combo-items-container').innerHTML = '';
+            if (comboId) {
+                document.getElementById('combo-modal-title').textContent = 'Editar Combo';
+                fetch('/api/combos/' + comboId)
+                    .then(function(r) { return r.json(); })
+                    .then(function(combo) {
+                        document.getElementById('combo-name').value = combo.name || '';
+                        document.getElementById('combo-description').value = combo.description || '';
+                        document.getElementById('combo-price').value = combo.price || '';
+            (combo.items || []).forEach(function(ci) { 
+                addComboItemRow(ci.menuItemId, ci.allowedVariationIds, ci.quantity); 
+            });
+                    });
+            } else {
+                document.getElementById('combo-modal-title').textContent = 'Criar Combo';
+                addComboItemRow(null, null, 1);
+            }
+            document.getElementById('combo-modal').classList.add('active');
+        }
+
+        function closeComboModal() {
+            document.getElementById('combo-modal').classList.remove('active');
+            currentEditingComboId = null;
+        }
+
+        function addComboItemRow(selectedId, selectedVarIds, qty) {
+            selectedId = selectedId || null;
+            selectedVarIds = selectedVarIds || [];
+            qty = qty || 1;
+            var container = document.getElementById('combo-items-container');
+            var row = document.createElement('div');
+            row.className = 'variation-row';
+            row.style.gridTemplateColumns = '2fr 2fr 1fr auto';
+            
+            var itemOptions = allMenuItemsForCombos.map(function(m) {
+                return '<option value="' + m.id + '"' + (m.id === selectedId ? ' selected' : '') + '>' + m.name + '</option>';
+            }).join('');
+
+            row.innerHTML =
+                '<select class="ci-menu-item" style="padding:8px;border:1px solid #ddd;border-radius:6px;font-size:.95rem;width:100%;" onchange="updateComboVarDropdown(this)">' +
+                '<option value="">Item...</option>' + itemOptions + '</select>' +
+                '<select class="ci-variation" multiple style="padding:4px;border:1px solid #ddd;border-radius:6px;font-size:.85rem;width:100%;min-height:60px;">' +
+                '</select>' +
+                '<input type="number" min="1" value="' + qty + '" class="ci-qty" style="padding:8px;border:1px solid #ddd;border-radius:6px;font-size:.95rem;width:100%;">' +
+                '<button class="btn-variation btn-remove" onclick="this.closest(\'.variation-row\').remove()" title="Remover"><i class="fas fa-trash"></i></button>';
+            
+            container.appendChild(row);
+
+            // Populate initial variations if item is selected
+            if (selectedId) {
+                var select = row.querySelector('.ci-menu-item');
+                updateComboVarDropdown(select, selectedVarIds);
+            }
+        }
+
+        function updateComboVarDropdown(itemSelect, selectedVarIds) {
+            var row = itemSelect.closest('.variation-row');
+            var varSelect = row.querySelector('.ci-variation');
+            var itemId = parseInt(itemSelect.value);
+            varSelect.innerHTML = '';
+            
+            if (!itemId) {
+                varSelect.innerHTML = '<option value="">Selecione um item</option>';
+                varSelect.disabled = true;
+                return;
+            }
+            
+            var item = allMenuItemsForCombos.find(function(m) { return m.id === itemId; });
+            if (item && item.variations && item.variations.length > 0) {
+                item.variations.forEach(function(v) {
+                    var opt = document.createElement('option');
+                    opt.value = v.id;
+                    opt.textContent = v.name;
+                    if (selectedVarIds && selectedVarIds.includes(v.id)) opt.selected = true;
+                    varSelect.appendChild(opt);
+                });
+                varSelect.disabled = false;
+            } else {
+                varSelect.innerHTML = '<option value="">Sem variações</option>';
+                varSelect.disabled = true;
+            }
+        }
+
+        function saveCombo() {
+            var name = document.getElementById('combo-name').value.trim();
+            var description = document.getElementById('combo-description').value.trim();
+            var price = parseFloat(document.getElementById('combo-price').value);
+            if (!name) { showToast('Informe o nome do combo.', 'error'); return; }
+            if (isNaN(price) || price < 0) { showToast('Informe um preço válido.', 'error'); return; }
+            var rows = document.querySelectorAll('#combo-items-container .variation-row');
+            var items = [];
+            var valid = true;
+            rows.forEach(function(row) {
+                var menuItemId = parseInt(row.querySelector('.ci-menu-item').value);
+                var variationSelect = row.querySelector('.ci-variation');
+                var variationIds = Array.from(variationSelect.selectedOptions).map(opt => parseInt(opt.value)).filter(v => !isNaN(v));
+                var q = parseInt(row.querySelector('.ci-qty').value) || 1;
+                
+                if (!menuItemId) { valid = false; return; }
+                
+                // If the item has variations, at least one MUST be selected
+                var item = allMenuItemsForCombos.find(function(m) { return m.id === menuItemId; });
+                if (item && item.variations && item.variations.length > 0 && variationIds.length === 0) {
+                    showToast('Selecione pelo menos uma variação permitida para o item "' + item.name + '".', 'error');
+                    valid = false;
+                    return;
+                }
+                
+                items.push({ menuItemId: menuItemId, allowedVariationIds: variationIds, quantity: q });
+            });
+            if (!valid || items.length === 0) { showToast('Selecione pelo menos um item válido.', 'error'); return; }
+            var payload = { name: name, description: description, price: price, available: true, items: items };
+            var btn = document.getElementById('combo-save-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+            var url = currentEditingComboId ? '/api/combos/' + currentEditingComboId : '/api/combos';
+            var method = currentEditingComboId ? 'PUT' : 'POST';
+            fetch(url, { method: method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+                .then(function(r) { if (!r.ok) throw new Error('Erro'); return r.json(); })
+                .then(function() {
+                    showToast(currentEditingComboId ? 'Combo atualizado!' : 'Combo criado!');
+                    closeComboModal();
+                    loadCombos();
+                })
+                .catch(function() { showToast('Erro ao salvar combo.', 'error'); })
+                .finally(function() { btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Salvar Combo'; });
+        }
+
+        function deleteCombo(id, name) {
+            if (!confirm('Excluir o combo "' + name + '"?')) return;
+            fetch('/api/combos/' + id, { method: 'DELETE' })
+                .then(function(r) { if (!r.ok) throw new Error(); })
+                .then(function() { showToast('Combo excluído.'); loadCombos(); })
+                .catch(function() { showToast('Erro ao excluir combo.', 'error'); });
+        }
+
+        function toggleComboAvailability(id, available) {
+            fetch('/api/combos/' + id + '/available', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ available: available })
+            })
+            .then(function(r) { if (!r.ok) throw new Error(); })
+            .then(function() { showToast(available ? 'Combo disponível.' : 'Combo indisponível.'); loadCombos(); })
+            .catch(function() { showToast('Erro ao alterar disponibilidade.', 'error'); });
+        }
+
     </script>
 </body>
 

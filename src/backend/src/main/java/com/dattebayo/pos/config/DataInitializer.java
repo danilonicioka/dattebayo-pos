@@ -99,6 +99,18 @@ public class DataInitializer implements CommandLineRunner {
                 hotBall.getVariations().add(new MenuItemVariation(null, "De Camarão", "SINGLE", 0.00, null, 1, hotBall));
                 menuItemRepository.save(hotBall);
 
+                // Mini Hot Ball
+                MenuItem miniHotBall = new MenuItem();
+                miniHotBall.setName("Mini Hot Ball");
+                miniHotBall.setDescription("Mini espeto de salsicha, salmão ou camarão com queijo empanado com massa estilo coreano");
+                miniHotBall.setPrice(12.00);
+                miniHotBall.setCategory("Comidas");
+                miniHotBall.setAvailable(true);
+                miniHotBall.setComboOnly(true);
+                miniHotBall.getVariations().add(new MenuItemVariation(null, "De Salmão", "SINGLE", 0.00, null, 1, miniHotBall));
+                miniHotBall.getVariations().add(new MenuItemVariation(null, "De Camarão", "SINGLE", 0.00, null, 1, miniHotBall));
+                menuItemRepository.save(miniHotBall);
+
                 // Hot Coreano
                 MenuItem hotCoreano = new MenuItem();
                 hotCoreano.setName("Hot Coreano");
@@ -124,6 +136,15 @@ public class DataInitializer implements CommandLineRunner {
                 miniHotCoreano.getVariations().add(new MenuItemVariation(null, "De Camarão", "SINGLE", 2.00, null, 1, miniHotCoreano));
                 menuItemRepository.save(miniHotCoreano);
 
+                // Mini Hot Coreano Romeu e Julieta
+                MenuItem miniHotCoreanoRomeuJulieta = new MenuItem();
+                miniHotCoreanoRomeuJulieta.setName("Mini Hot Coreano Romeu e Julieta");
+                miniHotCoreanoRomeuJulieta.setDescription("Mini espeto de salsicha, salmão ou camarão com queijo empanado com massa estilo coreano");
+                miniHotCoreanoRomeuJulieta.setPrice(10.00);
+                miniHotCoreanoRomeuJulieta.setCategory("Comidas");
+                miniHotCoreanoRomeuJulieta.setAvailable(true);
+                menuItemRepository.save(miniHotCoreanoRomeuJulieta);
+
                 // Yakisoba Variations
                 MenuItem yakisoba = new MenuItem();
                 yakisoba.setName("Yakisoba");
@@ -148,18 +169,18 @@ public class DataInitializer implements CommandLineRunner {
                 hotSushi.getVariations().add(new MenuItemVariation(null, "De Camarão (Unid)", "MULTIPLE", 0.00, null, 1, hotSushi));
                 menuItemRepository.save(hotSushi);
 
-                // MenuItem pastel = new MenuItem();
-                // pastel.setName("Pastel");
-                // pastel.setDescription("Pastel de vento com diferentes recheios");
-                // pastel.setPrice(6.00);
-                // pastel.setCategory("Comidas");
-                // pastel.setAvailable(true);
-                // pastel.getVariations().add(new MenuItemVariation(null, "Queijo", "MULTIPLE", 2.00, null, 1, pastel));
-                // pastel.getVariations().add(new MenuItemVariation(null, "Frango", "MULTIPLE", 2.00, null, 1, pastel));
-                // pastel.getVariations().add(new MenuItemVariation(null, "Carne", "MULTIPLE", 2.00, null, 1, pastel));
-                // pastel.getVariations().add(new MenuItemVariation(null, "Calabresa", "MULTIPLE", 2.00, null, 1, pastel));
-                // pastel.getVariations().add(new MenuItemVariation(null, "Catupiry", "MULTIPLE", 2.00, null, 1, pastel));
-                // menuItemRepository.save(pastel);
+                MenuItem pastel = new MenuItem();
+                pastel.setName("Pastel");
+                pastel.setDescription("Pastel de vento com diferentes recheios");
+                pastel.setPrice(6.00);
+                pastel.setCategory("Comidas");
+                pastel.setAvailable(false);
+                pastel.getVariations().add(new MenuItemVariation(null, "Queijo", "MULTIPLE", 2.00, null, 1, pastel));
+                pastel.getVariations().add(new MenuItemVariation(null, "Frango", "MULTIPLE", 2.00, null, 1, pastel));
+                pastel.getVariations().add(new MenuItemVariation(null, "Carne", "MULTIPLE", 2.00, null, 1, pastel));
+                pastel.getVariations().add(new MenuItemVariation(null, "Calabresa", "MULTIPLE", 2.00, null, 1, pastel));
+                pastel.getVariations().add(new MenuItemVariation(null, "Catupiry", "MULTIPLE", 2.00, null, 1, pastel));
+                menuItemRepository.save(pastel);
                 
                 MenuItem pastelParaense = new MenuItem();
                 pastelParaense.setName("Pastel Paraense");
@@ -200,6 +221,7 @@ public class DataInitializer implements CommandLineRunner {
 
                 // Seed Combo 1
                 seedCombo1(hotSushi, takoyaki, gyoza, miniHotCoreano);
+                seedCombo2(hotSushi, miniHotBall, camaraoMilanesa, miniHotCoreano);
     }
 
     private void seedCombo1(MenuItem hotSushi, MenuItem takoyaki, MenuItem gyoza, MenuItem miniHotCoreano) {
@@ -239,6 +261,54 @@ public class DataInitializer implements CommandLineRunner {
         // 1x Mini Hot Coreano De Salsicha
         ComboItem ci4 = new ComboItem();
         ci4.setCombo(combo1);
+        ci4.setMenuItem(miniHotCoreano);
+        ci4.setQuantity(1);
+        MenuItemVariation v4 = miniHotCoreano.getVariations().stream()
+                .filter(v -> "De Salsicha".equals(v.getName())).findFirst().orElse(null);
+        if (v4 != null) ci4.getAllowedVariations().add(v4);
+        combo1.getItems().add(ci4);
+
+        comboRepository.save(combo1);
+        System.out.println("Seeded Combo 1");
+    }
+
+    private void seedCombo2(MenuItem hotSushi, MenuItem miniHotBall, MenuItem camaraoMilanesa, MenuItem miniHotCoreano) {
+        Combo combo2 = new Combo();
+        combo2.setName("Combo 2");
+        combo2.setDescription("3 Hot Sushi Salmão, 1 Mini Hot Ball, 1 Camarão Milanesa (Unid) e 1 Mini Hot Salsicha");
+        combo2.setPrice(30.00); // Exemplo de preço
+        combo2.setAvailable(true);
+
+        // 3x Hot Sushi de Salmão (Unid)
+        ComboItem ci1 = new ComboItem();
+        ci1.setCombo(combo2);
+        ci1.setMenuItem(hotSushi);
+        ci1.setQuantity(3);
+        MenuItemVariation v1 = hotSushi.getVariations().stream()
+                .filter(v -> "De Salmão (Unid)".equals(v.getName())).findFirst().orElse(null);
+        if (v1 != null) ci1.getAllowedVariations().add(v1);
+        combo2.getItems().add(ci1);
+
+        // 1x Mini Hot Ball (No variation)
+        ComboItem ci2 = new ComboItem();
+        ci2.setCombo(combo2);
+        ci2.setMenuItem(miniHotBall);
+        ci2.setQuantity(1);
+        combo2.getItems().add(ci2);
+
+        // 1x Camarão Milanesa (Unid)
+        ComboItem ci3 = new ComboItem();
+        ci3.setCombo(combo2);
+        ci3.setMenuItem(camaraoMilanesa);
+        ci3.setQuantity(1);
+        MenuItemVariation v3 = camaraoMilanesa.getVariations().stream()
+                .filter(v -> "Unidade (Unid)".equals(v.getName())).findFirst().orElse(null);
+        if (v3 != null) ci3.getAllowedVariations().add(v3);
+        combo2.getItems().add(ci3);
+
+        // 1x Mini Hot Coreano De Salsicha
+        ComboItem ci4 = new ComboItem();
+        ci4.setCombo(combo2);
         ci4.setMenuItem(miniHotCoreano);
         ci4.setQuantity(1);
         MenuItemVariation v4 = miniHotCoreano.getVariations().stream()

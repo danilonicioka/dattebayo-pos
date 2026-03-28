@@ -38,6 +38,9 @@ public class OrderService {
     @Autowired
     private SocketService socketService;
 
+    @Autowired
+    private ComboItemRepository comboItemRepository;
+
     public OrderDTO createOrder(CreateOrderDTO createOrderDTO) {
         Order order = new Order();
         order.setTableNumber(createOrderDTO.getTableNumber());
@@ -69,6 +72,13 @@ public class OrderService {
                 if (itemRequest.getVariations() != null) {
                     for (var variationRequest : itemRequest.getVariations()) {
                         addVariationToOrderItem(orderItem, variationRequest);
+                    }
+                }
+                
+                // Record excluded combo items
+                if (itemRequest.getExcludedComboItemIds() != null) {
+                    for (Long ciId : itemRequest.getExcludedComboItemIds()) {
+                        comboItemRepository.findById(ciId).ifPresent(orderItem.getExcludedComboItems()::add);
                     }
                 }
                 
@@ -321,10 +331,23 @@ public class OrderService {
                 // Map variations for combos too
                 itemDTO.setVariations(mapVariationsToDTO(item.getVariations()));
                 
+                // Set excluded combo item IDs
+                if (item.getExcludedComboItems() != null) {
+                    itemDTO.setExcludedComboItemIds(item.getExcludedComboItems().stream()
+                        .map(ComboItem::getId)
+                        .collect(Collectors.toList()));
+                }
+                
                 // Build detailed breakdown of combo items for kitchen/display
                 List<String> details = new ArrayList<>();
                 if (item.getCombo().getItems() != null) {
+                    List<Long> excludedIds = itemDTO.getExcludedComboItemIds() != null ? itemDTO.getExcludedComboItemIds() : new ArrayList<>();
                     for (ComboItem ci : item.getCombo().getItems()) {
+                        // Skip excluded items
+                        if (excludedIds.contains(ci.getId())) {
+                            continue;
+                        }
+                        
                         StringBuilder sb = new StringBuilder();
                         String baseName = ci.getMenuItem().getName();
                         
@@ -488,6 +511,13 @@ public class OrderService {
                 if (itemRequest.getVariations() != null) {
                     for (var variationRequest : itemRequest.getVariations()) {
                         addVariationToOrderItem(orderItem, variationRequest);
+                    }
+                }
+                
+                // Record excluded combo items
+                if (itemRequest.getExcludedComboItemIds() != null) {
+                    for (Long ciId : itemRequest.getExcludedComboItemIds()) {
+                        comboItemRepository.findById(ciId).ifPresent(orderItem.getExcludedComboItems()::add);
                     }
                 }
                 
@@ -674,7 +704,16 @@ public class OrderService {
                 .map(OrderItemVariation::getMenuItemVariation)
                 .collect(Collectors.toList());
 
+        List<Long> excludedIds = orderItem.getExcludedComboItems().stream()
+                .map(ComboItem::getId)
+                .collect(Collectors.toList());
+
         for (ComboItem ci : combo.getItems()) {
+            // Skip excluded items
+            if (excludedIds.contains(ci.getId())) {
+                continue;
+            }
+            
             MenuItem item = ci.getMenuItem();
             List<MenuItemVariation> allowed = ci.getAllowedVariations();
             MenuItemVariation chosen = null;
@@ -726,7 +765,16 @@ public class OrderService {
                 .map(OrderItemVariation::getMenuItemVariation)
                 .collect(Collectors.toList());
 
+        List<Long> excludedIds = orderItem.getExcludedComboItems().stream()
+                .map(ComboItem::getId)
+                .collect(Collectors.toList());
+
         for (ComboItem ci : combo.getItems()) {
+            // Skip excluded items
+            if (excludedIds.contains(ci.getId())) {
+                continue;
+            }
+            
             MenuItem item = ci.getMenuItem();
             List<MenuItemVariation> allowed = ci.getAllowedVariations();
             MenuItemVariation chosen = null;

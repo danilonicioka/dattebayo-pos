@@ -109,6 +109,49 @@
             border-color: #ee8b1b;
         }
 
+        .combo-item-selector {
+            border-width: 2px;
+            margin-bottom: 5px;
+            background-color: #f0f0f0;
+        }
+
+        .combo-item-selector.selected {
+            background-color: #fff;
+            border-color: #223c0e;
+        }
+
+        .combo-item-selector h4 {
+            margin: 0;
+            font-size: 1.1em;
+        }
+
+        .combo-item-selector .fa-check-circle {
+            color: #ccc;
+            font-size: 1.2em;
+        }
+
+        .combo-item-selector.selected .fa-check-circle {
+            color: #223c0e;
+        }
+
+        .order-item-details {
+            font-size: 0.8em;
+            color: #777;
+            margin-top: 2px;
+            line-height: 1.2;
+        }
+
+        .item-variations-container {
+            transition: opacity 0.3s;
+            margin-top: 5px;
+            padding-left: 15px;
+        }
+
+        .item-variations-container.disabled {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
         .variation-option.selected {
             border-color: #ee8b1b;
             background-color: #fff8f0;
@@ -324,23 +367,6 @@
         }
 
         function addComboToOrder(combo) {
-            const existingItem = orderItems.find(item => item.comboId === combo.id);
-            if (existingItem) {
-                existingItem.quantity++;
-            } else {
-                orderItems.push({
-                    comboId: combo.id,
-                    menuItemId: null,
-                    quantity: 1,
-                    name: combo.name,
-                    price: combo.price,
-                    variations: []
-                });
-            }
-            updateOrderDisplay();
-        }
-
-        function addComboToOrder(combo) {
             // Check which items need a choice (allowedVariations.length > 1)
             const choicesNeeded = [];
             const autoSelections = [];
@@ -354,14 +380,8 @@
                 }
             });
 
-            if (choicesNeeded.length > 0) {
-                // Open modal for choices
-                openComboChoiceModal(combo, choicesNeeded, autoSelections);
-            } else {
-                // Auto-select and add
-                const variationIds = autoSelections.map(s => s.variationId);
-                addComboToCart(combo, variationIds);
-            }
+            // ALWAYS open the modal so user can toggle items
+            openComboChoiceModal(combo, choicesNeeded, autoSelections);
         }
 
         function openComboChoiceModal(combo, choiceIndices, autoSelections) {
@@ -377,24 +397,30 @@
             container.innerHTML = '';
             document.getElementById('comboChoiceTitle').textContent = `Opções: ${combo.name}`;
 
-            choiceIndices.forEach(itemIndex => {
-                const item = combo.items[itemIndex];
+            // Show ALL items in the combo so user can toggle them
+            (combo.items || []).forEach((item, index) => {
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'combo-choice-item';
                 
                 let optionsHtml = '';
-                item.allowedVariations.forEach(v => {
-                    optionsHtml += `
-                        <div class="variation-option" data-item-index="${itemIndex}" data-variation-id="${v.id}" onclick="selectComboVariation(${itemIndex}, ${v.id}, this)">
-                            <span>${v.name}</span>
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                    `;
-                });
+                if (item.allowedVariations && item.allowedVariations.length > 0) {
+                    item.allowedVariations.forEach(v => {
+                        const isSelected = currentComboChoices[index] === v.id ? 'selected' : '';
+                        optionsHtml += `
+                            <div class="variation-option ${isSelected}" data-item-index="${index}" data-variation-id="${v.id}" onclick="selectComboVariation(${index}, ${v.id}, this)">
+                                <span>${v.name}</span>
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                        `;
+                    });
+                }
 
                 itemDiv.innerHTML = `
-                    <h4>${item.quantity}x ${item.menuItemName}</h4>
-                    <div class="variation-options">
+                    <div class="variation-option combo-item-selector selected" data-combo-item-id="${item.id}" onclick="toggleComboItem(this)">
+                        <h4>${item.quantity}x ${item.menuItemName}</h4>
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="variation-options item-variations-container">
                         ${optionsHtml}
                     </div>
                 `;
@@ -403,6 +429,16 @@
 
             document.getElementById('comboChoiceModal').style.display = 'block';
             document.getElementById('overlay').style.display = 'block';
+        }
+
+        function toggleComboItem(element) {
+            element.classList.toggle('selected');
+            const variationsContainer = element.nextElementSibling;
+            if (element.classList.contains('selected')) {
+                variationsContainer.classList.remove('disabled');
+            } else {
+                variationsContainer.classList.add('disabled');
+            }
         }
 
         function selectComboVariation(itemIndex, variationId, element) {
@@ -423,9 +459,20 @@
         }
 
         function confirmComboChoices() {
-            // Validate all choices made
+            const excludedComboItemIds = [];
+            const selectors = document.querySelectorAll('.combo-item-selector');
+            selectors.forEach(sel => {
+                if (!sel.classList.contains('selected')) {
+                    excludedComboItemIds.push(parseInt(sel.dataset.comboItemId));
+                }
+            });
+
+            // Validate all choices made for items that are SELECTED (not excluded)
             const neededIndices = (currentComboForChoice.items || [])
-                .map((item, index) => (item.allowedVariations && item.allowedVariations.length > 1) ? index : -1)
+                .map((item, index) => {
+                    const isExcluded = excludedComboItemIds.includes(item.id);
+                    return (!isExcluded && item.allowedVariations && item.allowedVariations.length > 1) ? index : -1;
+                })
                 .filter(idx => idx !== -1);
             
             for (const idx of neededIndices) {
@@ -435,17 +482,24 @@
                 }
             }
 
-            const variationIds = Object.values(currentComboChoices);
-            addComboToCart(currentComboForChoice, variationIds);
+            const variationIds = Object.entries(currentComboChoices)
+                .filter(([idx, _]) => !excludedComboItemIds.includes(currentComboForChoice.items[parseInt(idx)].id))
+                .map(([_, vid]) => vid);
+
+            addComboToCart(currentComboForChoice, variationIds, excludedComboItemIds);
             closeComboChoiceModal();
         }
 
-        function addComboToCart(combo, variationIds) {
-            // Find if exact same combo (with same variations) exists in cart
+        function addComboToCart(combo, variationIds, excludedComboItemIds) {
+            excludedComboItemIds = excludedComboItemIds || [];
+            // Find if exact same combo (with same variations AND same exclusions) exists in cart
             const variationKey = (variationIds || []).sort().join(',');
+            const exclusionKey = (excludedComboItemIds || []).sort().join(',');
+            
             const existingItem = orderItems.find(item => 
                 item.comboId === combo.id && 
-                (item.variationIds || []).sort().join(',') === variationKey
+                (item.variationIds || []).sort().join(',') === variationKey &&
+                (item.excludedComboItemIds || []).sort().join(',') === exclusionKey
             );
 
             if (existingItem) {
@@ -459,6 +513,7 @@
                     name: displayName,
                     price: combo.price,
                     variationIds: variationIds || [], // Store IDs directly for the request
+                    excludedComboItemIds: excludedComboItemIds,
                     variations: (variationIds || []).map(vid => {
                         // Find variation name for display
                         let vName = '...';
@@ -469,7 +524,20 @@
                             }
                         });
                         return { menuItemVariationId: vid, name: vName, selected: true, quantity: 1 };
-                    })
+                    }),
+                    details: combo.items
+                        .filter(ci => !excludedComboItemIds.includes(ci.id))
+                        .map(ci => {
+                            let itemName = ci.menuItemName;
+                            // Find if a variation was selected for this item (using currentComboChoices)
+                            const itemVariationId = currentComboChoices[combo.items.indexOf(ci)];
+                            if (itemVariationId) {
+                                const v = ci.allowedVariations.find(av => av.id === itemVariationId);
+                                if (v) itemName += ` ${v.name}`;
+                            }
+                            return `${ci.quantity}x ${itemName}`;
+                        })
+                        .join(', ')
                 });
             }
             updateOrderDisplay();
@@ -990,6 +1058,7 @@
                     <div class="order-item">
                         <div class="order-item-info">
                             <div class="order-item-name">${item.name}</div>
+                            <div class="order-item-details">${item.details || ''}</div>
                             <div class="quantity-controls">
                                 <button type="button" class="qty-btn" onclick="decrementQuantity(${index})">-</button>
                                 <span class="qty-value">${item.quantity}</span>
@@ -1068,7 +1137,8 @@
                             comboId: item.comboId,
                             quantity: item.quantity,
                             specialInstructions: item.specialInstructions || '',
-                            variations: item.variations || []
+                            variations: item.variations || [],
+                            excludedComboItemIds: item.excludedComboItemIds || []
                         };
                     }
                     return {

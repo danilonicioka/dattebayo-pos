@@ -21,4 +21,6 @@ public class OrderItemRequestDTO {
     private String specialInstructions;
 
     private List<OrderItemVariationRequestDTO> variations;
+
+    private List<Long> excludedComboItemIds;
 }

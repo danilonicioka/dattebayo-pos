@@ -7,6 +7,7 @@ import java.util.List;
 
 @Data
 public class ComboItemDTO {
+    private Long id;
     private Long menuItemId;
     private String menuItemName;
     private List<Long> allowedVariationIds = new ArrayList<>();

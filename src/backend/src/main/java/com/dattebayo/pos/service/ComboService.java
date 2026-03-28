@@ -117,6 +117,7 @@ public class ComboService {
         dto.setAvailable(combo.getAvailable());
         dto.setItems(combo.getItems().stream().map(ci -> {
             ComboItemDTO ciDTO = new ComboItemDTO();
+            ciDTO.setId(ci.getId());
             ciDTO.setMenuItemId(ci.getMenuItem().getId());
             ciDTO.setMenuItemName(ci.getMenuItem().getName());
             if (ci.getAllowedVariations() != null) {

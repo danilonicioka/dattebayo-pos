@@ -18,4 +18,5 @@ public class OrderItemDTO {
     private Double subtotal;
     private List<OrderItemVariationDTO> variations;
     private List<String> comboItemDetails;
+    private List<Long> excludedComboItemIds;
 }

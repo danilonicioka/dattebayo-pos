@@ -314,10 +314,10 @@ public class DataInitializer implements CommandLineRunner {
         MenuItemVariation v4 = miniHotCoreano.getVariations().stream()
                 .filter(v -> "De Salsicha".equals(v.getName())).findFirst().orElse(null);
         if (v4 != null) ci4.getAllowedVariations().add(v4);
-        combo1.getItems().add(ci4);
+        combo2.getItems().add(ci4);
 
-        comboRepository.save(combo1);
-        System.out.println("Seeded Combo 1");
+        comboRepository.save(combo2);
+        System.out.println("Seeded Combo 2");
     }
 
     private void ensureVariationsSeeded() {

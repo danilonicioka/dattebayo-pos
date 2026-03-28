@@ -25,6 +25,7 @@ services:
     build:
       context: ./src
       dockerfile: backend/Dockerfile
+      network: host
     container_name: dattebayo_backend
     restart: unless-stopped
     ports:

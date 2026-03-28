@@ -22,6 +22,10 @@ services:
       - app_network
 
   backend:
+    build:
+      context: ./src
+      dockerfile: backend/Dockerfile
+      network: host
     image: danilonicioka/dattebayo-backend:latest
     container_name: dattebayo_backend_prod
     restart: unless-stopped

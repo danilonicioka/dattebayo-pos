@@ -17,7 +17,7 @@ docker login
 echo ""
 echo "🏗  Construindo imagem do Backend Java (linux/amd64 para nuvem)..."
 # Build a partir da pasta src para pegar pom.xml e os módulos backend/web
-docker build --platform linux/amd64 -t $DOCKER_USER/dattebayo-backend:latest -f src/backend/Dockerfile ./src
+docker build --network=host --platform linux/amd64 -t $DOCKER_USER/dattebayo-backend:latest -f src/backend/Dockerfile ./src
 
 echo ""
 echo "📤 Fazendo push da imagem para o Docker Hub..."

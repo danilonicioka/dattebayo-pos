@@ -94,10 +94,22 @@ public class DataInitializer implements CommandLineRunner {
                 hotBall.setDescription("Bolinho de sushi (salmão ou camarão) com queijo empanado e frito");
                 hotBall.setPrice(12.00);
                 hotBall.setCategory("Comidas");
-                hotBall.setAvailable(true);
+                hotBall.setAvailable(false);
                 hotBall.getVariations().add(new MenuItemVariation(null, "De Salmão", "SINGLE", 0.00, null, 1, hotBall));
                 hotBall.getVariations().add(new MenuItemVariation(null, "De Camarão", "SINGLE", 0.00, null, 1, hotBall));
                 menuItemRepository.save(hotBall);
+
+                // Big Hot
+                MenuItem bigHot = new MenuItem();
+                bigHot.setName("Big Hot");
+                bigHot.setDescription("Hot roll grande com opção de salmão ou camarão");
+                bigHot.setPrice(25.00);
+                bigHot.setCategory("Comidas");
+                bigHot.setAvailable(true);
+                bigHot.getVariations().add(new MenuItemVariation(null, "De Salmão", "SINGLE", 0.00, null, 1, bigHot));
+                bigHot.getVariations().add(new MenuItemVariation(null, "De Camarão", "SINGLE", 0.00, null, 1, bigHot));
+                menuItemRepository.save(bigHot);
+
 
                 // Mini Hot Ball
                 MenuItem miniHotBall = new MenuItem();
@@ -105,7 +117,7 @@ public class DataInitializer implements CommandLineRunner {
                 miniHotBall.setDescription("Mini espeto de salsicha, salmão ou camarão com queijo empanado com massa estilo coreano");
                 miniHotBall.setPrice(12.00);
                 miniHotBall.setCategory("Comidas");
-                miniHotBall.setAvailable(true);
+                miniHotBall.setAvailable(false);
                 miniHotBall.setComboOnly(true);
                 miniHotBall.getVariations().add(new MenuItemVariation(null, "De Salmão", "SINGLE", 0.00, null, 1, miniHotBall));
                 miniHotBall.getVariations().add(new MenuItemVariation(null, "De Camarão", "SINGLE", 0.00, null, 1, miniHotBall));
@@ -142,7 +154,7 @@ public class DataInitializer implements CommandLineRunner {
                 miniHotCoreanoRomeuJulieta.setDescription("Mini espeto de salsicha, salmão ou camarão com queijo empanado com massa estilo coreano");
                 miniHotCoreanoRomeuJulieta.setPrice(10.00);
                 miniHotCoreanoRomeuJulieta.setCategory("Comidas");
-                miniHotCoreanoRomeuJulieta.setAvailable(true);
+                miniHotCoreanoRomeuJulieta.setAvailable(false);
                 menuItemRepository.save(miniHotCoreanoRomeuJulieta);
 
                 // Yakisoba Variations
@@ -364,6 +376,34 @@ public class DataInitializer implements CommandLineRunner {
             new MenuItemVariation(null, "Unidade", "SINGLE", 6.00, null, 1, null),
             new MenuItemVariation(null, "Porção com 5 unidades", "SINGLE", 25.00, null, 5, null)
         ));
+
+        // Ensure "Big Hot" exists in existing database
+        if (!menuItemRepository.findByName("Big Hot").isPresent()) {
+            MenuItem bigHot = new MenuItem();
+            bigHot.setName("Big Hot");
+            bigHot.setDescription("Hot roll grande com opção de salmão ou camarão");
+            bigHot.setPrice(25.00);
+            bigHot.setCategory("Comidas");
+            bigHot.setAvailable(true);
+            bigHot.getVariations().add(new MenuItemVariation(null, "De Salmão", "SINGLE", 0.00, null, 1, bigHot));
+            bigHot.getVariations().add(new MenuItemVariation(null, "De Camarão", "SINGLE", 0.00, null, 1, bigHot));
+            menuItemRepository.save(bigHot);
+            System.out.println("Seeded missing MenuItem: Big Hot");
+        } else {
+            checkAndSeedVariations("Big Hot", java.util.List.of(
+                new MenuItemVariation(null, "De Salmão", "SINGLE", 0.00, null, 1, null),
+                new MenuItemVariation(null, "De Camarão", "SINGLE", 0.00, null, 1, null)
+            ));
+        }
+
+        // Disable "Hot Ball" in existing database
+        menuItemRepository.findByName("Hot Ball").ifPresent(item -> {
+            if (item.getAvailable()) {
+                item.setAvailable(false);
+                menuItemRepository.save(item);
+                System.out.println("Disabled Hot Ball in existing database");
+            }
+        });
     }
 
     private void checkAndSeedVariations(String itemName, java.util.List<MenuItemVariation> expectedVariations) {

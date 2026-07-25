@@ -101,6 +101,17 @@ The backend uses Spring profiles. Environment variables are defined in `.env` an
 See [LICENSE](LICENSE) file.
 
 
+## Menu (Cardápio) Configuration
+
+The application initializes its menu with pre-seeded items in the database:
+- **Big Hot** (R$ 25,00) - Available by default. Includes variations: *De Salmão* and *De Camarão*.
+- **Hot Ball** (R$ 12,00) - Present in database but set to disabled (unavailable) by default.
+
+To reset the database and re-seed the menu items, run:
+```bash
+./reset-db.sh
+```
+
 ### VM Configuration
 
 Once your VM is created and you have SSH access, follow these steps to get the project running:

@@ -105,7 +105,10 @@ See [LICENSE](LICENSE) file.
 
 The application initializes its menu with pre-seeded items in the database:
 - **Big Hot** (R$ 25,00) - Available by default. Includes variations: *De Salmão* and *De Camarão*.
+- **Curry** (R$ 25,00) - Available by default (tipo único, sem variações).
 - **Hot Ball** (R$ 12,00) - Present in database but set to disabled (unavailable) by default.
+
+
 
 To reset the database and re-seed the menu items:
 - In development (local build):

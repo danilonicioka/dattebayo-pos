@@ -67,6 +67,17 @@ public class DataInitializer implements CommandLineRunner {
                 takoyaki.setAvailable(true);
                 menuItemRepository.save(takoyaki);
 
+                // Curry
+                MenuItem curry = new MenuItem();
+                curry.setName("Curry");
+                curry.setDescription("Prato quente de curry com arroz e legumes");
+                curry.setPrice(25.00);
+                curry.setCategory("Comidas");
+                curry.setAvailable(true);
+                menuItemRepository.save(curry);
+
+
+
                 // Mini hot temaki com Camarão option
                 MenuItem temaki = new MenuItem();
                 temaki.setName("Temaki");
@@ -395,6 +406,19 @@ public class DataInitializer implements CommandLineRunner {
                 new MenuItemVariation(null, "De Camarão", "SINGLE", 0.00, null, 1, null)
             ));
         }
+
+        // Ensure "Curry" exists in existing database
+        if (!menuItemRepository.findByName("Curry").isPresent()) {
+            MenuItem curry = new MenuItem();
+            curry.setName("Curry");
+            curry.setDescription("Prato quente de curry com arroz e legumes");
+            curry.setPrice(25.00);
+            curry.setCategory("Comidas");
+            curry.setAvailable(true);
+            menuItemRepository.save(curry);
+            System.out.println("Seeded missing MenuItem: Curry");
+        }
+
 
         // Disable "Hot Ball" in existing database
         menuItemRepository.findByName("Hot Ball").ifPresent(item -> {

@@ -99,6 +99,18 @@ public class DataInitializer implements CommandLineRunner {
                 gyoza.getVariations().add(new MenuItemVariation(null, "Unidade (Unid)", "SINGLE", 0.00, null, 1, gyoza));
                 menuItemRepository.save(gyoza);
 
+                // Harumaki
+                MenuItem harumaki = new MenuItem();
+                harumaki.setName("Harumaki");
+                harumaki.setDescription("Rolinho primavera crocante recheado com shimeji");
+                harumaki.setPrice(10.00);
+                harumaki.setCategory("Comidas");
+                harumaki.setAvailable(true);
+                menuItemRepository.save(harumaki);
+
+
+
+
                 // Hot ball com Camarão option
                 MenuItem hotBall = new MenuItem();
                 hotBall.setName("Hot Ball");
@@ -418,6 +430,19 @@ public class DataInitializer implements CommandLineRunner {
             menuItemRepository.save(curry);
             System.out.println("Seeded missing MenuItem: Curry");
         }
+
+        // Ensure "Harumaki" exists in existing database
+        if (!menuItemRepository.findByName("Harumaki").isPresent()) {
+            MenuItem harumaki = new MenuItem();
+            harumaki.setName("Harumaki");
+            harumaki.setDescription("Rolinho primavera crocante recheado com shimeji");
+            harumaki.setPrice(10.00);
+            harumaki.setCategory("Comidas");
+            harumaki.setAvailable(true);
+            menuItemRepository.save(harumaki);
+            System.out.println("Seeded missing MenuItem: Harumaki");
+        }
+
 
 
         // Disable "Hot Ball" in existing database

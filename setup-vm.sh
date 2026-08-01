@@ -32,7 +32,9 @@ echo "👤 Adicionando usuário atual ao grupo 'docker'..."
 sudo usermod -aG docker "$USER"
 
 echo "🚀 Iniciando os serviços..."
+newgrp docker <<EOF
 bash "./deploy-hub.sh"
+EOF
 
 echo ""
 echo "✅ Setup concluído!"
